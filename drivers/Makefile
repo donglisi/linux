@@ -4,8 +4,6 @@ obj-y				+= video/
 obj-y				+= rtc/
 obj-y				+= input/
 
-obj-y				+= clk/
-
 obj-y				+= virtio/
 
 obj-y				+= tty/

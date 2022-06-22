@@ -1,14 +1,70 @@
-obj-y :=	open.o read_write.o file_table.o super.o \
-		char_dev.o stat.o exec.o pipe.o namei.o fcntl.o \
-		ioctl.o readdir.o select.o dcache.o inode.o \
-		attr.o bad_inode.o file.o filesystems.o namespace.o \
-		seq_file.o xattr.o libfs.o fs-writeback.o \
-		pnode.o splice.o sync.o utimes.o d_path.o \
-		stack.o fs_struct.o statfs.o fs_pin.o nsfs.o \
-		fs_types.o fs_context.o fs_parser.o fsopen.o init.o \
-		kernel_read_file.o remap_range.o buffer.o direct-io.o \
-		mpage.o proc_namespace.o eventpoll.o anon_inodes.o \
-		signalfd.o timerfd.o eventfd.o aio.o io_uring.o io-wq.o \
-		locks.o binfmt_script.o binfmt_elf.o mbcache.o coredump.o \
-		drop_caches.o fhandle.o iomap/ proc/ kernfs/ sysfs/ \
-		devpts/inode.o ext4/ jbd2/ ramfs/ exportfs/expfs.o
+obj-y :=
+obj-y += open.o
+obj-y += read_write.o
+obj-y += file_table.o
+obj-y += super.o
+obj-y += char_dev.o
+obj-y += stat.o
+obj-y += exec.o
+obj-y += pipe.o
+obj-y += namei.o
+obj-y += fcntl.o
+obj-y += ioctl.o
+obj-y += readdir.o
+obj-y += select.o
+obj-y += dcache.o
+obj-y += inode.o
+obj-y += attr.o
+obj-y += bad_inode.o
+obj-y += file.o
+obj-y += filesystems.o
+obj-y += namespace.o
+obj-y += seq_file.o
+obj-y += xattr.o
+obj-y += libfs.o
+obj-y += fs-writeback.o
+obj-y += pnode.o
+obj-y += splice.o
+obj-y += sync.o
+obj-y += utimes.o
+obj-y += d_path.o
+obj-y += stack.o
+obj-y += fs_struct.o
+obj-y += statfs.o
+obj-y += fs_pin.o
+obj-y += nsfs.o
+obj-y += fs_types.o
+obj-y += fs_context.o
+obj-y += fs_parser.o
+obj-y += fsopen.o
+obj-y += init.o
+obj-y += kernel_read_file.o
+obj-y += remap_range.o
+obj-y += buffer.o
+obj-y += direct-io.o
+obj-y += mpage.o
+obj-y += proc_namespace.o
+obj-y += eventpoll.o
+obj-y += anon_inodes.o
+obj-y += signalfd.o
+obj-y += timerfd.o
+obj-y += eventfd.o
+obj-y += aio.o
+obj-y += io_uring.o
+obj-y += io-wq.o
+obj-y += locks.o
+obj-y += binfmt_script.o
+obj-y += binfmt_elf.o
+obj-y += mbcache.o
+obj-y += coredump.o
+obj-y += drop_caches.o
+obj-y += fhandle.o
+obj-y += iomap/
+obj-y += proc/
+obj-y += kernfs/
+obj-y += sysfs/
+obj-y += devpts/inode.o
+obj-y += ext4/
+obj-y += jbd2/
+obj-y += ramfs/
+obj-y += exportfs/expfs.o

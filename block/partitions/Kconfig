@@ -1,8 +1,0 @@
-config MSDOS_PARTITION
-	bool "PC BIOS (MSDOS partition tables) support" if PARTITION_ADVANCED
-	default y
-
-config EFI_PARTITION
-	bool "EFI GUID Partition support" if PARTITION_ADVANCED
-	default y
-	select CRC32
