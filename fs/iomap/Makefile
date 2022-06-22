@@ -1,17 +1,5 @@
-# SPDX-License-Identifier: GPL-2.0-or-later
-#
-# Copyright (c) 2019 Oracle.
-# All Rights Reserved.
-#
+ccflags-y += -I $(srctree)/$(src)
 
-ccflags-y += -I $(srctree)/$(src)		# needed for trace events
+obj-y	+= iomap.o
 
-obj-$(CONFIG_FS_IOMAP)		+= iomap.o
-
-iomap-y				+= trace.o \
-				   iter.o
-iomap-$(CONFIG_BLOCK)		+= buffered-io.o \
-				   direct-io.o \
-				   fiemap.o \
-				   seek.o
-iomap-$(CONFIG_SWAP)		+= swapfile.o
+iomap-y	+= trace.o iter.o buffered-io.o direct-io.o fiemap.o seek.o

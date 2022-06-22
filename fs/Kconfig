@@ -1,6 +1,3 @@
-config DCACHE_WORD_ACCESS
-       bool
-
 config FS_IOMAP
 	bool
 
@@ -19,15 +16,10 @@ config EXPORTFS
 config FILE_LOCKING
 	bool "Enable POSIX file locking API" if EXPERT
 	default y
-	help
-	  This option enables standard file locking support, required
-          for filesystems like NFS and for the flock() system
-          call. Disabling this option saves about 11k.
 
 menu "Pseudo filesystems"
 
 source "fs/proc/Kconfig"
-source "fs/kernfs/Kconfig"
 source "fs/sysfs/Kconfig"
 
 endmenu
