@@ -1403,8 +1403,4 @@ config DYNAMIC_SIGFRAME
 config HAVE_ARCH_NODE_DEV_GROUP
 	bool
 
-source "kernel/gcov/Kconfig"
-
-source "scripts/gcc-plugins/Kconfig"
-
 endmenu

@@ -131,7 +131,6 @@ config POWERNV_OP_PANEL
 
 	  If unsure, say M here to build it as a module called powernv-op-panel.
 
-source "drivers/char/ipmi/Kconfig"
 
 config DS1620
 	tristate "NetWinder thermometer support"
@@ -196,7 +195,6 @@ config NWFLASH
 
 	  If you're not sure, say N.
 
-source "drivers/char/hw_random/Kconfig"
 
 config DTLK
 	tristate "Double Talk PC internal speech card support"
@@ -252,7 +250,6 @@ config GPIO_TB0219
 	depends on TANBAC_TB022X
 	select GPIO_VR41XX
 
-source "drivers/char/pcmcia/Kconfig"
 
 config MWAVE
 	tristate "ACP Modem (Mwave) support"
@@ -397,7 +394,6 @@ config UV_MMTIMER
 	  The uv_mmtimer device allows direct userspace access to the
 	  UV system timer.
 
-source "drivers/char/tpm/Kconfig"
 
 config TELCLOCK
 	tristate "Telecom clock driver for ATCA SBC"
@@ -411,10 +407,6 @@ config TELCLOCK
 	  fabric.  Upon loading, the driver exports a sysfs directory,
 	  /sys/devices/platform/telco_clock, with a number of files for
 	  controlling the behavior of this hardware.
-
-source "drivers/s390/char/Kconfig"
-
-source "drivers/char/xillybus/Kconfig"
 
 config ADI
 	tristate "SPARC Privileged ADI driver"

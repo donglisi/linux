@@ -823,8 +823,6 @@ config PARAVIRT_SPINLOCKS
 config X86_HV_CALLBACK_VECTOR
 	def_bool n
 
-source "arch/x86/xen/Kconfig"
-
 config KVM_GUEST
 	bool "KVM Guest support (including kvmclock)"
 	depends on PARAVIRT
@@ -2450,8 +2448,6 @@ config STRICT_SIGALTSTACK_SIZE
 
 	  Say 'N' unless you want to really enforce this check.
 
-source "kernel/livepatch/Kconfig"
-
 endmenu
 
 config ARCH_HAS_ADD_PAGES
@@ -2466,10 +2462,6 @@ menu "Power management and ACPI options"
 config ARCH_HIBERNATION_HEADER
 	def_bool y
 	depends on HIBERNATION
-
-source "kernel/power/Kconfig"
-
-source "drivers/acpi/Kconfig"
 
 config X86_APM_BOOT
 	def_bool y
@@ -2596,12 +2588,6 @@ config APM_ALLOW_INTS
 	  suspend, try setting this to Y.  Otherwise, say N.
 
 endif # APM
-
-source "drivers/cpufreq/Kconfig"
-
-source "drivers/cpuidle/Kconfig"
-
-source "drivers/idle/Kconfig"
 
 endmenu
 
@@ -2874,7 +2860,5 @@ endmenu
 config HAVE_ATOMIC_IOMAP
 	def_bool y
 	depends on X86_32
-
-source "arch/x86/kvm/Kconfig"
 
 source "arch/x86/Kconfig.assembler"

@@ -60,13 +60,7 @@ config SKB_EXTENSIONS
 
 menu "Networking options"
 
-source "net/packet/Kconfig"
 source "net/unix/Kconfig"
-source "net/tls/Kconfig"
-source "net/xfrm/Kconfig"
-source "net/iucv/Kconfig"
-source "net/smc/Kconfig"
-source "net/xdp/Kconfig"
 
 config INET
 	bool "TCP/IP networking"
@@ -93,9 +87,6 @@ config INET
 if INET
 source "net/ipv4/Kconfig"
 source "net/ipv6/Kconfig"
-source "net/netlabel/Kconfig"
-source "net/mptcp/Kconfig"
-
 endif # if INET
 
 config NETWORK_SECMARK
@@ -201,49 +192,10 @@ config BRIDGE_NETFILTER
 
 	  If unsure, say N.
 
-source "net/netfilter/Kconfig"
-source "net/ipv4/netfilter/Kconfig"
-source "net/ipv6/netfilter/Kconfig"
-source "net/decnet/netfilter/Kconfig"
-source "net/bridge/netfilter/Kconfig"
-
 endif
 
-source "net/bpfilter/Kconfig"
-
-source "net/dccp/Kconfig"
-source "net/sctp/Kconfig"
-source "net/rds/Kconfig"
-source "net/tipc/Kconfig"
-source "net/atm/Kconfig"
-source "net/l2tp/Kconfig"
-source "net/802/Kconfig"
-source "net/bridge/Kconfig"
-source "net/dsa/Kconfig"
-source "net/8021q/Kconfig"
-source "net/decnet/Kconfig"
-source "net/llc/Kconfig"
-source "drivers/net/appletalk/Kconfig"
-source "net/x25/Kconfig"
-source "net/lapb/Kconfig"
-source "net/phonet/Kconfig"
-source "net/6lowpan/Kconfig"
-source "net/ieee802154/Kconfig"
-source "net/mac802154/Kconfig"
 source "net/sched/Kconfig"
-source "net/dcb/Kconfig"
-source "net/dns_resolver/Kconfig"
-source "net/batman-adv/Kconfig"
-source "net/openvswitch/Kconfig"
-source "net/vmw_vsock/Kconfig"
 source "net/netlink/Kconfig"
-source "net/mpls/Kconfig"
-source "net/nsh/Kconfig"
-source "net/hsr/Kconfig"
-source "net/switchdev/Kconfig"
-source "net/l3mdev/Kconfig"
-source "net/qrtr/Kconfig"
-source "net/ncsi/Kconfig"
 
 config PCPU_DEV_REFCNT
 	bool "Use percpu variables to maintain network device refcount"
@@ -357,14 +309,6 @@ endmenu
 
 endmenu
 
-source "net/ax25/Kconfig"
-source "net/can/Kconfig"
-source "net/bluetooth/Kconfig"
-source "net/rxrpc/Kconfig"
-source "net/kcm/Kconfig"
-source "net/strparser/Kconfig"
-source "net/mctp/Kconfig"
-
 config FIB_RULES
 	bool
 
@@ -372,21 +316,6 @@ menuconfig WIRELESS
 	bool "Wireless"
 	depends on !S390
 	default y
-
-if WIRELESS
-
-source "net/wireless/Kconfig"
-source "net/mac80211/Kconfig"
-
-endif # WIRELESS
-
-source "net/rfkill/Kconfig"
-source "net/9p/Kconfig"
-source "net/caif/Kconfig"
-source "net/ceph/Kconfig"
-source "net/nfc/Kconfig"
-source "net/psample/Kconfig"
-source "net/ife/Kconfig"
 
 config LWTUNNEL
 	bool "Network light weight tunnels"

@@ -71,7 +71,6 @@ obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
 obj-$(CONFIG_THINKPAD_LMI)	+= think-lmi.o
 
 # Intel
-obj-y				+= intel/
 
 # MSI
 obj-$(CONFIG_MSI_LAPTOP)	+= msi-laptop.o

@@ -271,9 +271,4 @@ config VGA_ARB_MAX_GPUS
 	  Reserves space in the kernel to maintain resource locking for
 	  multiple GPUS.  The overhead for each GPU is very small.
 
-source "drivers/pci/hotplug/Kconfig"
-source "drivers/pci/controller/Kconfig"
-source "drivers/pci/endpoint/Kconfig"
-source "drivers/pci/switch/Kconfig"
-
 endif

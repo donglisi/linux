@@ -5,8 +5,6 @@
 
 menu "Security options"
 
-source "security/keys/Kconfig"
-
 config SECURITY_DMESG_RESTRICT
 	bool "Restrict unprivileged access to the kernel syslog"
 	default n
@@ -209,18 +207,6 @@ config STATIC_USERMODEHELPER_PATH
 	  If you wish for all usermode helper programs to be disabled,
 	  specify an empty string here (i.e. "").
 
-source "security/selinux/Kconfig"
-source "security/smack/Kconfig"
-source "security/tomoyo/Kconfig"
-source "security/apparmor/Kconfig"
-source "security/loadpin/Kconfig"
-source "security/yama/Kconfig"
-source "security/safesetid/Kconfig"
-source "security/lockdown/Kconfig"
-source "security/landlock/Kconfig"
-
-source "security/integrity/Kconfig"
-
 choice
 	prompt "First legacy 'major LSM' to be initialized"
 	default DEFAULT_SECURITY_SELINUX if SECURITY_SELINUX
@@ -268,8 +254,6 @@ config LSM
 	  controlled at boot with the "lsm=" parameter.
 
 	  If unsure, leave this as the default.
-
-source "security/Kconfig.hardening"
 
 endmenu
 

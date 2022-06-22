@@ -8,11 +8,6 @@ config XOR_BLOCKS
 #
 # async_tx api: hardware offloaded memory transfer/transform support
 #
-source "crypto/async_tx/Kconfig"
-
-#
-# Cryptographic API Configuration
-#
 menuconfig CRYPTO
 	tristate "Cryptographic API"
 	help
@@ -1956,9 +1951,5 @@ config CRYPTO_STATS
 
 config CRYPTO_HASH_INFO
 	bool
-
-source "drivers/crypto/Kconfig"
-source "crypto/asymmetric_keys/Kconfig"
-source "certs/Kconfig"
 
 endif	# if CRYPTO

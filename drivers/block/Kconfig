@@ -16,7 +16,6 @@ menuconfig BLK_DEV
 
 if BLK_DEV
 
-source "drivers/block/null_blk/Kconfig"
 
 config BLK_DEV_FD
 	tristate "Normal floppy disk support"
@@ -130,12 +129,6 @@ config PARIDE
 	  "MicroSolutions backpack protocol", "DataStor Commuter protocol"
 	  etc.).
 
-source "drivers/block/paride/Kconfig"
-
-source "drivers/block/mtip32xx/Kconfig"
-
-source "drivers/block/zram/Kconfig"
-
 config BLK_DEV_UBD
 	bool "Virtual block device"
 	depends on UML
@@ -218,8 +211,6 @@ config BLK_DEV_LOOP_MIN_COUNT
 	  The historic default is 8. If a late 2011 version of losetup(8)
 	  is used, it can be set to 0, since needed loop devices can be
 	  dynamically allocated with the /dev/loop-control interface.
-
-source "drivers/block/drbd/Kconfig"
 
 config BLK_DEV_NBD
 	tristate "Network block device support"
@@ -351,8 +342,6 @@ config SUNVDC
 	  Support for virtual disk devices as a client under Sun
 	  Logical Domains.
 
-source "drivers/s390/block/Kconfig"
-
 config XEN_BLKDEV_FRONTEND
 	tristate "Xen virtual block device support"
 	depends on XEN
@@ -407,7 +396,5 @@ config BLK_DEV_RBD
 	  More information at http://ceph.newdream.net/.
 
 	  If unsure, say N.
-
-source "drivers/block/rnbd/Kconfig"
 
 endif # BLK_DEV
