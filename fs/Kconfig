@@ -1,30 +1,17 @@
-# SPDX-License-Identifier: GPL-2.0-only
-#
-# File system configuration
-#
-
-menu "File systems"
-
-# Use unaligned word dcache accesses
 config DCACHE_WORD_ACCESS
        bool
 
 config FS_IOMAP
 	bool
 
-if BLOCK
-
 source "fs/ext4/Kconfig"
 source "fs/jbd2/Kconfig"
 
 config FS_MBCACHE
-# Meta block cache for Extended Attributes (ext2/ext3/ext4)
 	tristate
 	default y if EXT2_FS=y && EXT2_FS_XATTR
 	default y if EXT4_FS=y
 	default m if EXT2_FS_XATTR || EXT4_FS
-
-endif # BLOCK
 
 config EXPORTFS
 	tristate
@@ -47,5 +34,3 @@ endmenu
 
 config IO_WQ
 	bool
-
-endmenu
