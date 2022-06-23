@@ -848,7 +848,6 @@
 #define BUG_TABLE
 #endif
 
-#ifdef CONFIG_UNWINDER_ORC
 #define ORC_UNWIND_TABLE						\
 	. = ALIGN(4);							\
 	.orc_unwind_ip : AT(ADDR(.orc_unwind_ip) - LOAD_OFFSET) {	\
@@ -870,9 +869,6 @@
 			LOOKUP_BLOCK_SIZE) + 1) * 4;			\
 		orc_lookup_end = .;					\
 	}
-#else
-#define ORC_UNWIND_TABLE
-#endif
 
 /* Built-in firmware blobs */
 #ifdef CONFIG_FW_LOADER

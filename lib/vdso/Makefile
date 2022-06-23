@@ -3,7 +3,7 @@
 GENERIC_VDSO_MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 GENERIC_VDSO_DIR := $(dir $(GENERIC_VDSO_MK_PATH))
 
-c-gettimeofday-$(CONFIG_GENERIC_GETTIMEOFDAY) := $(addprefix $(GENERIC_VDSO_DIR), gettimeofday.c)
+c-gettimeofday-y := $(addprefix $(GENERIC_VDSO_DIR), gettimeofday.c)
 
 # This cmd checks that the vdso library does not contain absolute relocation
 # It has to be called after the linking of the vdso library and requires it

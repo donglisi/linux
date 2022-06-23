@@ -5,76 +5,22 @@ SUBLEVEL = 0
 EXTRAVERSION = -rc1
 NAME = Superb Owl
 
-# *DOCUMENTATION*
-# To see a list of typical targets execute "make help"
-# More info can be located in ./README
-# Comments in this file are targeted only to the developer, do not
-# expect to learn how to build the kernel reading this file.
-
 $(if $(filter __%, $(MAKECMDGOALS)), \
 	$(error targets prefixed with '__' are only for internal use))
 
-# That's our default target when none is given on the command line
 PHONY := __all
 __all:
 
-# We are using a recursive build, so we need to do a little thinking
-# to get the ordering right.
-#
-# Most importantly: sub-Makefiles should only ever modify files in
-# their own directory. If in some directory we have a dependency on
-# a file in another dir (which doesn't happen often, but it's often
-# unavoidable when linking the built-in.a targets which finally
-# turn into vmlinux), we will call a sub make in that other dir, and
-# after that we are sure that everything which is in that other dir
-# is now up to date.
-#
-# The only cases where we need to modify files which have global
-# effects are thus separated out and done before the recursive
-# descending is started. They are now explicitly listed as the
-# prepare rule.
-
 ifneq ($(sub_make_done),1)
 
-# Do not use make's built-in rules and variables
-# (this increases performance and avoids hard-to-debug behaviour)
 MAKEFLAGS += -rR
 
-# Avoid funny character set dependencies
 unexport LC_ALL
 LC_COLLATE=C
 LC_NUMERIC=C
 export LC_COLLATE LC_NUMERIC
 
-# Avoid interference with shell env settings
 unexport GREP_OPTIONS
-
-# Beautify output
-# ---------------------------------------------------------------------------
-#
-# Normally, we echo the whole command before executing it. By making
-# that echo $($(quiet)$(cmd)), we now have the possibility to set
-# $(quiet) to choose other forms of output instead, e.g.
-#
-#         quiet_cmd_cc_o_c = Compiling $(RELDIR)/$@
-#         cmd_cc_o_c       = $(CC) $(c_flags) -c -o $@ $<
-#
-# If $(quiet) is empty, the whole command will be printed.
-# If it is set to "quiet_", only the short version will be printed.
-# If it is set to "silent_", nothing will be printed at all, since
-# the variable $(silent_cmd_cc_o_c) doesn't exist.
-#
-# A simple variant is to prefix commands with $(Q) - that's useful
-# for commands that shall be hidden in non-verbose mode.
-#
-#	$(Q)ln $@ :<
-#
-# If KBUILD_VERBOSE equals 0 then the above command will be hidden.
-# If KBUILD_VERBOSE equals 1 then the above command is displayed.
-# If KBUILD_VERBOSE equals 2 then give the reason why each target is rebuilt.
-#
-# To put more focus on warnings, be less verbose as default
-# Use 'make V=1' to see the full commands
 
 ifeq ("$(origin V)", "command line")
   KBUILD_VERBOSE = $(V)
@@ -91,25 +37,12 @@ else
   Q = @
 endif
 
-# If the user is running make -s (silent mode), suppress echoing of
-# commands
-
 ifneq ($(findstring s,$(filter-out --%,$(MAKEFLAGS))),)
   quiet=silent_
   KBUILD_VERBOSE = 0
 endif
 
 export quiet Q KBUILD_VERBOSE
-
-# Call a source code checker (by default, "sparse") as part of the
-# C compilation.
-#
-# Use 'make C=1' to enable checking of only re-compiled files.
-# Use 'make C=2' to enable checking of *all* source files, regardless
-# of whether they are re-compiled or not.
-#
-# See the file "Documentation/dev-tools/sparse.rst" for more details,
-# including where to get the "sparse" utility.
 
 ifeq ("$(origin C)", "command line")
   KBUILD_CHECKSRC = $(C)
@@ -136,27 +69,6 @@ endif
 
 export KBUILD_EXTMOD
 
-# Kbuild will save output files in the current working directory.
-# This does not need to match to the root of the kernel source tree.
-#
-# For example, you can do this:
-#
-#  cd /dir/to/store/output/files; make -f /dir/to/kernel/source/Makefile
-#
-# If you want to save output files in a different location, there are
-# two syntaxes to specify it.
-#
-# 1) O=
-# Use "make O=dir/to/store/output/files/"
-#
-# 2) Set KBUILD_OUTPUT
-# Set the environment variable KBUILD_OUTPUT to point to the output directory.
-# export KBUILD_OUTPUT=dir/to/store/output/files/; make
-#
-# The O= assignment takes precedence over the KBUILD_OUTPUT environment
-# variable.
-
-# Do we want to change the working directory?
 ifeq ("$(origin O)", "command line")
   KBUILD_OUTPUT := $(O)
 endif
@@ -387,30 +299,8 @@ ARCH		?= $(SUBARCH)
 UTS_MACHINE 	:= $(ARCH)
 SRCARCH 	:= $(ARCH)
 
-# Additional ARCH settings for x86
-ifeq ($(ARCH),i386)
-        SRCARCH := x86
-endif
 ifeq ($(ARCH),x86_64)
         SRCARCH := x86
-endif
-
-# Additional ARCH settings for sparc
-ifeq ($(ARCH),sparc32)
-       SRCARCH := sparc
-endif
-ifeq ($(ARCH),sparc64)
-       SRCARCH := sparc
-endif
-
-# Additional ARCH settings for parisc
-ifeq ($(ARCH),parisc64)
-       SRCARCH := parisc
-endif
-
-export cross_compiling :=
-ifneq ($(SRCARCH),$(SUBARCH))
-cross_compiling := 1
 endif
 
 KCONFIG_CONFIG	?= .config
@@ -423,19 +313,8 @@ HOST_LFS_CFLAGS := $(shell getconf LFS_CFLAGS 2>/dev/null)
 HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
 HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
 
-ifneq ($(LLVM),)
-ifneq ($(filter %/,$(LLVM)),)
-LLVM_PREFIX := $(LLVM)
-else ifneq ($(filter -%,$(LLVM)),)
-LLVM_SUFFIX := $(LLVM)
-endif
-
-HOSTCC	= $(LLVM_PREFIX)clang$(LLVM_SUFFIX)
-HOSTCXX	= $(LLVM_PREFIX)clang++$(LLVM_SUFFIX)
-else
 HOSTCC	= gcc
 HOSTCXX	= g++
-endif
 HOSTPKG_CONFIG	= pkg-config
 
 KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
@@ -451,16 +330,6 @@ KBUILD_HOSTLDLIBS   := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
 
 # Make variables (CC, etc...)
 CPP		= $(CC) -E
-ifneq ($(LLVM),)
-CC		= $(LLVM_PREFIX)clang$(LLVM_SUFFIX)
-LD		= $(LLVM_PREFIX)ld.lld$(LLVM_SUFFIX)
-AR		= $(LLVM_PREFIX)llvm-ar$(LLVM_SUFFIX)
-NM		= $(LLVM_PREFIX)llvm-nm$(LLVM_SUFFIX)
-OBJCOPY		= $(LLVM_PREFIX)llvm-objcopy$(LLVM_SUFFIX)
-OBJDUMP		= $(LLVM_PREFIX)llvm-objdump$(LLVM_SUFFIX)
-READELF		= $(LLVM_PREFIX)llvm-readelf$(LLVM_SUFFIX)
-STRIP		= $(LLVM_PREFIX)llvm-strip$(LLVM_SUFFIX)
-else
 CC		= $(CROSS_COMPILE)gcc
 LD		= $(CROSS_COMPILE)ld
 AR		= $(CROSS_COMPILE)ar
@@ -469,7 +338,6 @@ OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
 READELF		= $(CROSS_COMPILE)readelf
 STRIP		= $(CROSS_COMPILE)strip
-endif
 PAHOLE		= pahole
 RESOLVE_BTFIDS	= $(objtree)/tools/bpf/resolve_btfids/resolve_btfids
 LEX		= flex
@@ -525,6 +393,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -Werror=implicit-function-declaration -Werror=implicit-int \
 		   -Werror=return-type -Wno-format-security \
 		   -std=gnu11
+
 KBUILD_CFLAGS += -DCONFIG_KERNFS
 KBUILD_CFLAGS += -DCONFIG_SYSCTL
 KBUILD_CFLAGS += -DCONFIG_SYSFS
@@ -534,8 +403,40 @@ KBUILD_CFLAGS += -DCONFIG_PROC_SYSCTL
 KBUILD_CFLAGS += -DCONFIG_PROC_FS
 KBUILD_CFLAGS += -DCONFIG_FILE_LOCKING
 KBUILD_CFLAGS += -DCONFIG_IO_WQ
+KBUILD_CFLAGS += -DCONFIG_ARCH_HAS_COPY_MC
+KBUILD_CFLAGS += -DCONFIG_ARCH_HAS_UACCESS_FLUSHCACHE
+KBUILD_CFLAGS += -DCONFIG_ARCH_HAS_PMEM_API
+KBUILD_CFLAGS += -DCONFIG_ARCH_STACKWALK
+KBUILD_CFLAGS += -DCONFIG_STACK_HASH_ORDER=20
 KBUILD_CFLAGS += -DCONFIG_COREDUMP
 KBUILD_CFLAGS += -DCONFIG_BLOCK
+KBUILD_CFLAGS += -DCONFIG_SG_POOL
+KBUILD_CFLAGS += -DCONFIG_CPUMASK_OFFSTACK
+KBUILD_CFLAGS += -DCONFIG_GENERIC_IOMAP
+KBUILD_CFLAGS += -DCONFIG_GENERIC_PCI_IOMAP
+KBUILD_CFLAGS += -DCONFIG_HAS_IOPORT_MAP
+KBUILD_CFLAGS += -DCONFIG_HAS_IOMEM
+KBUILD_CFLAGS += -DCONFIG_GENERIC_STRNLEN_USER
+KBUILD_CFLAGS += -DCONFIG_GENERIC_STRNCPY_FROM_USER
+KBUILD_CFLAGS += -DCONFIG_BINARY_PRINTF
+KBUILD_CFLAGS += -DCONFIG_CHECK_SIGNATURE
+KBUILD_CFLAGS += -DCONFIG_SGL_ALLOC
+KBUILD_CFLAGS += -DCONFIG_CRC32_SLICEBY8
+KBUILD_CFLAGS += -DCONFIG_GENERIC_GETTIMEOFDAY
+KBUILD_CFLAGS += -DCONFIG_SWIOTLB
+KBUILD_CFLAGS += -DCONFIG_NEED_DMA_MAP_STATE
+KBUILD_CFLAGS += -DCONFIG_NEED_SG_DMA_LENGTH
+KBUILD_CFLAGS += -DCONFIG_HAS_DMA
+KBUILD_CFLAGS += -DCONFIG_DEBUG_BUGVERBOSE
+KBUILD_CFLAGS += -DCONFIG_DEBUG_MEMORY_INIT
+KBUILD_CFLAGS += -DCONFIG_HARDLOCKUP_CHECK_TIMESTAMP
+KBUILD_CFLAGS += -DCONFIG_PRINTK_TIME
+KBUILD_CFLAGS += -DCONFIG_STACKTRACE
+KBUILD_CFLAGS += -DCONFIG_OBJTOOL
+KBUILD_CFLAGS += -DCONFIG_ARCH_DMA_ADDR_T_64BIT
+KBUILD_CFLAGS += -DCONFIG_ARCH_USE_CMPXCHG_LOCKREF
+KBUILD_CFLAGS += -DCONFIG_ARCH_HAS_FAST_MULTIPLIER
+KBUILD_CFLAGS += -DCONFIG_ARCH_USE_SYM_ANNOTATIONS
 KBUILD_CFLAGS += -DCONFIG_SRCU
 KBUILD_CFLAGS += -DCONFIG_CRYPTO_HASH
 KBUILD_CFLAGS += -DCONFIG_HAVE_HARDENED_USERCOPY_ALLOCATOR
@@ -547,6 +448,16 @@ KBUILD_CFLAGS += -DCONFIG_NET_RX_BUSY_POLL
 KBUILD_CFLAGS += -DCONFIG_RFS_ACCEL
 KBUILD_CFLAGS += -DCONFIG_INET
 KBUILD_CFLAGS += -DCONFIG_NET
+KBUILD_CFLAGS += -DCONFIG_CONSOLE_LOGLEVEL_QUIET=4
+KBUILD_CFLAGS += -DCONFIG_MESSAGE_LOGLEVEL_DEFAULT=4
+KBUILD_CFLAGS += -DCONFIG_CONSOLE_LOGLEVEL_DEFAULT=7
+KBUILD_CFLAGS += -DCONFIG_RCU_CPU_STALL_TIMEOUT=21
+KBUILD_CFLAGS += -DCONFIG_RCU_EXP_CPU_STALL_TIMEOUT=0
+KBUILD_CFLAGS += -DCONFIG_HAVE_SYSCALL_TRACEPOINTS
+KBUILD_CFLAGS += -DCONFIG_PANIC_ON_OOPS_VALUE=0
+KBUILD_CFLAGS += -DCONFIG_PANIC_TIMEOUT=0
+KBUILD_CFLAGS += -DCONFIG_IO_DELAY_0X80
+KBUILD_CFLAGS += -DCONFIG_UNWINDER_ORC
 KBUILD_CFLAGS += -DCONFIG_RPS
 KBUILD_CFLAGS += -DCONFIG_BPF
 KBUILD_CFLAGS += -DCONFIG_NLATTR
@@ -559,6 +470,8 @@ KBUILD_CFLAGS_MODULE  := -DMODULE
 KBUILD_LDFLAGS_MODULE :=
 KBUILD_LDFLAGS :=
 CLANG_FLAGS :=
+
+CONFIG_FRAME_WARN=1024
 
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS CROSS_COMPILE LD CC HOSTPKG_CONFIG
 export CPP AR NM STRIP OBJCOPY OBJDUMP READELF PAHOLE RESOLVE_BTFIDS LEX YACC AWK INSTALLKERNEL
@@ -574,11 +487,6 @@ export KBUILD_AFLAGS_MODULE KBUILD_CFLAGS_MODULE KBUILD_LDFLAGS_MODULE
 export KBUILD_AFLAGS_KERNEL KBUILD_CFLAGS_KERNEL
 export PAHOLE_FLAGS
 
-# Files to ignore in find ... statements
-
-export RCS_FIND_IGNORE := \( -name SCCS -o -name BitKeeper -o -name .svn -o    \
-			  -name CVS -o -name .pc -o -name .hg -o -name .git \) \
-			  -prune -o
 export RCS_TAR_IGNORE := --exclude SCCS --exclude BitKeeper --exclude .svn \
 			 --exclude CVS --exclude .pc --exclude .hg --exclude .git
 
@@ -1550,14 +1458,6 @@ mrproper: clean $(mrproper-dirs)
 #
 PHONY += distclean
 
-distclean: mrproper
-	@find . $(RCS_FIND_IGNORE) \
-		\( -name '*.orig' -o -name '*.rej' -o -name '*~' \
-		-o -name '*.bak' -o -name '#*#' -o -name '*%' \
-		-o -name 'core' -o -name tags -o -name TAGS -o -name 'cscope*' \
-		-o -name GPATH -o -name GRTAGS -o -name GSYMS -o -name GTAGS \) \
-		-type f -print | xargs rm -f
-
 
 # Packaging of the kernel to various formats
 # ---------------------------------------------------------------------------
@@ -1574,147 +1474,6 @@ boards := $(wildcard $(srctree)/arch/$(SRCARCH)/configs/*_defconfig)
 boards := $(sort $(notdir $(boards)))
 board-dirs := $(dir $(wildcard $(srctree)/arch/$(SRCARCH)/configs/*/*_defconfig))
 board-dirs := $(sort $(notdir $(board-dirs:/=)))
-
-PHONY += help
-help:
-	@echo  'Cleaning targets:'
-	@echo  '  clean		  - Remove most generated files but keep the config and'
-	@echo  '                    enough build support to build external modules'
-	@echo  '  mrproper	  - Remove all generated files + config + various backup files'
-	@echo  '  distclean	  - mrproper + remove editor backup and patch files'
-	@echo  ''
-	@echo  'Configuration targets:'
-	@$(MAKE) -f $(srctree)/scripts/kconfig/Makefile help
-	@echo  ''
-	@echo  'Other generic targets:'
-	@echo  '  all		  - Build all targets marked with [*]'
-	@echo  '* vmlinux	  - Build the bare kernel'
-	@echo  '* modules	  - Build all modules'
-	@echo  '  modules_install - Install all modules to INSTALL_MOD_PATH (default: /)'
-	@echo  '  dir/            - Build all files in dir and below'
-	@echo  '  dir/file.[ois]  - Build specified target only'
-	@echo  '  dir/file.ll     - Build the LLVM assembly file'
-	@echo  '                    (requires compiler support for LLVM assembly generation)'
-	@echo  '  dir/file.lst    - Build specified mixed source/assembly target only'
-	@echo  '                    (requires a recent binutils and recent build (System.map))'
-	@echo  '  dir/file.ko     - Build module including final link'
-	@echo  '  modules_prepare - Set up for building external modules'
-	@echo  '  tags/TAGS	  - Generate tags file for editors'
-	@echo  '  cscope	  - Generate cscope index'
-	@echo  '  gtags           - Generate GNU GLOBAL index'
-	@echo  '  kernelrelease	  - Output the release version string (use with make -s)'
-	@echo  '  kernelversion	  - Output the version stored in Makefile (use with make -s)'
-	@echo  '  image_name	  - Output the image name (use with make -s)'
-	@echo  '  headers_install - Install sanitised kernel headers to INSTALL_HDR_PATH'; \
-	 echo  '                    (default: $(INSTALL_HDR_PATH))'; \
-	 echo  ''
-	@echo  'Static analysers:'
-	@echo  '  checkstack      - Generate a list of stack hogs'
-	@echo  '  versioncheck    - Sanity check on version.h usage'
-	@echo  '  includecheck    - Check for duplicate included header files'
-	@echo  '  export_report   - List the usages of all exported symbols'
-	@echo  '  headerdep       - Detect inclusion cycles in headers'
-	@echo  '  coccicheck      - Check with Coccinelle'
-	@echo  '  clang-analyzer  - Check with clang static analyzer'
-	@echo  '  clang-tidy      - Check with clang-tidy'
-	@echo  ''
-	@echo  'Tools:'
-	@echo  '  nsdeps          - Generate missing symbol namespace dependencies'
-	@echo  ''
-	@echo  'Kernel selftest:'
-	@echo  '  kselftest         - Build and run kernel selftest'
-	@echo  '                      Build, install, and boot kernel before'
-	@echo  '                      running kselftest on it'
-	@echo  '                      Run as root for full coverage'
-	@echo  '  kselftest-all     - Build kernel selftest'
-	@echo  '  kselftest-install - Build and install kernel selftest'
-	@echo  '  kselftest-clean   - Remove all generated kselftest files'
-	@echo  '  kselftest-merge   - Merge all the config dependencies of'
-	@echo  '		      kselftest to existing .config.'
-	@echo  ''
-	@$(if $(dtstree), \
-		echo 'Devicetree:'; \
-		echo '* dtbs             - Build device tree blobs for enabled boards'; \
-		echo '  dtbs_install     - Install dtbs to $(INSTALL_DTBS_PATH)'; \
-		echo '  dt_binding_check - Validate device tree binding documents'; \
-		echo '  dtbs_check       - Validate device tree source files';\
-		echo '')
-
-	@echo 'Userspace tools targets:'
-	@echo '  use "make tools/help"'
-	@echo '  or  "cd tools; make help"'
-	@echo  ''
-	@echo  'Kernel packaging:'
-	@$(MAKE) -f $(srctree)/scripts/Makefile.package help
-	@echo  ''
-	@echo  'Documentation targets:'
-	@$(MAKE) -f $(srctree)/Documentation/Makefile dochelp
-	@echo  ''
-	@echo  'Architecture specific targets ($(SRCARCH)):'
-	@$(or $(archhelp),\
-		echo '  No architecture specific help defined for $(SRCARCH)')
-	@echo  ''
-	@$(if $(boards), \
-		$(foreach b, $(boards), \
-		printf "  %-27s - Build for %s\\n" $(b) $(subst _defconfig,,$(b));) \
-		echo '')
-	@$(if $(board-dirs), \
-		$(foreach b, $(board-dirs), \
-		printf "  %-16s - Show %s-specific targets\\n" help-$(b) $(b);) \
-		printf "  %-16s - Show all of the above\\n" help-boards; \
-		echo '')
-
-	@echo  '  make V=0|1 [targets] 0 => quiet build (default), 1 => verbose build'
-	@echo  '  make V=2   [targets] 2 => give reason for rebuild of target'
-	@echo  '  make O=dir [targets] Locate all output files in "dir", including .config'
-	@echo  '  make C=1   [targets] Check re-compiled c source with $$CHECK'
-	@echo  '                       (sparse by default)'
-	@echo  '  make C=2   [targets] Force check of all c source with $$CHECK'
-	@echo  '  make RECORDMCOUNT_WARN=1 [targets] Warn about ignored mcount sections'
-	@echo  '  make W=n   [targets] Enable extra build checks, n=1,2,3 where'
-	@echo  '		1: warnings which may be relevant and do not occur too often'
-	@echo  '		2: warnings which occur quite often but may still be relevant'
-	@echo  '		3: more obscure warnings, can most likely be ignored'
-	@echo  '		e: warnings are being treated as errors'
-	@echo  '		Multiple levels can be combined with W=12 or W=123'
-	@echo  ''
-	@echo  'Execute "make" or "make all" to build all targets marked with [*] '
-	@echo  'For further info see the ./README file'
-
-
-help-board-dirs := $(addprefix help-,$(board-dirs))
-
-help-boards: $(help-board-dirs)
-
-boards-per-dir = $(sort $(notdir $(wildcard $(srctree)/arch/$(SRCARCH)/configs/$*/*_defconfig)))
-
-$(help-board-dirs): help-%:
-	@echo  'Architecture specific targets ($(SRCARCH) $*):'
-	@$(if $(boards-per-dir), \
-		$(foreach b, $(boards-per-dir), \
-		printf "  %-24s - Build for %s\\n" $*/$(b) $(subst _defconfig,,$(b));) \
-		echo '')
-
-
-# Documentation targets
-# ---------------------------------------------------------------------------
-DOC_TARGETS := xmldocs latexdocs pdfdocs htmldocs epubdocs cleandocs \
-	       linkcheckdocs dochelp refcheckdocs
-PHONY += $(DOC_TARGETS)
-$(DOC_TARGETS):
-	$(Q)$(MAKE) $(build)=Documentation $@
-
-# Misc
-# ---------------------------------------------------------------------------
-
-PHONY += scripts_gdb
-scripts_gdb: prepare0
-	$(Q)$(MAKE) $(build)=scripts/gdb
-	$(Q)ln -fsn $(abspath $(srctree)/scripts/gdb/vmlinux-gdb.py)
-
-ifdef CONFIG_GDB_SCRIPTS
-all: scripts_gdb
-endif
 
 else # KBUILD_EXTMOD
 
@@ -1749,70 +1508,7 @@ prepare:
 		echo >&2 "  The kernel was built by: $(CONFIG_CC_VERSION_TEXT)"; \
 		echo >&2 "  You are using:           $(CC_VERSION_TEXT)"; \
 	fi
-
-PHONY += help
-help:
-	@echo  '  Building external modules.'
-	@echo  '  Syntax: make -C path/to/kernel/src M=$$PWD target'
-	@echo  ''
-	@echo  '  modules         - default target, build the module(s)'
-	@echo  '  modules_install - install the module'
-	@echo  '  clean           - remove generated files in module directory only'
-	@echo  ''
-
-# no-op for external module builds
-PHONY += modules_prepare
-
 endif # KBUILD_EXTMOD
-
-# ---------------------------------------------------------------------------
-# Modules
-
-PHONY += modules modules_install
-
-ifdef CONFIG_MODULES
-
-modules: modules_check
-	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modpost
-
-PHONY += modules_check
-modules_check: $(MODORDER)
-	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/modules-check.sh $<
-
-quiet_cmd_depmod = DEPMOD  $(MODLIB)
-      cmd_depmod = $(CONFIG_SHELL) $(srctree)/scripts/depmod.sh $(DEPMOD) \
-                   $(KERNELRELEASE)
-
-modules_install:
-	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modinst
-	$(call cmd,depmod)
-
-else # CONFIG_MODULES
-
-# Modules not configured
-# ---------------------------------------------------------------------------
-
-modules modules_install:
-	@echo >&2 '***'
-	@echo >&2 '*** The present kernel configuration has modules disabled.'
-	@echo >&2 '*** To use the module feature, please run "make menuconfig" etc.'
-	@echo >&2 '*** to enable CONFIG_MODULES.'
-	@echo >&2 '***'
-	@exit 1
-
-endif # CONFIG_MODULES
-
-# Single targets
-# ---------------------------------------------------------------------------
-# To build individual files in subdirectories, you can do like this:
-#
-#   make foo/bar/baz.s
-#
-# The supported suffixes for single-target are listed in 'single-targets'
-#
-# To build only under specific subdirectories, you can do like this:
-#
-#   make foo/bar/baz/
 
 ifdef single-build
 
@@ -1847,10 +1543,6 @@ build-dirs := $(foreach d, $(build-dirs), \
 
 endif
 
-ifndef CONFIG_MODULES
-KBUILD_MODULES :=
-endif
-
 # Handle descending into subdirectories listed in $(build-dirs)
 # Preset locale variables to speed up the build process. Limit locale
 # tweaks to this spot to avoid wrong language settings when running
@@ -1868,42 +1560,6 @@ PHONY += $(clean-dirs) clean
 $(clean-dirs):
 	$(Q)$(MAKE) $(clean)=$(patsubst _clean_%,%,$@)
 
-clean: $(clean-dirs)
-	$(call cmd,rmfiles)
-	@find $(or $(KBUILD_EXTMOD), .) $(RCS_FIND_IGNORE) \
-		\( -name '*.[aios]' -o -name '*.ko' -o -name '.*.cmd' \
-		-o -name '*.ko.*' \
-		-o -name '*.dtb' -o -name '*.dtbo' -o -name '*.dtb.S' -o -name '*.dt.yaml' \
-		-o -name '*.dwo' -o -name '*.lst' \
-		-o -name '*.su' -o -name '*.mod' -o -name '*.usyms' \
-		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
-		-o -name '*.lex.c' -o -name '*.tab.[ch]' \
-		-o -name '*.asn1.[ch]' \
-		-o -name '*.symtypes' -o -name 'modules.order' \
-		-o -name '.tmp_*' \
-		-o -name '*.c.[012]*.*' \
-		-o -name '*.ll' \
-		-o -name '*.gcno' \
-		-o -name '*.*.symversions' \) -type f -print | xargs rm -f
-
-# Generate tags for editors
-# ---------------------------------------------------------------------------
-quiet_cmd_tags = GEN     $@
-      cmd_tags = $(BASH) $(srctree)/scripts/tags.sh $@
-
-tags TAGS cscope gtags: FORCE
-	$(call cmd,tags)
-
-# Script to generate missing namespace dependencies
-# ---------------------------------------------------------------------------
-
-PHONY += nsdeps
-nsdeps: export KBUILD_NSDEPS=1
-nsdeps: modules
-	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/nsdeps
-
-# Clang Tooling
-# ---------------------------------------------------------------------------
 
 quiet_cmd_gen_compile_commands = GEN     $@
       cmd_gen_compile_commands = $(PYTHON3) $< -a $(AR) -o $@ $(filter-out $<, $(real-prereqs))
@@ -1914,8 +1570,6 @@ $(extmod_prefix)compile_commands.json: scripts/clang-tools/gen_compile_commands.
 	$(call if_changed,gen_compile_commands)
 
 targets += $(extmod_prefix)compile_commands.json
-
-PHONY += clang-tidy clang-analyzer
 
 ifdef CONFIG_CC_IS_CLANG
 quiet_cmd_clang_tools = CHECK   $<
@@ -1929,33 +1583,6 @@ clang-tidy clang-analyzer:
 	@false
 endif
 
-# Scripts to check various things for consistency
-# ---------------------------------------------------------------------------
-
-PHONY += includecheck versioncheck coccicheck export_report
-
-includecheck:
-	find $(srctree)/* $(RCS_FIND_IGNORE) \
-		-name '*.[hcS]' -type f -print | sort \
-		| xargs $(PERL) -w $(srctree)/scripts/checkincludes.pl
-
-versioncheck:
-	find $(srctree)/* $(RCS_FIND_IGNORE) \
-		-name '*.[hcS]' -type f -print | sort \
-		| xargs $(PERL) -w $(srctree)/scripts/checkversion.pl
-
-coccicheck:
-	$(Q)$(BASH) $(srctree)/scripts/$@
-
-export_report:
-	$(PERL) $(srctree)/scripts/export_report.pl
-
-PHONY += checkstack kernelrelease kernelversion image_name
-
-# UML needs a little special treatment here.  It wants to use the host
-# toolchain, so needs $(SUBARCH) passed to checkstack.pl.  Everyone
-# else wants $(ARCH), including people doing cross-builds, which means
-# that $(SUBARCH) doesn't work here.
 ifeq ($(ARCH), um)
 CHECKSTACK_ARCH := $(SUBARCH)
 else

@@ -140,10 +140,9 @@ CFLAGS_debug_info.o += $(call cc-option, -femit-struct-debug-detailed=any)
 
 obj-y += math/ crypto/
 
-obj-$(CONFIG_GENERIC_IOMAP) += iomap.o
-obj-$(CONFIG_GENERIC_PCI_IOMAP) += pci_iomap.o
-obj-$(CONFIG_HAS_IOMEM) += iomap_copy.o devres.o
-obj-$(CONFIG_CHECK_SIGNATURE) += check_signature.o
+obj-y += iomap.o
+obj-y += pci_iomap.o
+obj-y += iomap_copy.o devres.o
 obj-$(CONFIG_DEBUG_LOCKING_API_SELFTESTS) += locking-selftest.o
 
 lib-y += logic_pio.o
@@ -159,16 +158,15 @@ obj-$(CONFIG_DEBUG_PREEMPT) += smp_processor_id.o
 obj-$(CONFIG_DEBUG_LIST) += list_debug.o
 obj-$(CONFIG_DEBUG_OBJECTS) += debugobjects.o
 
-obj-$(CONFIG_BITREVERSE) += bitrev.o
+obj-y += bitrev.o
 obj-$(CONFIG_LINEAR_RANGES) += linear_ranges.o
 obj-$(CONFIG_PACKING)	+= packing.o
 obj-$(CONFIG_CRC_CCITT)	+= crc-ccitt.o
-obj-$(CONFIG_CRC16)	+= crc16.o
+obj-y	+= crc16.o
 obj-$(CONFIG_CRC_T10DIF)+= crc-t10dif.o
 obj-$(CONFIG_CRC_ITU_T)	+= crc-itu-t.o
-obj-$(CONFIG_CRC32)	+= crc32.o
+obj-y	+= crc32.o
 obj-$(CONFIG_CRC64)     += crc64.o
-obj-$(CONFIG_CRC32_SELFTEST)	+= crc32test.o
 obj-$(CONFIG_CRC4)	+= crc4.o
 obj-$(CONFIG_CRC7)	+= crc7.o
 obj-$(CONFIG_LIBCRC32C)	+= libcrc32c.o
@@ -209,7 +207,6 @@ obj-$(CONFIG_SMP) += percpu_counter.o
 obj-$(CONFIG_AUDIT_GENERIC) += audit.o
 obj-$(CONFIG_AUDIT_COMPAT_GENERIC) += compat_audit.o
 
-obj-$(CONFIG_IOMMU_HELPER) += iommu-helper.o
 obj-$(CONFIG_FAULT_INJECTION) += fault-inject.o
 obj-$(CONFIG_FAULT_INJECTION_USERCOPY) += fault-inject-usercopy.o
 obj-$(CONFIG_NOTIFIER_ERROR_INJECTION) += notifier-error-inject.o
@@ -237,9 +234,9 @@ obj-$(CONFIG_GENERIC_ATOMIC64) += atomic64.o
 
 obj-$(CONFIG_ATOMIC64_SELFTEST) += atomic64_test.o
 
-obj-$(CONFIG_CPU_RMAP) += cpu_rmap.o
+obj-y += cpu_rmap.o
 
-obj-$(CONFIG_DQL) += dynamic_queue_limits.o
+obj-y += dynamic_queue_limits.o
 
 obj-$(CONFIG_GLOB) += glob.o
 obj-$(CONFIG_GLOB_SELFTEST) += globtest.o
@@ -250,13 +247,13 @@ obj-$(CONFIG_SIGNATURE) += digsig.o
 
 lib-$(CONFIG_CLZ_TAB) += clz_tab.o
 
-obj-$(CONFIG_GENERIC_STRNCPY_FROM_USER) += strncpy_from_user.o
-obj-$(CONFIG_GENERIC_STRNLEN_USER) += strnlen_user.o
+obj-y += strncpy_from_user.o
+obj-y += strnlen_user.o
 
 obj-y += net_utils.o
 
 obj-$(CONFIG_SG_SPLIT) += sg_split.o
-obj-$(CONFIG_SG_POOL) += sg_pool.o
+obj-y += sg_pool.o
 obj-$(CONFIG_MEMREGION) += memregion.o
 obj-$(CONFIG_STMP_DEVICE) += stmp_device.o
 obj-$(CONFIG_IRQ_POLL) += irq_poll.o

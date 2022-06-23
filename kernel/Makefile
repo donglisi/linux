@@ -51,7 +51,7 @@ obj-$(CONFIG_MODULES) += module/
 obj-$(CONFIG_KCMP) += kcmp.o
 obj-$(CONFIG_FREEZER) += freezer.o
 obj-$(CONFIG_PROFILING) += profile.o
-obj-$(CONFIG_STACKTRACE) += stacktrace.o
+obj-y += stacktrace.o
 obj-y += time/
 obj-$(CONFIG_FUTEX) += futex/
 obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
@@ -110,7 +110,7 @@ obj-$(CONFIG_JUMP_LABEL) += jump_label.o
 obj-$(CONFIG_CONTEXT_TRACKING) += context_tracking.o
 obj-$(CONFIG_TORTURE_TEST) += torture.o
 
-obj-$(CONFIG_HAS_IOMEM) += iomem.o
+obj-y += iomem.o
 obj-$(CONFIG_RSEQ) += rseq.o
 obj-$(CONFIG_WATCH_QUEUE) += watch_queue.o
 

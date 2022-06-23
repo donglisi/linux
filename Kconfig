@@ -14,7 +14,3 @@ source "kernel/Kconfig.freezer"
 source "mm/Kconfig"
 
 source "drivers/Kconfig"
-
-source "lib/Kconfig"
-
-source "lib/Kconfig.debug"
