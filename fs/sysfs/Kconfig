@@ -1,4 +1,0 @@
-config SYSFS
-	bool "sysfs file system support" if EXPERT
-	default y
-	select KERNFS

@@ -19,9 +19,6 @@ config FILE_LOCKING
 
 menu "Pseudo filesystems"
 
-source "fs/proc/Kconfig"
-source "fs/sysfs/Kconfig"
-
 endmenu
 
 config IO_WQ

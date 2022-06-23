@@ -15,4 +15,4 @@ obj-y				+= ethernet/ sched/ netlink/ ethtool/
 obj-$(CONFIG_INET)		+= ipv4/
 obj-$(CONFIG_UNIX_SCM)		+= unix/
 obj-y				+= ipv6/
-obj-$(CONFIG_SYSCTL)		+= sysctl_net.o
+obj-y		+= sysctl_net.o

@@ -28,7 +28,7 @@ obj-y			+= aperfmperf.o
 obj-y			+= cpuid-deps.o
 obj-y			+= umwait.o
 
-obj-$(CONFIG_PROC_FS)	+= proc.o
+obj-y	+= proc.o
 obj-$(CONFIG_X86_FEATURE_NAMES) += capflags.o powerflags.o
 
 obj-$(CONFIG_IA32_FEAT_CTL) += feat_ctl.o

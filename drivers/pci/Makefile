@@ -11,8 +11,8 @@ obj-$(CONFIG_PCI)		+= msi/
 obj-$(CONFIG_PCI)		+= pcie/
 
 ifdef CONFIG_PCI
-obj-$(CONFIG_PROC_FS)		+= proc.o
-obj-$(CONFIG_SYSFS)		+= slot.o
+obj-y += proc.o
+obj-y += slot.o
 obj-$(CONFIG_ACPI)		+= pci-acpi.o
 endif
 
