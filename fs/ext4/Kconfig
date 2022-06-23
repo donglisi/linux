@@ -1,8 +1,0 @@
-config EXT4_FS
-	tristate "The Extended 4 (ext4) filesystem"
-	select JBD2
-	select CRC16
-	select CRYPTO
-	select CRYPTO_CRC32C
-	select FS_IOMAP
-	select FS_ENCRYPTION_ALGS if FS_ENCRYPTION

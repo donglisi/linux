@@ -1,5 +1,0 @@
-config JBD2
-	tristate
-	select CRC32
-	select CRYPTO
-	select CRYPTO_CRC32C
