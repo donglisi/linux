@@ -12,7 +12,7 @@ obj-$(CONFIG_COMPAT)		+= compat.o
 
 # LLC has to be linked before the files in net/802/
 obj-y				+= ethernet/ sched/ netlink/ ethtool/
-obj-$(CONFIG_INET)		+= ipv4/
-obj-$(CONFIG_UNIX_SCM)		+= unix/
+obj-y		+= ipv4/
+obj-y		+= unix/
 obj-y				+= ipv6/
 obj-y		+= sysctl_net.o

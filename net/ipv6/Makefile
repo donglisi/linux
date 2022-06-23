@@ -42,7 +42,7 @@ obj-$(CONFIG_IPV6_GRE) += ip6_gre.o
 obj-$(CONFIG_IPV6_FOU) += fou6.o
 
 obj-y += addrconf_core.o exthdrs_core.o ip6_checksum.o ip6_icmp.o
-obj-$(CONFIG_INET) += output_core.o protocol.o \
+obj-y += output_core.o protocol.o \
 			ip6_offload.o tcpv6_offload.o exthdrs_offload.o
 
 obj-$(subst m,y,$(CONFIG_IPV6)) += inet6_hashtables.o

@@ -227,7 +227,7 @@ obj-$(CONFIG_HAVE_ARCH_TRACEHOOK) += syscall.o
 obj-$(CONFIG_DYNAMIC_DEBUG_CORE) += dynamic_debug.o
 obj-$(CONFIG_SYMBOLIC_ERRNAME) += errname.o
 
-obj-$(CONFIG_NLATTR) += nlattr.o
+obj-y += nlattr.o
 
 obj-$(CONFIG_LRU_CACHE) += lru_cache.o
 
@@ -253,7 +253,7 @@ lib-$(CONFIG_CLZ_TAB) += clz_tab.o
 obj-$(CONFIG_GENERIC_STRNCPY_FROM_USER) += strncpy_from_user.o
 obj-$(CONFIG_GENERIC_STRNLEN_USER) += strnlen_user.o
 
-obj-$(CONFIG_GENERIC_NET_UTILS) += net_utils.o
+obj-y += net_utils.o
 
 obj-$(CONFIG_SG_SPLIT) += sg_split.o
 obj-$(CONFIG_SG_POOL) += sg_pool.o

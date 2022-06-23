@@ -3,13 +3,11 @@
 # Makefile for the Linux unix domain socket layer.
 #
 
-obj-$(CONFIG_UNIX)	+= unix.o
+obj-y	+= unix.o
 
 unix-y			:= af_unix.o garbage.o
 unix-y	+= sysctl_net_unix.o
-unix-$(CONFIG_BPF_SYSCALL) += unix_bpf.o
 
-obj-$(CONFIG_UNIX_DIAG)	+= unix_diag.o
 unix_diag-y		:= diag.o
 
-obj-$(CONFIG_UNIX_SCM)	+= scm.o
+obj-y	+= scm.o
