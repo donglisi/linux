@@ -19,8 +19,6 @@ source "drivers/Kconfig"
 
 source "security/Kconfig"
 
-source "crypto/Kconfig"
-
 source "lib/Kconfig"
 
 source "lib/Kconfig.debug"
