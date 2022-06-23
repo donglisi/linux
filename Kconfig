@@ -11,8 +11,6 @@ source "init/Kconfig"
 
 source "kernel/Kconfig.freezer"
 
-source "fs/Kconfig.binfmt"
-
 source "mm/Kconfig"
 
 source "net/Kconfig"

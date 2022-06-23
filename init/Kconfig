@@ -2213,8 +2213,6 @@ config INIT_ALL_POSSIBLE
 	  it was better to provide this option than to break all the archs
 	  and have several arch maintainers pursuing me down dark alleys.
 
-source "block/Kconfig"
-
 config PREEMPT_NOTIFIERS
 	bool
 

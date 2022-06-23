@@ -534,6 +534,9 @@ KBUILD_CFLAGS += -DCONFIG_PROC_SYSCTL
 KBUILD_CFLAGS += -DCONFIG_PROC_FS
 KBUILD_CFLAGS += -DCONFIG_FILE_LOCKING
 KBUILD_CFLAGS += -DCONFIG_IO_WQ
+KBUILD_CFLAGS += -DCONFIG_COREDUMP
+KBUILD_CFLAGS += -DCONFIG_BLOCK
+KBUILD_CFLAGS += -DCONFIG_SRCU
 KBUILD_CPPFLAGS := -D__KERNEL__
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_AFLAGS_MODULE  := -DMODULE
@@ -1097,8 +1100,7 @@ export MODORDER := $(extmod_prefix)modules.order
 export MODULES_NSDEPS := $(extmod_prefix)modules.nsdeps
 
 ifeq ($(KBUILD_EXTMOD),)
-core-y			+= kernel/ mm/ fs/ security/ crypto/
-core-$(CONFIG_BLOCK)	+= block/
+core-y			+= kernel/ mm/ fs/ security/ crypto/ block/
 
 vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, \
 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
