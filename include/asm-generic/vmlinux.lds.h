@@ -261,14 +261,10 @@
 #define BPF_RAW_TP()
 #endif
 
-#ifdef CONFIG_SERIAL_EARLYCON
 #define EARLYCON_TABLE() . = ALIGN(8);				\
 			 __earlycon_table = .;			\
 			 KEEP(*(__earlycon_table))		\
 			 __earlycon_table_end = .;
-#else
-#define EARLYCON_TABLE()
-#endif
 
 #ifdef CONFIG_SECURITY
 #define LSM_TABLE()	. = ALIGN(8);					\

@@ -11,7 +11,7 @@ obj-$(CONFIG_N_HDLC)		+= n_hdlc.o
 obj-$(CONFIG_N_GSM)		+= n_gsm.o
 
 obj-y				+= vt/
-obj-$(CONFIG_HVC_DRIVER)	+= hvc/
+obj-y	+= hvc/
 obj-y				+= serial/
 
 # tty drivers

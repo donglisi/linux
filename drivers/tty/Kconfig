@@ -36,9 +36,5 @@ config VT_HW_CONSOLE_BINDING
 	bool "Support for binding and unbinding console drivers"
 	depends on HW_CONSOLE
 
-source "drivers/tty/serial/Kconfig"
-
-source "drivers/tty/hvc/Kconfig"
-
 endif # TTY
 

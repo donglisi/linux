@@ -1,11 +1,6 @@
-# SPDX-License-Identifier: GPL-2.0
-#
-# Makefile for the kernel serial device drivers.
-#
+obj-y += serial_core.o
 
-obj-$(CONFIG_SERIAL_CORE) += serial_core.o
-
-obj-$(CONFIG_SERIAL_EARLYCON) += earlycon.o
+obj-y += earlycon.o
 obj-$(CONFIG_SERIAL_EARLYCON_ARM_SEMIHOST) += earlycon-arm-semihost.o
 obj-$(CONFIG_SERIAL_EARLYCON_RISCV_SBI) += earlycon-riscv-sbi.o
 
@@ -21,7 +16,7 @@ obj-$(CONFIG_SERIAL_SUNSAB) += sunsab.o
 obj-$(CONFIG_SERIAL_21285) += 21285.o
 
 # Now bring in any enabled 8250/16450/16550 type drivers.
-obj-$(CONFIG_SERIAL_8250) += 8250/
+obj-y += 8250/
 
 obj-$(CONFIG_SERIAL_AMBA_PL010) += amba-pl010.o
 obj-$(CONFIG_SERIAL_AMBA_PL011) += amba-pl011.o

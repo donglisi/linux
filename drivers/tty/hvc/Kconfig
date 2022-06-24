@@ -1,2 +1,0 @@
-config HVC_DRIVER
-	bool
