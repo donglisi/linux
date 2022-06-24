@@ -2,8 +2,7 @@
 obj-$(CONFIG_VGASTATE)            += vgastate.o
 obj-$(CONFIG_HDMI)                += hdmi.o
 
-obj-$(CONFIG_VT)		  += console/
-obj-$(CONFIG_FB_STI)		  += console/
+obj-y		  += console/
 
 obj-$(CONFIG_VIDEOMODE_HELPERS) += display_timing.o videomode.o
 ifeq ($(CONFIG_OF),y)

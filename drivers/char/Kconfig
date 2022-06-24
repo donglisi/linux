@@ -1,5 +1,3 @@
-source "drivers/tty/Kconfig"
-
 config VIRTIO_CONSOLE
 	tristate "Virtio console"
 	depends on TTY
