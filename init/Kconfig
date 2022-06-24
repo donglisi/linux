@@ -670,8 +670,6 @@ config CPU_ISOLATION
 
 	  Say Y if unsure.
 
-source "kernel/rcu/Kconfig"
-
 config BUILD_BIN2C
 	bool
 	default n
