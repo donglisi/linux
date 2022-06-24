@@ -1,9 +1,0 @@
-config BPF
-	bool
-
-config HAVE_EBPF_JIT
-	bool
-
-config ARCH_WANT_DEFAULT_BPF_JIT
-	bool
-
