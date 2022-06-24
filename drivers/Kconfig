@@ -1,28 +1,8 @@
-# SPDX-License-Identifier: GPL-2.0
-menu "Device Drivers"
-
-# Keep I/O buses first
-
-source "drivers/pci/Kconfig"
-
-source "drivers/base/Kconfig"
-
-source "drivers/firmware/Kconfig"
-
-source "drivers/block/Kconfig"
-
 source "drivers/clocksource/Kconfig"
 
-source "drivers/net/Kconfig"
-
+source "drivers/base/Kconfig"
 source "drivers/input/Kconfig"
 
 source "drivers/char/Kconfig"
 
 source "drivers/video/Kconfig"
-
-source "drivers/rtc/Kconfig"
-
-source "drivers/virtio/Kconfig"
-
-endmenu

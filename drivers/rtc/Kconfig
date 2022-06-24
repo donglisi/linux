@@ -1,6 +1,0 @@
-config RTC_LIB
-	bool
-
-config RTC_MC146818_LIB
-	bool
-	select RTC_LIB

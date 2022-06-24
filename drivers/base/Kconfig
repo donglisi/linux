@@ -1,18 +1,2 @@
-config DEVTMPFS
-	bool "Maintain a devtmpfs filesystem to mount at /dev"
-
-config DEVTMPFS_MOUNT
-	bool "Automount devtmpfs at /dev, after the kernel mounted the rootfs"
-	depends on DEVTMPFS
-
-source "drivers/base/firmware_loader/Kconfig"
-
-config ALLOW_DEV_COREDUMP
-	bool "Allow device coredump" if EXPERT
-	default y
-
 config GENERIC_CPU_AUTOPROBE
-	bool
-
-config GENERIC_CPU_VULNERABILITIES
 	bool

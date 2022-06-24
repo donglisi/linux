@@ -236,7 +236,7 @@ libs-y  += arch/x86/lib/
 
 # drivers-y are linked after core-y
 drivers-$(CONFIG_MATH_EMULATION) += arch/x86/math-emu/
-drivers-$(CONFIG_PCI)            += arch/x86/pci/
+drivers-y           += arch/x86/pci/
 
 # suspend and hibernation support
 drivers-$(CONFIG_PM) += arch/x86/power/

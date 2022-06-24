@@ -1,9 +1,0 @@
-menuconfig BLK_DEV
-	bool "Block devices"
-	depends on BLOCK
-	default y
-
-config VIRTIO_BLK
-	tristate "Virtio block driver"
-	depends on VIRTIO
-	select SG_POOL

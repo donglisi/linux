@@ -1,3 +1,0 @@
-config FW_LOADER
-	tristate "Firmware loading facility" if EXPERT
-	default y

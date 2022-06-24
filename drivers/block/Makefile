@@ -1,1 +1,1 @@
-obj-$(CONFIG_VIRTIO_BLK)	+= virtio_blk.o
+obj-y	+= virtio_blk.o

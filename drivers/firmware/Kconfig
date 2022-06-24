@@ -1,6 +1,0 @@
-config FIRMWARE_MEMMAP
-    bool "Add firmware-provided memory map to sysfs" if EXPERT
-    default X86
-
-config DMI_SCAN_MACHINE_NON_EFI_FALLBACK
-	bool
