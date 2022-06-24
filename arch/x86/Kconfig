@@ -2009,8 +2009,6 @@ config EFI_MIXED
 
 	  If unsure, say N.
 
-source "kernel/Kconfig.hz"
-
 config KEXEC
 	bool "kexec system call"
 	select KEXEC_CORE
