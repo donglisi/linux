@@ -36,7 +36,7 @@ ifdef CONFIG_CPU_SUP_INTEL
 obj-y			+= intel.o intel_pconfig.o tsx.o
 obj-$(CONFIG_PM)	+= intel_epb.o
 endif
-obj-$(CONFIG_CPU_SUP_AMD)		+= amd.o
+obj-y		+= amd.o
 obj-$(CONFIG_CPU_SUP_HYGON)		+= hygon.o
 obj-$(CONFIG_CPU_SUP_CYRIX_32)		+= cyrix.o
 obj-$(CONFIG_CPU_SUP_CENTAUR)		+= centaur.o
