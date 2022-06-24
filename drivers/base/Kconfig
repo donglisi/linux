@@ -1,2 +1,0 @@
-config GENERIC_CPU_AUTOPROBE
-	bool
