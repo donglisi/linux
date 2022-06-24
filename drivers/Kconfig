@@ -1,7 +1,6 @@
 source "drivers/clocksource/Kconfig"
 
 source "drivers/base/Kconfig"
-source "drivers/input/Kconfig"
 
 source "drivers/char/Kconfig"
 
