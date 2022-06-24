@@ -1,4 +1,0 @@
-config HAVE_SYSCALL_TRACEPOINTS
-	bool
-	help
-	  See Documentation/trace/ftrace-design.rst
