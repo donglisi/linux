@@ -9,6 +9,4 @@ source "scripts/Kconfig.include"
 
 source "init/Kconfig"
 
-source "kernel/Kconfig.freezer"
-
 source "mm/Kconfig"
