@@ -1,5 +1,3 @@
 source "drivers/base/Kconfig"
 
 source "drivers/char/Kconfig"
-
-source "drivers/video/Kconfig"
