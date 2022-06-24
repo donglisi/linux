@@ -453,7 +453,6 @@ config AUDITSYSCALL
 	depends on AUDIT && HAVE_ARCH_AUDITSYSCALL
 	select FSNOTIFY
 
-source "kernel/irq/Kconfig"
 source "kernel/time/Kconfig"
 source "kernel/Kconfig.preempt"
 

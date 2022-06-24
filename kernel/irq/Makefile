@@ -6,15 +6,15 @@ ifeq ($(CONFIG_TEST_IRQ_TIMINGS),y)
 	CFLAGS_timings.o += -DDEBUG
 endif
 obj-$(CONFIG_GENERIC_IRQ_CHIP) += generic-chip.o
-obj-$(CONFIG_GENERIC_IRQ_PROBE) += autoprobe.o
-obj-$(CONFIG_IRQ_DOMAIN) += irqdomain.o
+obj-y += autoprobe.o
+obj-y += irqdomain.o
 obj-$(CONFIG_IRQ_SIM) += irq_sim.o
 obj-y += proc.o
-obj-$(CONFIG_GENERIC_PENDING_IRQ) += migration.o
-obj-$(CONFIG_GENERIC_IRQ_MIGRATION) += cpuhotplug.o
+obj-y += migration.o
+obj-y += cpuhotplug.o
 obj-$(CONFIG_PM_SLEEP) += pm.o
 obj-$(CONFIG_GENERIC_MSI_IRQ) += msi.o
 obj-$(CONFIG_GENERIC_IRQ_IPI) += ipi.o
 obj-$(CONFIG_SMP) += affinity.o
 obj-$(CONFIG_GENERIC_IRQ_DEBUGFS) += debugfs.o
-obj-$(CONFIG_GENERIC_IRQ_MATRIX_ALLOCATOR) += matrix.o
+obj-y += matrix.o
