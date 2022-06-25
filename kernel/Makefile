@@ -97,8 +97,8 @@ obj-$(CONFIG_LATENCYTOP) += latencytop.o
 obj-$(CONFIG_IRQ_WORK) += irq_work.o
 obj-$(CONFIG_CPU_PM) += cpu_pm.o
 obj-y += bpf/
-obj-$(CONFIG_HAVE_STATIC_CALL) += static_call.o
-obj-$(CONFIG_HAVE_STATIC_CALL_INLINE) += static_call_inline.o
+obj-y += static_call.o
+obj-y += static_call_inline.o
 obj-$(CONFIG_CFI_CLANG) += cfi.o
 
 obj-$(CONFIG_PERF_EVENTS) += events/
