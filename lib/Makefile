@@ -219,7 +219,7 @@ obj-$(CONFIG_FUNCTION_ERROR_INJECTION) += error-inject.o
 
 lib-$(CONFIG_GENERIC_BUG) += bug.o
 
-obj-$(CONFIG_HAVE_ARCH_TRACEHOOK) += syscall.o
+obj-y += syscall.o
 
 obj-$(CONFIG_DYNAMIC_DEBUG_CORE) += dynamic_debug.o
 obj-$(CONFIG_SYMBOLIC_ERRNAME) += errname.o
