@@ -31,7 +31,7 @@
 
 static u32 err_flags[NCAPINTS];
 
-static const int req_level = 64;
+static const int req_level = CONFIG_X86_MINIMUM_CPU_FAMILY;
 
 static const u32 req_flags[NCAPINTS] =
 {

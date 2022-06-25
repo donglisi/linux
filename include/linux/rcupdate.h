@@ -223,7 +223,13 @@ do { \
  * TREE_RCU and rcu_barrier_() primitives in TINY_RCU.
  */
 
+#if defined(CONFIG_TREE_RCU)
 #include <linux/rcutree.h>
+#elif defined(CONFIG_TINY_RCU)
+#include <linux/rcutiny.h>
+#else
+#error "Unknown RCU implementation specified to kernel configuration"
+#endif
 
 /*
  * The init_rcu_head_on_stack() and destroy_rcu_head_on_stack() calls

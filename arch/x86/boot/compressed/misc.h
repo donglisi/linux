@@ -114,8 +114,15 @@ extern int set_page_non_present(unsigned long address);
 extern unsigned char _pgtable[];
 #endif
 
+#ifdef CONFIG_EARLY_PRINTK
+/* early_serial_console.c */
 extern int early_serial_base;
 void console_init(void);
+#else
+static const int early_serial_base;
+static inline void console_init(void)
+{ }
+#endif
 
 #ifdef CONFIG_AMD_MEM_ENCRYPT
 void sev_enable(struct boot_params *bp);

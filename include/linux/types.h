@@ -149,7 +149,11 @@ typedef unsigned int __bitwise gfp_t;
 typedef unsigned int __bitwise slab_flags_t;
 typedef unsigned int __bitwise fmode_t;
 
+#ifdef CONFIG_PHYS_ADDR_T_64BIT
 typedef u64 phys_addr_t;
+#else
+typedef u32 phys_addr_t;
+#endif
 
 typedef phys_addr_t resource_size_t;
 
