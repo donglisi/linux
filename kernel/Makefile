@@ -54,7 +54,7 @@ obj-$(CONFIG_PROFILING) += profile.o
 obj-y += stacktrace.o
 obj-y += time/
 obj-$(CONFIG_FUTEX) += futex/
-obj-$(CONFIG_GENERIC_ISA_DMA) += dma.o
+obj-y += dma.o
 obj-$(CONFIG_SMP) += smp.o
 ifneq ($(CONFIG_SMP),y)
 obj-y += up.o

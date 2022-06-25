@@ -46,14 +46,14 @@ obj-$(CONFIG_CPU_SUP_ZHAOXIN)		+= zhaoxin.o
 obj-$(CONFIG_CPU_SUP_VORTEX_32)		+= vortex.o
 
 obj-$(CONFIG_X86_MCE)			+= mce/
-obj-$(CONFIG_MTRR)			+= mtrr/
+obj-y			+= mtrr/
 obj-$(CONFIG_MICROCODE)			+= microcode/
 obj-$(CONFIG_X86_CPU_RESCTRL)		+= resctrl/
 obj-$(CONFIG_X86_SGX)			+= sgx/
 
-obj-$(CONFIG_X86_LOCAL_APIC)		+= perfctr-watchdog.o
+obj-y		+= perfctr-watchdog.o
 
-obj-$(CONFIG_HYPERVISOR_GUEST)		+= vmware.o hypervisor.o mshyperv.o
+obj-y		+= vmware.o hypervisor.o mshyperv.o
 obj-$(CONFIG_ACRN_GUEST)		+= acrn.o
 
 ifdef CONFIG_X86_FEATURE_NAMES

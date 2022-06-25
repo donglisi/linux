@@ -3,8 +3,8 @@
 # Makefile for the linux kernel.
 #
 
-extra-y	:= head_$(BITS).o
-extra-y	+= head$(BITS).o
+extra-y	:= head_64.o
+extra-y	+= head64.o
 extra-y	+= ebda.o
 extra-y	+= platform-quirks.o
 extra-y	+= vmlinux.lds
@@ -52,7 +52,7 @@ obj-y			:= process_$(BITS).o signal.o
 obj-$(CONFIG_COMPAT)	+= signal_compat.o
 obj-y			+= traps.o idt.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
 obj-y			+= time.o ioport.o dumpstack.o nmi.o
-obj-$(CONFIG_MODIFY_LDT_SYSCALL)	+= ldt.o
+obj-y	+= ldt.o
 obj-y			+= setup.o x86_init.o i8259.o irqinit.o
 obj-$(CONFIG_JUMP_LABEL)	+= jump_label.o
 obj-$(CONFIG_IRQ_WORK)  += irq_work.o
@@ -60,7 +60,7 @@ obj-y			+= probe_roms.o
 obj-$(CONFIG_X86_32)	+= sys_ia32.o
 obj-$(CONFIG_IA32_EMULATION)	+= sys_ia32.o
 obj-$(CONFIG_X86_64)	+= sys_x86_64.o
-obj-$(CONFIG_X86_ESPFIX64)	+= espfix_64.o
+obj-y	+= espfix_64.o
 obj-y	+= ksysfs.o
 obj-y			+= bootflag.o e820.o
 obj-y			+= pci-dma.o quirks.o topology.o kdebugfs.o
@@ -77,7 +77,7 @@ obj-$(CONFIG_X86_32)		+= tls.o
 obj-$(CONFIG_IA32_EMULATION)	+= tls.o
 obj-y				+= step.o
 obj-$(CONFIG_INTEL_TXT)		+= tboot.o
-obj-$(CONFIG_ISA_DMA_API)	+= i8237.o
+obj-y	+= i8237.o
 obj-y				+= stacktrace.o
 obj-y				+= cpu/
 obj-y				+= reboot.o
@@ -111,15 +111,15 @@ obj-$(CONFIG_KGDB)		+= kgdb.o
 obj-$(CONFIG_VM86)		+= vm86_32.o
 obj-y	+= early_printk.o
 
-obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
+obj-y 	+= hpet.o
 
 obj-$(CONFIG_AMD_NB)		+= amd_nb.o
 obj-$(CONFIG_DEBUG_NMI_SELFTEST) += nmi_selftest.o
 
-obj-$(CONFIG_KVM_GUEST)		+= kvm.o kvmclock.o
-obj-$(CONFIG_PARAVIRT)		+= paravirt.o
+obj-y		+= kvm.o kvmclock.o
+obj-y		+= paravirt.o
 obj-$(CONFIG_PARAVIRT_SPINLOCKS)+= paravirt-spinlocks.o
-obj-$(CONFIG_PARAVIRT_CLOCK)	+= pvclock.o
+obj-y	+= pvclock.o
 obj-$(CONFIG_X86_PMEM_LEGACY_DEVICE) += pmem.o
 
 obj-$(CONFIG_JAILHOUSE_GUEST)	+= jailhouse.o
@@ -135,7 +135,7 @@ obj-$(CONFIG_UPROBES)			+= uprobes.o
 obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o
 obj-$(CONFIG_TRACING)			+= tracepoint.o
 obj-$(CONFIG_SCHED_MC_PRIO)		+= itmt.o
-obj-$(CONFIG_X86_UMIP)			+= umip.o
+obj-y			+= umip.o
 
 obj-y		+= unwind_orc.o
 obj-$(CONFIG_UNWINDER_FRAME_POINTER)	+= unwind_frame.o

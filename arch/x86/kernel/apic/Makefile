@@ -7,10 +7,10 @@
 # In particualr, smp_apic_timer_interrupt() is called in random places.
 KCOV_INSTRUMENT		:= n
 
-obj-$(CONFIG_X86_LOCAL_APIC)	+= apic.o apic_common.o apic_noop.o ipi.o vector.o
+obj-y	+= apic.o apic_common.o apic_noop.o ipi.o vector.o
 obj-y				+= hw_nmi.o
 
-obj-$(CONFIG_X86_IO_APIC)	+= io_apic.o
+obj-y	+= io_apic.o
 obj-$(CONFIG_PCI_MSI)		+= msi.o
 obj-$(CONFIG_SMP)		+= ipi.o
 
@@ -27,4 +27,4 @@ endif
 obj-$(CONFIG_X86_BIGSMP)	+= bigsmp_32.o
 
 # For 32bit, probe_32 need to be listed last
-obj-$(CONFIG_X86_LOCAL_APIC)	+= probe_$(BITS).o
+obj-y	+= probe_$(BITS).o
