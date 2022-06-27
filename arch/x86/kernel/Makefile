@@ -59,7 +59,7 @@ obj-$(CONFIG_IRQ_WORK)  += irq_work.o
 obj-y			+= probe_roms.o
 obj-$(CONFIG_X86_32)	+= sys_ia32.o
 obj-$(CONFIG_IA32_EMULATION)	+= sys_ia32.o
-obj-$(CONFIG_X86_64)	+= sys_x86_64.o
+obj-y	+= sys_x86_64.o
 obj-y	+= espfix_64.o
 obj-y	+= ksysfs.o
 obj-y			+= bootflag.o e820.o
@@ -86,11 +86,11 @@ obj-$(CONFIG_X86_CPUID)		+= cpuid.o
 obj-y		+= early-quirks.o
 apm-y				:= apm_32.o
 obj-$(CONFIG_APM)		+= apm.o
-obj-$(CONFIG_SMP)		+= smp.o
-obj-$(CONFIG_SMP)		+= smpboot.o
+obj-y		+= smp.o
+obj-y		+= smpboot.o
 obj-y		+= tsc_sync.o
-obj-$(CONFIG_SMP)		+= setup_percpu.o
-obj-$(CONFIG_X86_MPPARSE)	+= mpparse.o
+obj-y		+= setup_percpu.o
+obj-y	+= mpparse.o
 obj-y				+= apic/
 obj-$(CONFIG_X86_REBOOTFIXUPS)	+= reboot_fixups_32.o
 obj-$(CONFIG_DYNAMIC_FTRACE)	+= ftrace.o
@@ -132,7 +132,7 @@ obj-$(CONFIG_X86_CHECK_BIOS_CORRUPTION) += check.o
 obj-$(CONFIG_OF)			+= devicetree.o
 obj-$(CONFIG_UPROBES)			+= uprobes.o
 
-obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o
+obj-y		+= perf_regs.o
 obj-$(CONFIG_TRACING)			+= tracepoint.o
 obj-$(CONFIG_SCHED_MC_PRIO)		+= itmt.o
 obj-y			+= umip.o
@@ -145,11 +145,9 @@ obj-$(CONFIG_AMD_MEM_ENCRYPT)		+= sev.o
 
 ###
 # 64 bit specific files
-ifeq ($(CONFIG_X86_64),y)
 	obj-$(CONFIG_AUDIT)		+= audit_64.o
 
 	obj-$(CONFIG_GART_IOMMU)	+= amd_gart_64.o aperture_64.o
 
 	obj-$(CONFIG_MMCONF_FAM10H)	+= mmconf-fam10h_64.o
 	obj-y				+= vsmp_64.o
-endif

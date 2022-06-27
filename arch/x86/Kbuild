@@ -1,6 +1,6 @@
 obj-y += entry/
 
-obj-$(CONFIG_PERF_EVENTS) += events/
+obj-y += events/
 
 obj-y += realmode/
 obj-y += kernel/

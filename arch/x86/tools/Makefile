@@ -7,11 +7,7 @@ else
   posttest_verbose =
 endif
 
-ifeq ($(CONFIG_64BIT),y)
   posttest_64bit = -y
-else
-  posttest_64bit = -n
-endif
 
 reformatter = $(srctree)/arch/x86/tools/objdump_reformat.awk
 chkobjdump = $(srctree)/arch/x86/tools/chkobjdump.awk

@@ -1889,8 +1889,6 @@ config TRACEPOINTS
 
 endmenu		# General setup
 
-source "arch/Kconfig"
-
 config RT_MUTEXES
 	bool
 	default y if PREEMPT_RT

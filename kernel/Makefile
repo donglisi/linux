@@ -55,10 +55,7 @@ obj-y += stacktrace.o
 obj-y += time/
 obj-$(CONFIG_FUTEX) += futex/
 obj-y += dma.o
-obj-$(CONFIG_SMP) += smp.o
-ifneq ($(CONFIG_SMP),y)
-obj-y += up.o
-endif
+obj-y += smp.o
 obj-$(CONFIG_UID16) += uid16.o
 obj-$(CONFIG_MODULE_SIG_FORMAT) += module_signature.o
 obj-$(CONFIG_KALLSYMS) += kallsyms.o
@@ -76,7 +73,7 @@ obj-$(CONFIG_USER_NS) += user_namespace.o
 obj-$(CONFIG_PID_NS) += pid_namespace.o
 obj-$(CONFIG_IKCONFIG) += configs.o
 obj-$(CONFIG_IKHEADERS) += kheaders.o
-obj-$(CONFIG_SMP) += stop_machine.o
+obj-y += stop_machine.o
 obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
 obj-$(CONFIG_AUDITSYSCALL) += auditsc.o audit_watch.o audit_fsnotify.o audit_tree.o
 obj-$(CONFIG_GCOV_KERNEL) += gcov/
@@ -101,7 +98,7 @@ obj-y += static_call.o
 obj-y += static_call_inline.o
 obj-$(CONFIG_CFI_CLANG) += cfi.o
 
-obj-$(CONFIG_PERF_EVENTS) += events/
+obj-y += events/
 
 obj-$(CONFIG_USER_RETURN_NOTIFIER) += user-return-notifier.o
 obj-$(CONFIG_PADATA) += padata.o

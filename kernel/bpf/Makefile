@@ -19,9 +19,7 @@ obj-$(CONFIG_BPF_SYSCALL) += devmap.o
 obj-$(CONFIG_BPF_SYSCALL) += cpumap.o
 obj-$(CONFIG_BPF_SYSCALL) += offload.o
 obj-$(CONFIG_BPF_SYSCALL) += net_namespace.o
-ifeq ($(CONFIG_PERF_EVENTS),y)
 obj-$(CONFIG_BPF_SYSCALL) += stackmap.o
-endif
 obj-$(CONFIG_CGROUP_BPF) += cgroup.o
 obj-$(CONFIG_BPF_SYSCALL) += reuseport_array.o
 ifeq ($(CONFIG_SYSFS),y)

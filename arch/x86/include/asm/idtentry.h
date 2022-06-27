@@ -13,6 +13,9 @@
 
 #include <asm/irq_stack.h>
 
+#define CONFIG_X86_64 1
+#define CONFIG_SMP 1
+
 /**
  * DECLARE_IDTENTRY - Declare functions for simple IDT entry points
  *		      No error code pushed by hardware

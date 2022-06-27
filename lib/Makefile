@@ -37,7 +37,7 @@ lib-y := ctype.o string.o vsprintf.o cmdline.o \
 	 buildid.o
 
 lib-$(CONFIG_PRINTK) += dump_stack.o
-lib-$(CONFIG_SMP) += cpumask.o
+lib-y += cpumask.o
 
 lib-y	+= kobject.o klist.o
 obj-y	+= lockref.o
@@ -203,7 +203,7 @@ obj-$(CONFIG_TEXTSEARCH) += textsearch.o
 obj-$(CONFIG_TEXTSEARCH_KMP) += ts_kmp.o
 obj-$(CONFIG_TEXTSEARCH_BM) += ts_bm.o
 obj-$(CONFIG_TEXTSEARCH_FSM) += ts_fsm.o
-obj-$(CONFIG_SMP) += percpu_counter.o
+obj-y += percpu_counter.o
 obj-$(CONFIG_AUDIT_GENERIC) += audit.o
 obj-$(CONFIG_AUDIT_COMPAT_GENERIC) += compat_audit.o
 
@@ -217,7 +217,7 @@ obj-$(CONFIG_OF_RECONFIG_NOTIFIER_ERROR_INJECT) += \
 	of-reconfig-notifier-error-inject.o
 obj-$(CONFIG_FUNCTION_ERROR_INJECTION) += error-inject.o
 
-lib-$(CONFIG_GENERIC_BUG) += bug.o
+lib-y += bug.o
 
 obj-y += syscall.o
 

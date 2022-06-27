@@ -11,7 +11,7 @@ obj-y                          += noinitramfs.o
 else
 obj-$(CONFIG_BLK_DEV_INITRD)   += initramfs.o
 endif
-obj-$(CONFIG_GENERIC_CALIBRATE_DELAY) += calibrate.o
+obj-y += calibrate.o
 
 obj-y                          += init_task.o
 
@@ -30,7 +30,7 @@ $(obj)/version.o: include/generated/compile.h
 quiet_cmd_compile.h = CHK     $@
       cmd_compile.h = \
 	$(CONFIG_SHELL) $(srctree)/scripts/mkcompile_h $@	\
-	"$(UTS_MACHINE)" "$(CONFIG_SMP)" "$(CONFIG_PREEMPT_BUILD)"	\
+	"$(UTS_MACHINE)" "1" "$(CONFIG_PREEMPT_BUILD)"	\
 	"$(CONFIG_PREEMPT_DYNAMIC)" "$(CONFIG_PREEMPT_RT)" \
 	"$(CONFIG_CC_VERSION_TEXT)" "$(LD)"
 

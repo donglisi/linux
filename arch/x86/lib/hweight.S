@@ -4,6 +4,8 @@
 
 #include <asm/asm.h>
 
+#define CONFIG_X86_64 1
+
 /*
  * unsigned int __sw_hweight32(unsigned int w)
  * %rdi: w

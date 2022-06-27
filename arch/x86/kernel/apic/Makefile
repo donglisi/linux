@@ -12,16 +12,14 @@ obj-y				+= hw_nmi.o
 
 obj-y	+= io_apic.o
 obj-$(CONFIG_PCI_MSI)		+= msi.o
-obj-$(CONFIG_SMP)		+= ipi.o
+obj-y		+= ipi.o
 
-ifeq ($(CONFIG_X86_64),y)
 # APIC probe will depend on the listing order here
 obj-$(CONFIG_X86_NUMACHIP)	+= apic_numachip.o
 obj-$(CONFIG_X86_UV)		+= x2apic_uv_x.o
 obj-$(CONFIG_X86_X2APIC)	+= x2apic_phys.o
 obj-$(CONFIG_X86_X2APIC)	+= x2apic_cluster.o
 obj-y				+= apic_flat_64.o
-endif
 
 # APIC probe will depend on the listing order here
 obj-$(CONFIG_X86_BIGSMP)	+= bigsmp_32.o

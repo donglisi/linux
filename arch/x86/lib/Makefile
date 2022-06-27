@@ -39,14 +39,14 @@ $(obj)/inat.o: $(obj)/inat-tables.c
 
 clean-files := inat-tables.c
 
-obj-$(CONFIG_SMP) += msr-smp.o cache-smp.o
+obj-y += msr-smp.o cache-smp.o
 
 lib-y := delay.o misc.o cmdline.o cpu.o
 lib-y += usercopy_$(BITS).o usercopy.o getuser.o putuser.o
 lib-y += memcpy_$(BITS).o
 lib-y += pc-conf-reg.o
 lib-y += copy_mc.o copy_mc_64.o
-lib-$(CONFIG_INSTRUCTION_DECODER) += insn.o inat.o insn-eval.o
+lib-y += insn.o inat.o insn-eval.o
 lib-$(CONFIG_RANDOMIZE_BASE) += kaslr.o
 lib-$(CONFIG_FUNCTION_ERROR_INJECTION)	+= error-inject.o
 lib-$(CONFIG_RETPOLINE) += retpoline.o

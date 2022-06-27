@@ -29,7 +29,7 @@ obj-y			+= cpuid-deps.o
 obj-y			+= umwait.o
 
 obj-y	+= proc.o
-obj-$(CONFIG_X86_FEATURE_NAMES) += capflags.o powerflags.o
+obj-y += capflags.o powerflags.o
 
 obj-y += feat_ctl.o
 ifdef CONFIG_CPU_SUP_INTEL
@@ -56,7 +56,6 @@ obj-y		+= perfctr-watchdog.o
 obj-y		+= vmware.o hypervisor.o mshyperv.o
 obj-$(CONFIG_ACRN_GUEST)		+= acrn.o
 
-ifdef CONFIG_X86_FEATURE_NAMES
 quiet_cmd_mkcapflags = MKCAP   $@
       cmd_mkcapflags = $(CONFIG_SHELL) $(srctree)/$(src)/mkcapflags.sh $@ $^
 
@@ -65,5 +64,4 @@ vmxfeature = $(src)/../../include/asm/vmxfeatures.h
 
 $(obj)/capflags.c: $(cpufeature) $(vmxfeature) $(src)/mkcapflags.sh FORCE
 	$(call if_changed,mkcapflags)
-endif
 targets += capflags.c
