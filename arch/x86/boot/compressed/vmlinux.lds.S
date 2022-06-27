@@ -1,8 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 #include <asm-generic/vmlinux.lds.h>
 
-#define CONFIG_OUTPUT_FORMAT "elf64-x86-64"
-#define CONFIG_X86_64 1
 OUTPUT_FORMAT(CONFIG_OUTPUT_FORMAT)
 
 #undef i386
@@ -10,8 +8,13 @@ OUTPUT_FORMAT(CONFIG_OUTPUT_FORMAT)
 #include <asm/cache.h>
 #include <asm/page_types.h>
 
+#ifdef CONFIG_X86_64
 OUTPUT_ARCH(i386:x86-64)
 ENTRY(startup_64)
+#else
+OUTPUT_ARCH(i386)
+ENTRY(startup_32)
+#endif
 
 SECTIONS
 {

@@ -4,7 +4,6 @@
 #include <asm/asm.h>
 #include <asm/msr.h>
 
-#define CONFIG_X86_64 1
 #ifdef CONFIG_X86_64
 /*
  * int {rdmsr,wrmsr}_safe_regs(u32 gprs[8]);

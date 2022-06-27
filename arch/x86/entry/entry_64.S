@@ -420,7 +420,7 @@ SYM_CODE_END(\asmsym)
  * common_interrupt is a hotpath, align it to a cache line
  */
 .macro idtentry_irq vector cfunc
-	.p2align 6
+	.p2align CONFIG_X86_L1_CACHE_SHIFT
 	idtentry \vector asm_\cfunc \cfunc has_error_code=1
 .endm
 

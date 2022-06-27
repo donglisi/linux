@@ -14,8 +14,6 @@
  * change if kernel is relocated, make the symbol section relative and
  * put it inside the section definition.
  */
-#define CONFIG_OUTPUT_FORMAT "elf64-x86-64"
-#define CONFIG_X86_64 1
 
 #ifdef CONFIG_X86_32
 #define LOAD_OFFSET __PAGE_OFFSET
@@ -26,9 +24,6 @@
 #define RUNTIME_DISCARD_EXIT
 #define EMITS_PT_NOTE
 #define RO_EXCEPTION_TABLE_ALIGN	16
-
-#define CONFIG_PHYSICAL_START 0x1000000
-#define CONFIG_X86_64 1
 
 #include <asm-generic/vmlinux.lds.h>
 #include <asm/asm-offsets.h>

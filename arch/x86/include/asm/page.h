@@ -8,7 +8,11 @@
 
 #include <asm/page_types.h>
 
+#ifdef CONFIG_X86_64
 #include <asm/page_64.h>
+#else
+#include <asm/page_32.h>
+#endif	/* CONFIG_X86_64 */
 
 #ifndef __ASSEMBLY__
 

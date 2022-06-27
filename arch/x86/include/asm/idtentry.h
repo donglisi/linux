@@ -13,9 +13,6 @@
 
 #include <asm/irq_stack.h>
 
-#define CONFIG_X86_64 1
-#define CONFIG_SMP 1
-
 /**
  * DECLARE_IDTENTRY - Declare functions for simple IDT entry points
  *		      No error code pushed by hardware
@@ -512,7 +509,6 @@ SYM_CODE_START(irq_entries_start)
     .endr
 SYM_CODE_END(irq_entries_start)
 
-#define CONFIG_X86_LOCAL_APIC 1
 #ifdef CONFIG_X86_LOCAL_APIC
 	.align IDT_ALIGN
 SYM_CODE_START(spurious_entries_start)
@@ -700,7 +696,6 @@ DECLARE_IDTENTRY_SYSVEC(HYPERVISOR_CALLBACK_VECTOR,	sysvec_acrn_hv_callback);
 DECLARE_IDTENTRY_SYSVEC(HYPERVISOR_CALLBACK_VECTOR,	sysvec_xen_hvm_callback);
 #endif
 
-#define CONFIG_KVM_GUEST 1
 #ifdef CONFIG_KVM_GUEST
 DECLARE_IDTENTRY_SYSVEC(HYPERVISOR_CALLBACK_VECTOR,	sysvec_kvm_asyncpf_interrupt);
 #endif

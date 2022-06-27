@@ -261,10 +261,14 @@
 #define BPF_RAW_TP()
 #endif
 
+#ifdef CONFIG_SERIAL_EARLYCON
 #define EARLYCON_TABLE() . = ALIGN(8);				\
 			 __earlycon_table = .;			\
 			 KEEP(*(__earlycon_table))		\
 			 __earlycon_table_end = .;
+#else
+#define EARLYCON_TABLE()
+#endif
 
 #ifdef CONFIG_SECURITY
 #define LSM_TABLE()	. = ALIGN(8);					\
@@ -390,6 +394,7 @@
 	KEEP(*(__jump_table))						\
 	__stop___jump_table = .;
 
+#ifdef CONFIG_HAVE_STATIC_CALL_INLINE
 #define STATIC_CALL_DATA						\
 	. = ALIGN(8);							\
 	__start_static_call_sites = .;					\
@@ -398,6 +403,9 @@
 	__start_static_call_tramp_key = .;				\
 	KEEP(*(.static_call_tramp_key))					\
 	__stop_static_call_tramp_key = .;
+#else
+#define STATIC_CALL_DATA
+#endif
 
 /*
  * Allow architectures to handle ro_after_init data on their
@@ -840,6 +848,7 @@
 #define BUG_TABLE
 #endif
 
+#ifdef CONFIG_UNWINDER_ORC
 #define ORC_UNWIND_TABLE						\
 	. = ALIGN(4);							\
 	.orc_unwind_ip : AT(ADDR(.orc_unwind_ip) - LOAD_OFFSET) {	\
@@ -861,13 +870,21 @@
 			LOOKUP_BLOCK_SIZE) + 1) * 4;			\
 		orc_lookup_end = .;					\
 	}
+#else
+#define ORC_UNWIND_TABLE
+#endif
 
+/* Built-in firmware blobs */
+#ifdef CONFIG_FW_LOADER
 #define FW_LOADER_BUILT_IN_DATA						\
 	.builtin_fw : AT(ADDR(.builtin_fw) - LOAD_OFFSET) ALIGN(8) {	\
 		__start_builtin_fw = .;					\
 		KEEP(*(.builtin_fw))					\
 		__end_builtin_fw = .;					\
 	}
+#else
+#define FW_LOADER_BUILT_IN_DATA
+#endif
 
 #ifdef CONFIG_PM_TRACE
 #define TRACEDATA							\

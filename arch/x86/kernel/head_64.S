@@ -363,6 +363,7 @@ SYM_CODE_END(secondary_startup_64)
 #include "verify_cpu.S"
 #include "sev_verify_cbit.S"
 
+#ifdef CONFIG_HOTPLUG_CPU
 /*
  * Boot CPU0 entry point. It's called from play_dead(). Everything has been set
  * up already except stack. We just set up stack here. Then call
@@ -373,6 +374,7 @@ SYM_CODE_START(start_cpu0)
 	movq	initial_stack(%rip), %rsp
 	jmp	.Ljump_to_C_code
 SYM_CODE_END(start_cpu0)
+#endif
 
 #ifdef CONFIG_AMD_MEM_ENCRYPT
 /*

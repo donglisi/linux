@@ -56,7 +56,6 @@ For 32-bit we have the following conventions - kernel is built with
 
 */
 
-#define CONFIG_X86_64 1
 #ifdef CONFIG_X86_64
 
 /*
