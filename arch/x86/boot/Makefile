@@ -1,30 +1,8 @@
-#
-# arch/x86/boot/Makefile
-#
-# This file is subject to the terms and conditions of the GNU General Public
-# License.  See the file "COPYING" in the main directory of this archive
-# for more details.
-#
-# Copyright (C) 1994 by Linus Torvalds
-# Changed by many, many contributors over the years.
-#
-
-# Sanitizer runtimes are unavailable and cannot be linked for early boot code.
 KASAN_SANITIZE			:= n
 KCSAN_SANITIZE			:= n
 OBJECT_FILES_NON_STANDARD	:= y
 
-# Kernel does not boot with kcov instrumentation here.
-# One of the problems observed was insertion of __sanitizer_cov_trace_pc()
-# callback into middle of per-cpu data enabling code. Thus the callback observed
-# inconsistent state and crashed. We are interested mostly in syscall coverage,
-# so boot code is not interesting anyway.
 KCOV_INSTRUMENT		:= n
-
-# If you want to preset the SVGA mode, uncomment the next line and
-# set SVGA_MODE to whatever number you want.
-# Set it to -DSVGA_MODE=NORMAL_VGA if you just want the EGA/VGA mode.
-# The number is the same as you would ordinarily press at bootup.
 
 SVGA_MODE	:= -DSVGA_MODE=NORMAL_VGA
 
@@ -38,10 +16,6 @@ setup-y		+= pm.o pmjump.o printf.o regs.o string.o tty.o video.o
 setup-y		+= video-mode.o version.o
 setup-$(CONFIG_X86_APM_BOOT) += apm.o
 
-# The link order of the video-*.o modules can matter.  In particular,
-# video-vga.o *must* be listed first, followed by video-vesa.o.
-# Hardware-specific drivers should follow in the order they should be
-# probed, and video-bios.o should typically be last.
 setup-y		+= video-vga.o
 setup-y		+= video-vesa.o
 setup-y		+= video-bios.o
@@ -51,7 +25,6 @@ hostprogs	:= tools/build
 hostprogs	+= mkcpustr
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include \
-		    -include include/generated/autoconf.h \
 	            -D__EXPORTED_HEADERS__
 
 $(obj)/cpu.o: $(obj)/cpustr.h
@@ -61,8 +34,6 @@ quiet_cmd_cpustr = CPUSTR  $@
 $(obj)/cpustr.h: $(obj)/mkcpustr FORCE
 	$(call if_changed,cpustr)
 targets += cpustr.h
-
-# ---------------------------------------------------------------------------
 
 KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_SETUP
 KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
@@ -113,10 +84,7 @@ $(obj)/setup.bin: $(obj)/setup.elf FORCE
 $(obj)/compressed/vmlinux: FORCE
 	$(Q)$(MAKE) $(build)=$(obj)/compressed $@
 
-# Set this if you want to pass append arguments to the
-# bzdisk/fdimage/hdimage/isoimage kernel
 FDARGS =
-# Set this if you want one or more initrds included in the image
 FDINITRD =
 
 imgdeps = $(obj)/bzImage $(obj)/mtools.conf $(src)/genimage.sh
@@ -126,32 +94,7 @@ $(obj)/mtools.conf: $(src)/mtools.conf.in
 
 targets += mtools.conf
 
-# genimage.sh requires bash, but it also has a bunch of other
-# external dependencies.
 quiet_cmd_genimage = GENIMAGE $3
 cmd_genimage = $(BASH) $(srctree)/$(src)/genimage.sh $2 $3 $(obj)/bzImage \
 		$(obj)/mtools.conf '$(FDARGS)' $(FDINITRD)
 
-PHONY += bzdisk fdimage fdimage144 fdimage288 hdimage isoimage
-
-# This requires write access to /dev/fd0
-# All images require syslinux to be installed; hdimage also requires
-# EDK2/OVMF if the kernel is compiled with the EFI stub.
-bzdisk: $(imgdeps)
-	$(call cmd,genimage,bzdisk,/dev/fd0)
-
-fdimage fdimage144: $(imgdeps)
-	$(call cmd,genimage,fdimage144,$(obj)/fdimage)
-	@$(kecho) 'Kernel: $(obj)/fdimage is ready'
-
-fdimage288: $(imgdeps)
-	$(call cmd,genimage,fdimage288,$(obj)/fdimage)
-	@$(kecho) 'Kernel: $(obj)/fdimage is ready'
-
-hdimage: $(imgdeps)
-	$(call cmd,genimage,hdimage,$(obj)/hdimage)
-	@$(kecho) 'Kernel: $(obj)/hdimage is ready'
-
-isoimage: $(imgdeps)
-	$(call cmd,genimage,isoimage,$(obj)/image.iso)
-	@$(kecho) 'Kernel: $(obj)/image.iso is ready'

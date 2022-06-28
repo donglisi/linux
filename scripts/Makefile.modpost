@@ -1,44 +1,6 @@
-# SPDX-License-Identifier: GPL-2.0
-# ===========================================================================
-# Module versions
-# ===========================================================================
-#
-# Stage one of module building created the following:
-# a) The individual .o files used for the module
-# b) A <module>.o file which is the .o files above linked together
-# c) A <module>.mod file, listing the name of the preliminary <module>.o file,
-#    plus all .o files
-# d) modules.order, which lists all the modules
-
-# Stage 2 is handled by this file and does the following
-# 1) Find all modules listed in modules.order
-# 2) modpost is then used to
-# 3)  create one <module>.mod.c file per module
-# 4)  create one Module.symvers file with CRC for all exported symbols
-
-# Step 3 is used to place certain information in the module's ELF
-# section, including information such as:
-#   Version magic (see include/linux/vermagic.h for full details)
-#     - Kernel release
-#     - SMP is CONFIG_SMP
-#     - PREEMPT is CONFIG_PREEMPT[_RT]
-#     - GCC Version
-#   Module info
-#     - Module version (MODULE_VERSION)
-#     - Module alias'es (MODULE_ALIAS)
-#     - Module license (MODULE_LICENSE)
-#     - See include/linux/module.h for more details
-
-# Step 4 is solely used to allow module versioning in external modules,
-# where the CRC of each module is retrieved from the Module.symvers file.
-
-# KBUILD_MODPOST_NOFINAL can be set to skip the final link of modules.
-# This is solely useful to speed up test compiles
-
 PHONY := __modpost
 __modpost:
 
-include include/config/auto.conf
 include $(srctree)/scripts/Kbuild.include
 
 MODPOST = scripts/mod/modpost								\
@@ -119,8 +81,6 @@ ifneq ($(KBUILD_MODPOST_WARN)$(filter-out $(existing-input-symdump), $(input-sym
 MODPOST += -w
 endif
 
-# Read out modules.order to pass in modpost.
-# Otherwise, allmodconfig would fail with "Argument list too long".
 quiet_cmd_modpost = MODPOST $@
       cmd_modpost = sed 's/ko$$/o/' $< | $(MODPOST) -T -
 

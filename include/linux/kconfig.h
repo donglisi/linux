@@ -2,8 +2,6 @@
 #ifndef __LINUX_KCONFIG_H
 #define __LINUX_KCONFIG_H
 
-#include <generated/autoconf.h>
-
 #ifdef CONFIG_CPU_BIG_ENDIAN
 #define __BIG_ENDIAN 4321
 #else

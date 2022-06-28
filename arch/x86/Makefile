@@ -1,29 +1,9 @@
-# SPDX-License-Identifier: GPL-2.0
-# Unified Makefile for i386 and x86_64
-
-# select defconfig based on actual architecture
-ifeq ($(ARCH),x86)
-  ifeq ($(shell uname -m),x86_64)
-        KBUILD_DEFCONFIG := x86_64_defconfig
-  else
-        KBUILD_DEFCONFIG := i386_defconfig
-  endif
-else
-        KBUILD_DEFCONFIG := $(ARCH)_defconfig
-endif
-
 RETPOLINE_CFLAGS	:= $(call cc-option,-mindirect-branch=thunk-extern -mindirect-branch-register)
 RETPOLINE_CFLAGS	+= $(call cc-option,-mindirect-branch-cs-prefix)
 RETPOLINE_VDSO_CFLAGS	:= $(call cc-option,-mindirect-branch=thunk-inline -mindirect-branch-register)
-ifdef CONFIG_CC_IS_CLANG
-RETPOLINE_CFLAGS	:= -mretpoline-external-thunk
-RETPOLINE_VDSO_CFLAGS	:= -mretpoline
-endif
 export RETPOLINE_CFLAGS
 export RETPOLINE_VDSO_CFLAGS
 
-# For gcc stack alignment is specified with -mpreferred-stack-boundary,
-# clang has the option -mstack-alignment for that purpose.
 ifneq ($(call cc-option, -mpreferred-stack-boundary=4),)
       cc_stack_align4 := -mpreferred-stack-boundary=2
       cc_stack_align8 := -mpreferred-stack-boundary=3
@@ -32,8 +12,6 @@ else ifneq ($(call cc-option, -mstack-alignment=16),)
       cc_stack_align8 := -mstack-alignment=8
 endif
 
-# How to compile the 16-bit code.  Note we always compile for -march=i386;
-# that way we can complain to the user if the CPU is insufficient.
 REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS \
 		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
 		   -fno-strict-aliasing -fomit-frame-pointer -fno-pic \
@@ -47,9 +25,6 @@ REALMODE_CFLAGS += $(cc_stack_align4)
 REALMODE_CFLAGS += $(CLANG_FLAGS)
 export REALMODE_CFLAGS
 
-# BITS is used as extension for files which are available in a 32 bit
-# and a 64 bit version to simplify shared Makefiles.
-# e.g.: obj-y += foo_$(BITS).o
 export BITS
 
 #
@@ -76,174 +51,76 @@ else
 KBUILD_CFLAGS += $(call cc-option,-fcf-protection=none)
 endif
 
-ifeq ($(CONFIG_X86_32),y)
-        BITS := 32
-        UTS_MACHINE := i386
-        CHECKFLAGS += -D__i386__
+BITS := 64
+UTS_MACHINE := x86_64
+CHECKFLAGS += -D__x86_64__
 
-        KBUILD_AFLAGS += -m32
-        KBUILD_CFLAGS += -m32
+KBUILD_AFLAGS += -m64
+KBUILD_CFLAGS += -m64
 
-        KBUILD_CFLAGS += -msoft-float -mregparm=3 -freg-struct-return
+# Align jump targets to 1 byte, not the default 16 bytes:
+KBUILD_CFLAGS += $(call cc-option,-falign-jumps=1)
 
-        # Never want PIC in a 32-bit kernel, prevent breakage with GCC built
-        # with nonstandard options
-        KBUILD_CFLAGS += -fno-pic
+# Pack loops tightly as well:
+KBUILD_CFLAGS += $(call cc-option,-falign-loops=1)
 
-        # Align the stack to the register width instead of using the default
-        # alignment of 16 bytes. This reduces stack usage and the number of
-        # alignment instructions.
-        KBUILD_CFLAGS += $(cc_stack_align4)
+# Don't autogenerate traditional x87 instructions
+KBUILD_CFLAGS += -mno-80387
+KBUILD_CFLAGS += $(call cc-option,-mno-fp-ret-in-387)
 
-        # CPU-specific tuning. Anything which can be shared with UML should go here.
-        include $(srctree)/arch/x86/Makefile_32.cpu
-        KBUILD_CFLAGS += $(cflags-y)
+# By default gcc and clang use a stack alignment of 16 bytes for x86.
+# However the standard kernel entry on x86-64 leaves the stack on an
+# 8-byte boundary. If the compiler isn't informed about the actual
+# alignment it will generate extra alignment instructions for the
+# default alignment which keep the stack *mis*aligned.
+# Furthermore an alignment to the register width reduces stack usage
+# and the number of alignment instructions.
+KBUILD_CFLAGS += $(cc_stack_align8)
 
-        # temporary until string.h is fixed
-        KBUILD_CFLAGS += -ffreestanding
+# Use -mskip-rax-setup if supported.
+KBUILD_CFLAGS += $(call cc-option,-mskip-rax-setup)
 
-	ifeq ($(CONFIG_STACKPROTECTOR),y)
-			KBUILD_CFLAGS += -mstack-protector-guard-reg=fs -mstack-protector-guard-symbol=__stack_chk_guard
-	endif
-else
-        BITS := 64
-        UTS_MACHINE := x86_64
-        CHECKFLAGS += -D__x86_64__
+# FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
+cflags-$(CONFIG_MK8)		+= -march=k8
+cflags-$(CONFIG_MPSC)		+= -march=nocona
+cflags-$(CONFIG_MCORE2)		+= -march=core2
+cflags-$(CONFIG_MATOM)		+= -march=atom
+cflags-y	+= -mtune=generic
+KBUILD_CFLAGS += $(cflags-y)
 
-        KBUILD_AFLAGS += -m64
-        KBUILD_CFLAGS += -m64
-
-        # Align jump targets to 1 byte, not the default 16 bytes:
-        KBUILD_CFLAGS += $(call cc-option,-falign-jumps=1)
-
-        # Pack loops tightly as well:
-        KBUILD_CFLAGS += $(call cc-option,-falign-loops=1)
-
-        # Don't autogenerate traditional x87 instructions
-        KBUILD_CFLAGS += -mno-80387
-        KBUILD_CFLAGS += $(call cc-option,-mno-fp-ret-in-387)
-
-        # By default gcc and clang use a stack alignment of 16 bytes for x86.
-        # However the standard kernel entry on x86-64 leaves the stack on an
-        # 8-byte boundary. If the compiler isn't informed about the actual
-        # alignment it will generate extra alignment instructions for the
-        # default alignment which keep the stack *mis*aligned.
-        # Furthermore an alignment to the register width reduces stack usage
-        # and the number of alignment instructions.
-        KBUILD_CFLAGS += $(cc_stack_align8)
-
-	# Use -mskip-rax-setup if supported.
-	KBUILD_CFLAGS += $(call cc-option,-mskip-rax-setup)
-
-        # FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
-        cflags-$(CONFIG_MK8)		+= -march=k8
-        cflags-$(CONFIG_MPSC)		+= -march=nocona
-        cflags-$(CONFIG_MCORE2)		+= -march=core2
-        cflags-$(CONFIG_MATOM)		+= -march=atom
-        cflags-y	+= -mtune=generic
-        KBUILD_CFLAGS += $(cflags-y)
-
-        KBUILD_CFLAGS += -mno-red-zone
-        KBUILD_CFLAGS += -mcmodel=kernel
-endif
-
-#
-# If the function graph tracer is used with mcount instead of fentry,
-# '-maccumulate-outgoing-args' is needed to prevent a GCC bug
-# (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=42109)
-#
-ifdef CONFIG_FUNCTION_GRAPH_TRACER
-  ifndef CONFIG_HAVE_FENTRY
-	ACCUMULATE_OUTGOING_ARGS := 1
-  endif
-endif
+KBUILD_CFLAGS += -mno-red-zone
+KBUILD_CFLAGS += -mcmodel=kernel
 
 ifeq ($(ACCUMULATE_OUTGOING_ARGS), 1)
 	# This compiler flag is not supported by Clang:
 	KBUILD_CFLAGS += $(call cc-option,-maccumulate-outgoing-args,)
 endif
 
-# Workaround for a gcc prelease that unfortunately was shipped in a suse release
 KBUILD_CFLAGS += -Wno-sign-compare
-#
 KBUILD_CFLAGS += -fno-asynchronous-unwind-tables
-
-# Avoid indirect branches in kernel to deal with Spectre
-ifdef CONFIG_RETPOLINE
-  KBUILD_CFLAGS += $(RETPOLINE_CFLAGS)
-  # Additionally, avoid generating expensive indirect jumps which
-  # are subject to retpolines for small number of switch cases.
-  # clang turns off jump table generation by default when under
-  # retpoline builds, however, gcc does not for x86. This has
-  # only been fixed starting from gcc stable version 8.4.0 and
-  # onwards, but not for older ones. See gcc bug #86952.
-  ifndef CONFIG_CC_IS_CLANG
-    KBUILD_CFLAGS += -fno-jump-tables
-  endif
-endif
-
-ifdef CONFIG_SLS
-  KBUILD_CFLAGS += -mharden-sls=all
-endif
 
 KBUILD_LDFLAGS += -m elf_$(UTS_MACHINE)
 
-ifdef CONFIG_LTO_CLANG
-ifeq ($(shell test 0 -lt 130000; echo $$?),0)
-KBUILD_LDFLAGS	+= -plugin-opt=-stack-alignment=$(if $(CONFIG_X86_32),4,8)
-endif
-endif
 
-ifdef CONFIG_X86_NEED_RELOCS
-LDFLAGS_vmlinux := --emit-relocs --discard-none
-else
-LDFLAGS_vmlinux :=
-endif
-
-#
-# The 64-bit kernel must be aligned to 2MB.  Pass -z max-page-size=0x200000 to
-# the linker to force 2MB page size regardless of the default page size used
-# by the linker.
-#
-LDFLAGS_vmlinux += -z max-page-size=0x200000
+LDFLAGS_vmlinux := -z max-page-size=0x200000
 
 
 archscripts: scripts_basic
 	$(Q)$(MAKE) $(build)=arch/x86/tools relocs
 
-###
-# Syscall table generation
-
 archheaders:
 	$(Q)$(MAKE) $(build)=arch/x86/entry/syscalls all
 
-###
-# Kernel objects
-
-head-y := arch/x86/kernel/head_$(BITS).o
-head-y += arch/x86/kernel/head$(BITS).o
+head-y := arch/x86/kernel/head_64.o
+head-y += arch/x86/kernel/head64.o
 head-y += arch/x86/kernel/ebda.o
 head-y += arch/x86/kernel/platform-quirks.o
-
 libs-y  += arch/x86/lib/
-
-# drivers-y are linked after core-y
-drivers-$(CONFIG_MATH_EMULATION) += arch/x86/math-emu/
 drivers-y           += arch/x86/pci/
-
-# suspend and hibernation support
-drivers-$(CONFIG_PM) += arch/x86/power/
-
-drivers-$(CONFIG_FB) += arch/x86/video/
-
-####
-# boot loader support. Several targets are kept for legacy purposes
 
 boot := arch/x86/boot
 
-BOOT_TARGETS = bzdisk fdimage fdimage144 fdimage288 hdimage isoimage
-
-PHONY += bzImage $(BOOT_TARGETS)
+PHONY += bzImage
 
 # Default kernel to build
 all: bzImage
@@ -252,30 +129,6 @@ all: bzImage
 KBUILD_IMAGE := $(boot)/bzImage
 
 bzImage: vmlinux
-ifeq ($(CONFIG_X86_DECODER_SELFTEST),y)
-	$(Q)$(MAKE) $(build)=arch/x86/tools posttest
-endif
 	$(Q)$(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
 	$(Q)mkdir -p $(objtree)/arch/$(UTS_MACHINE)/boot
 	$(Q)ln -fsn ../../x86/boot/bzImage $(objtree)/arch/$(UTS_MACHINE)/boot/$@
-
-$(BOOT_TARGETS): vmlinux
-	$(Q)$(MAKE) $(build)=$(boot) $@
-
-PHONY += install
-install:
-	$(call cmd,install)
-
-PHONY += vdso_install
-vdso_install:
-	$(Q)$(MAKE) $(build)=arch/x86/entry/vdso $@
-
-archprepare: checkbin
-checkbin:
-ifdef CONFIG_RETPOLINE
-ifeq ($(RETPOLINE_CFLAGS),)
-	@echo "You are building kernel with non-retpoline compiler." >&2
-	@echo "Please update your compiler." >&2
-	@false
-endif
-endif

@@ -305,9 +305,6 @@ ifeq ($(ARCH),x86_64)
         SRCARCH := x86
 endif
 
-KCONFIG_CONFIG	?= .config
-export KCONFIG_CONFIG
-
 # SHELL used by kbuild
 CONFIG_SHELL := sh
 
@@ -534,10 +531,6 @@ endif
 
 export KBUILD_MODULES KBUILD_BUILTIN
 
-ifdef need-config
-include include/config/auto.conf
-endif
-
 ifeq ($(KBUILD_EXTMOD),)
 # Objects we will link into vmlinux / subdirs we need to visit
 core-y		:= init/ arch/$(SRCARCH)/
@@ -568,44 +561,12 @@ ifdef may-sync-config
 # Read in dependencies to all Kconfig* files, make sure to run syncconfig if
 # changes are detected. This should be included after arch/$(SRCARCH)/Makefile
 # because some architectures define CROSS_COMPILE there.
-include include/config/auto.conf.cmd
 
-$(KCONFIG_CONFIG):
-	@echo >&2 '***'
-	@echo >&2 '*** Configuration file "$@" not found!'
-	@echo >&2 '***'
-	@echo >&2 '*** Please run some configurator (e.g. "make oldconfig" or'
-	@echo >&2 '*** "make menuconfig" or "make xconfig").'
-	@echo >&2 '***'
-	@/bin/false
-
-# The actual configuration files used during the build are stored in
-# include/generated/ and include/config/. Update them if .config is newer than
-# include/config/auto.conf (which mirrors .config).
-#
-# This exploits the 'multi-target pattern rule' trick.
-# The syncconfig should be executed only once to make all the targets.
-# (Note: use the grouped target '&:' when we bump to GNU Make 4.3)
-#
-# Do not use $(call cmd,...) here. That would suppress prompts from syncconfig,
-# so you cannot notice that Kconfig is waiting for the user input.
-%/config/auto.conf %/config/auto.conf.cmd %/generated/autoconf.h: $(KCONFIG_CONFIG)
-	$(Q)$(kecho) "  SYNC    $@"
-	$(Q)$(MAKE) -f $(srctree)/Makefile syncconfig
 else # !may-sync-config
 # External modules and some install targets need include/generated/autoconf.h
 # and include/config/auto.conf but do not care if they are up-to-date.
 # Use auto.conf to trigger the test
-PHONY += include/config/auto.conf
 
-include/config/auto.conf:
-	$(Q)test -e include/generated/autoconf.h -a -e $@ || (		\
-	echo >&2;							\
-	echo >&2 "  ERROR: Kernel configuration is invalid.";		\
-	echo >&2 "         include/generated/autoconf.h or $@ are missing.";\
-	echo >&2 "         Run 'make oldconfig && make prepare' on kernel src to fix it.";	\
-	echo >&2 ;							\
-	/bin/false)
 
 endif # may-sync-config
 endif # need-config
@@ -1014,7 +975,7 @@ targets := vmlinux
 $(sort $(vmlinux-deps) $(subdir-modorder)): descend ;
 
 filechk_kernel.release = \
-	echo "$(KERNELVERSION)$$($(CONFIG_SHELL) $(srctree)/scripts/setlocalversion $(srctree))"
+	echo "$(KERNELVERSION)"
 
 # Store (new) KERNELRELEASE string in include/config/kernel.release
 include/config/kernel.release: FORCE
@@ -1036,8 +997,7 @@ scripts: scripts_basic scripts_dtc
 PHONY += prepare archprepare
 
 archprepare: outputmakefile archheaders archscripts scripts include/config/kernel.release \
-	asm-generic $(version_h) $(autoksyms_h) include/generated/utsrelease.h \
-	include/generated/autoconf.h remove-stale-files
+	asm-generic $(version_h) $(autoksyms_h) include/generated/utsrelease.h remove-stale-files
 
 prepare0: archprepare
 	$(Q)$(MAKE) $(build)=scripts/mod
@@ -1510,7 +1470,7 @@ checkstack:
 	$(PERL) $(srctree)/scripts/checkstack.pl $(CHECKSTACK_ARCH)
 
 kernelrelease:
-	@echo "$(KERNELVERSION)$$($(CONFIG_SHELL) $(srctree)/scripts/setlocalversion $(srctree))"
+	@echo "$(KERNELVERSION)"
 
 kernelversion:
 	@echo $(KERNELVERSION)

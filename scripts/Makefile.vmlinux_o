@@ -3,7 +3,6 @@
 PHONY := __default
 __default: vmlinux.o
 
-include include/config/auto.conf
 include $(srctree)/scripts/Kbuild.include
 
 # for objtool

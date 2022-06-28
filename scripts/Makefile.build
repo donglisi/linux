@@ -32,9 +32,6 @@ ldflags-y  :=
 subdir-asflags-y :=
 subdir-ccflags-y :=
 
-# Read auto.conf if it exists, otherwise ignore
--include include/config/auto.conf
-
 include $(srctree)/scripts/Kbuild.include
 include $(srctree)/scripts/Makefile.compiler
 
