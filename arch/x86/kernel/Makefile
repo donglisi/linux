@@ -21,16 +21,12 @@ KCOV_INSTRUMENT		:= n
 
 CFLAGS_irq.o := -I $(srctree)/$(src)/../include/asm/trace
 obj-y			:= process_$(BITS).o signal.o
-obj-$(CONFIG_COMPAT)	+= signal_compat.o
 obj-y			+= traps.o idt.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
 obj-y			+= time.o ioport.o dumpstack.o nmi.o
 obj-y	+= ldt.o
 obj-y			+= setup.o x86_init.o i8259.o irqinit.o
-obj-$(CONFIG_JUMP_LABEL)	+= jump_label.o
 obj-y  += irq_work.o
 obj-y			+= probe_roms.o
-obj-$(CONFIG_X86_32)	+= sys_ia32.o
-obj-$(CONFIG_IA32_EMULATION)	+= sys_ia32.o
 obj-y	+= sys_x86_64.o
 obj-y	+= espfix_64.o
 obj-y	+= ksysfs.o

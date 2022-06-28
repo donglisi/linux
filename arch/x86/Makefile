@@ -36,20 +36,7 @@ export BITS
 #
 KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx
 
-ifeq ($(CONFIG_X86_KERNEL_IBT),y)
-#
-# Kernel IBT has S_CET.NOTRACK_EN=0, as such the compilers must not generate
-# NOTRACK prefixes. Current generation compilers unconditionally employ NOTRACK
-# for jump-tables, as such, disable jump-tables for now.
-#
-# (jump-tables are implicitly disabled by RETPOLINE)
-#
-#   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=104816
-#
-KBUILD_CFLAGS += $(call cc-option,-fcf-protection=branch -fno-jump-tables)
-else
 KBUILD_CFLAGS += $(call cc-option,-fcf-protection=none)
-endif
 
 BITS := 64
 UTS_MACHINE := x86_64
@@ -81,10 +68,6 @@ KBUILD_CFLAGS += $(cc_stack_align8)
 KBUILD_CFLAGS += $(call cc-option,-mskip-rax-setup)
 
 # FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
-cflags-$(CONFIG_MK8)		+= -march=k8
-cflags-$(CONFIG_MPSC)		+= -march=nocona
-cflags-$(CONFIG_MCORE2)		+= -march=core2
-cflags-$(CONFIG_MATOM)		+= -march=atom
 cflags-y	+= -mtune=generic
 KBUILD_CFLAGS += $(cflags-y)
 
