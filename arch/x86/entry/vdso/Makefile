@@ -1,10 +1,3 @@
-# SPDX-License-Identifier: GPL-2.0
-#
-# Building vDSO images for x86.
-#
-
-# Absolute relocation type $(ARCH_REL_TYPE_ABS) needs to be defined before
-# the inclusion of generic Makefile.
 ARCH_REL_TYPE_ABS := R_X86_64_JUMP_SLOT|R_X86_64_GLOB_DAT|R_X86_64_RELATIVE|
 ARCH_REL_TYPE_ABS += R_386_GLOB_DAT|R_386_JMP_SLOT|R_386_RELATIVE
 include $(srctree)/lib/vdso/Makefile
@@ -19,15 +12,11 @@ OBJECT_FILES_NON_STANDARD	:= y
 KCOV_INSTRUMENT		:= n
 
 VDSO64-y		:= y
-VDSOX32-$(CONFIG_X86_X32_ABI)	:= y
-VDSO32-$(CONFIG_X86_32)		:= y
-VDSO32-$(CONFIG_IA32_EMULATION)	:= y
 
 # files to link into the vdso
 vobjs-y := vdso-note.o vclock_gettime.o vgetcpu.o
 vobjs32-y := vdso32/note.o vdso32/system_call.o vdso32/sigreturn.o
 vobjs32-y += vdso32/vclock_gettime.o
-vobjs-$(CONFIG_X86_SGX)	+= vsgx.o
 
 # files to link into kernel
 obj-y				+= vma.o extable.o
@@ -84,12 +73,6 @@ CFL := $(PROFILING) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 \
        $(filter -g%,$(KBUILD_CFLAGS)) -fno-stack-protector \
        -fno-omit-frame-pointer -foptimize-sibling-calls \
        -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
-
-ifdef CONFIG_RETPOLINE
-ifneq ($(RETPOLINE_VDSO_CFLAGS),)
-  CFL += $(RETPOLINE_VDSO_CFLAGS)
-endif
-endif
 
 $(vobjs): KBUILD_CFLAGS := $(filter-out $(CC_FLAGS_LTO) $(RANDSTRUCT_CFLAGS) $(GCC_PLUGINS_CFLAGS) $(RETPOLINE_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
 
@@ -157,12 +140,6 @@ KBUILD_CFLAGS_32 += -fno-stack-protector
 KBUILD_CFLAGS_32 += $(call cc-option, -foptimize-sibling-calls)
 KBUILD_CFLAGS_32 += -fno-omit-frame-pointer
 KBUILD_CFLAGS_32 += -DDISABLE_BRANCH_PROFILING
-
-ifdef CONFIG_RETPOLINE
-ifneq ($(RETPOLINE_VDSO_CFLAGS),)
-  KBUILD_CFLAGS_32 += $(RETPOLINE_VDSO_CFLAGS)
-endif
-endif
 
 $(obj)/vdso32.so.dbg: KBUILD_CFLAGS = $(KBUILD_CFLAGS_32)
 

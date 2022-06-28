@@ -1,4 +1,3 @@
-# SPDX-License-Identifier: GPL-2.0
 out := arch/$(SRCARCH)/include/generated/asm
 uapi := arch/$(SRCARCH)/include/generated/uapi/asm
 
@@ -66,8 +65,6 @@ uapisyshdr-y			+= unistd_32.h unistd_64.h unistd_x32.h
 syshdr-y			+= syscalls_32.h
 syshdr-y		+= unistd_32_ia32.h unistd_64_x32.h
 syshdr-y	+= syscalls_64.h
-syshdr-$(CONFIG_X86_X32_ABI)	+= syscalls_x32.h
-syshdr-$(CONFIG_XEN)		+= xen-hypercalls.h
 
 uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
 syshdr-y	:= $(addprefix $(out)/, $(syshdr-y))
