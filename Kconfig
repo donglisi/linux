@@ -6,5 +6,3 @@
 mainmenu "Linux/$(ARCH) $(KERNELVERSION) Kernel Configuration"
 
 source "scripts/Kconfig.include"
-
-source "init/Kconfig"

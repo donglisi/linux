@@ -36,7 +36,7 @@ lib-y := ctype.o string.o vsprintf.o cmdline.o \
 	 nmi_backtrace.o nodemask.o win_minmax.o memcat_p.o \
 	 buildid.o
 
-lib-$(CONFIG_PRINTK) += dump_stack.o
+lib-y += dump_stack.o
 lib-y += cpumask.o
 
 lib-y	+= kobject.o klist.o
@@ -108,7 +108,6 @@ obj-$(CONFIG_FPROBE_SANITY_TEST) += test_fprobe.o
 # get appended last to CFLAGS and thus override those previous compiler options.
 #
 FPU_CFLAGS := -msse -msse2
-ifdef CONFIG_CC_IS_GCC
 # Stack alignment mismatch, proceed with caution.
 # GCC < 7.1 cannot compile code using `double` and -mpreferred-stack-boundary=3
 # (8B stack alignment).
@@ -122,7 +121,6 @@ ifdef CONFIG_CC_IS_GCC
 # can be triggered. Otherwise gcc doesn't complain.
 FPU_CFLAGS += -mhard-float
 FPU_CFLAGS += $(call cc-option,-msse -mpreferred-stack-boundary=3,-mpreferred-stack-boundary=4)
-endif
 
 obj-$(CONFIG_TEST_FPU) += test_fpu.o
 CFLAGS_test_fpu.o += $(FPU_CFLAGS)

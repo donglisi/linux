@@ -9,7 +9,7 @@ obj-y     = fork.o exec_domain.o panic.o \
 
 obj-$(CONFIG_USERMODE_DRIVER) += usermode_driver.o
 obj-$(CONFIG_MODULES) += kmod.o
-obj-$(CONFIG_MULTIUSER) += groups.o
+obj-y += groups.o
 
 ifdef CONFIG_FUNCTION_TRACER
 # Do not trace internal ftrace files
@@ -53,12 +53,12 @@ obj-$(CONFIG_FREEZER) += freezer.o
 obj-$(CONFIG_PROFILING) += profile.o
 obj-y += stacktrace.o
 obj-y += time/
-obj-$(CONFIG_FUTEX) += futex/
+obj-y += futex/
 obj-y += dma.o
 obj-y += smp.o
 obj-$(CONFIG_UID16) += uid16.o
 obj-$(CONFIG_MODULE_SIG_FORMAT) += module_signature.o
-obj-$(CONFIG_KALLSYMS) += kallsyms.o
+obj-y += kallsyms.o
 obj-$(CONFIG_BSD_PROCESS_ACCT) += acct.o
 obj-$(CONFIG_CRASH_CORE) += crash_core.o
 obj-$(CONFIG_KEXEC_CORE) += kexec_core.o
@@ -72,10 +72,8 @@ obj-$(CONFIG_UTS_NS) += utsname.o
 obj-$(CONFIG_USER_NS) += user_namespace.o
 obj-$(CONFIG_PID_NS) += pid_namespace.o
 obj-$(CONFIG_IKCONFIG) += configs.o
-obj-$(CONFIG_IKHEADERS) += kheaders.o
 obj-y += stop_machine.o
 obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
-obj-$(CONFIG_AUDITSYSCALL) += auditsc.o audit_watch.o audit_fsnotify.o audit_tree.o
 obj-$(CONFIG_GCOV_KERNEL) += gcov/
 obj-$(CONFIG_KCOV) += kcov.o
 obj-$(CONFIG_KPROBES) += kprobes.o
@@ -91,7 +89,7 @@ obj-$(CONFIG_TASK_DELAY_ACCT) += delayacct.o
 obj-$(CONFIG_TASKSTATS) += taskstats.o tsacct.o
 obj-$(CONFIG_TRACEPOINTS) += tracepoint.o
 obj-$(CONFIG_LATENCYTOP) += latencytop.o
-obj-$(CONFIG_IRQ_WORK) += irq_work.o
+obj-y += irq_work.o
 obj-$(CONFIG_CPU_PM) += cpu_pm.o
 obj-y += bpf/
 obj-y += static_call.o
@@ -108,7 +106,7 @@ obj-y += context_tracking.o
 obj-$(CONFIG_TORTURE_TEST) += torture.o
 
 obj-y += iomem.o
-obj-$(CONFIG_RSEQ) += rseq.o
+obj-y += rseq.o
 obj-$(CONFIG_WATCH_QUEUE) += watch_queue.o
 
 obj-$(CONFIG_RESOURCE_KUNIT_TEST) += resource_kunit.o

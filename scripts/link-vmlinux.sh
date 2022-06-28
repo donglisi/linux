@@ -152,7 +152,7 @@ kallsyms()
 		kallsymopt="${kallsymopt} --absolute-percpu"
 	fi
 
-	if is_enabled CONFIG_KALLSYMS_BASE_RELATIVE; then
+	if is_enabled 1; then
 		kallsymopt="${kallsymopt} --base-relative"
 	fi
 
@@ -321,7 +321,7 @@ fi
 info SYSMAP System.map
 mksysmap vmlinux System.map
 
-if is_enabled CONFIG_BUILDTIME_TABLE_SORT; then
+if is_enabled 1; then
 	info SORTTAB vmlinux
 	if ! sorttable vmlinux; then
 		echo >&2 Failed to sort kernel tables

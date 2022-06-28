@@ -55,7 +55,7 @@ obj-y			+= time.o ioport.o dumpstack.o nmi.o
 obj-y	+= ldt.o
 obj-y			+= setup.o x86_init.o i8259.o irqinit.o
 obj-$(CONFIG_JUMP_LABEL)	+= jump_label.o
-obj-$(CONFIG_IRQ_WORK)  += irq_work.o
+obj-y  += irq_work.o
 obj-y			+= probe_roms.o
 obj-$(CONFIG_X86_32)	+= sys_ia32.o
 obj-$(CONFIG_IA32_EMULATION)	+= sys_ia32.o
@@ -125,7 +125,7 @@ obj-$(CONFIG_X86_PMEM_LEGACY_DEVICE) += pmem.o
 obj-$(CONFIG_JAILHOUSE_GUEST)	+= jailhouse.o
 
 obj-$(CONFIG_EISA)		+= eisa.o
-obj-$(CONFIG_PCSPKR_PLATFORM)	+= pcspeaker.o
+obj-y	+= pcspeaker.o
 
 obj-$(CONFIG_X86_CHECK_BIOS_CORRUPTION) += check.o
 

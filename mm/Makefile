@@ -68,7 +68,7 @@ obj-y += init-mm.o
 obj-y += memblock.o
 obj-y += $(memory-hotplug-y)
 
-	obj-$(CONFIG_ADVISE_SYSCALLS)	+= madvise.o
+	obj-y	+= madvise.o
 
 obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o swap_slots.o
 obj-$(CONFIG_FRONTSWAP)	+= frontswap.o

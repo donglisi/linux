@@ -20,7 +20,7 @@ libchacha20poly1305-y				+= chacha20poly1305.o
 
 obj-$(CONFIG_CRYPTO_LIB_CURVE25519_GENERIC)	+= libcurve25519-generic.o
 libcurve25519-generic-y				:= curve25519-fiat32.o
-libcurve25519-generic-$(CONFIG_ARCH_SUPPORTS_INT128)	:= curve25519-hacl64.o
+libcurve25519-generic-y	:= curve25519-hacl64.o
 libcurve25519-generic-y				+= curve25519-generic.o
 
 obj-$(CONFIG_CRYPTO_LIB_CURVE25519)		+= libcurve25519.o
@@ -31,7 +31,7 @@ libdes-y					:= des.o
 
 obj-$(CONFIG_CRYPTO_LIB_POLY1305_GENERIC)	+= libpoly1305.o
 libpoly1305-y					:= poly1305-donna32.o
-libpoly1305-$(CONFIG_ARCH_SUPPORTS_INT128)	:= poly1305-donna64.o
+libpoly1305-y	:= poly1305-donna64.o
 libpoly1305-y					+= poly1305.o
 
 obj-$(CONFIG_CRYPTO_LIB_SHA256)			+= libsha256.o
