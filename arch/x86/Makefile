@@ -207,9 +207,7 @@ endif
 # the linker to force 2MB page size regardless of the default page size used
 # by the linker.
 #
-ifdef CONFIG_X86_64
 LDFLAGS_vmlinux += -z max-page-size=0x200000
-endif
 
 
 archscripts: scripts_basic
@@ -287,28 +285,3 @@ ifeq ($(RETPOLINE_CFLAGS),)
 	@false
 endif
 endif
-
-archclean:
-	$(Q)rm -rf $(objtree)/arch/i386
-	$(Q)rm -rf $(objtree)/arch/x86_64
-
-define archhelp
-  echo  '* bzImage		- Compressed kernel image (arch/x86/boot/bzImage)'
-  echo  '  install		- Install kernel using (your) ~/bin/$(INSTALLKERNEL) or'
-  echo  '			  (distribution) /sbin/$(INSTALLKERNEL) or install to '
-  echo  '			  $$(INSTALL_PATH) and run lilo'
-  echo  ''
-  echo  '  fdimage		- Create 1.4MB boot floppy image (arch/x86/boot/fdimage)'
-  echo  '  fdimage144		- Create 1.4MB boot floppy image (arch/x86/boot/fdimage)'
-  echo  '  fdimage288		- Create 2.8MB boot floppy image (arch/x86/boot/fdimage)'
-  echo  '  hdimage		- Create a BIOS/EFI hard disk image (arch/x86/boot/hdimage)'
-  echo  '  isoimage		- Create a boot CD-ROM image (arch/x86/boot/image.iso)'
-  echo  '			  bzdisk/fdimage*/hdimage/isoimage also accept:'
-  echo  '			  FDARGS="..."  arguments for the booted kernel'
-  echo  '			  FDINITRD=file initrd for the booted kernel'
-  echo  ''
-  echo  '  kvm_guest.config	- Enable Kconfig items for running this kernel as a KVM guest'
-  echo  '  xen.config		- Enable Kconfig items for running this kernel as a Xen guest'
-  echo  '  x86_debug.config	- Enable tip tree debugging options for testing'
-
-endef
