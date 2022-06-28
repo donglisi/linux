@@ -8,9 +8,6 @@ src := $(obj)
 PHONY := __build
 __build:
 
-# Init all relevant variables used in kbuild files so
-# 1) they have correct type
-# 2) they do not inherit any value from the environment
 obj-y :=
 obj-m :=
 lib-y :=
