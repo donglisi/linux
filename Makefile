@@ -1203,57 +1203,6 @@ PHONY += dt_binding_check
 dt_binding_check: scripts_dtc
 	$(Q)$(MAKE) $(build)=Documentation/devicetree/bindings
 
-###
-# Cleaning is done on three levels.
-# make clean     Delete most generated files
-#                Leave enough to build external modules
-# make mrproper  Delete the current configuration, and all generated files
-# make distclean Remove editor backup files, patch leftover files and the like
-
-# Directories & files removed with 'make clean'
-CLEAN_FILES += include/ksym vmlinux.symvers modules-only.symvers \
-	       modules.builtin modules.builtin.modinfo modules.nsdeps \
-	       compile_commands.json .thinlto-cache
-
-# Directories & files removed with 'make mrproper'
-MRPROPER_FILES += include/config include/generated          \
-		  arch/$(SRCARCH)/include/generated .objdiff \
-		  debian snap tar-install \
-		  .config .config.old .version \
-		  Module.symvers \
-		  certs/signing_key.pem \
-		  certs/x509.genkey \
-		  vmlinux-gdb.py \
-		  *.spec
-
-# clean - Delete most, but leave enough to build external modules
-#
-clean: rm-files := $(CLEAN_FILES)
-
-PHONY += archclean vmlinuxclean
-
-vmlinuxclean:
-	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/link-vmlinux.sh clean
-	$(Q)$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) clean)
-
-clean: archclean vmlinuxclean resolve_btfids_clean
-
-# mrproper - Delete all generated files, including .config
-#
-mrproper: rm-files := $(wildcard $(MRPROPER_FILES))
-mrproper-dirs      := $(addprefix _mrproper_,scripts)
-
-PHONY += $(mrproper-dirs) mrproper
-$(mrproper-dirs):
-	$(Q)$(MAKE) $(clean)=$(patsubst _mrproper_%,%,$@)
-
-mrproper: clean $(mrproper-dirs)
-	$(call cmd,rmfiles)
-
-# distclean
-#
-PHONY += distclean
-
 
 # Packaging of the kernel to various formats
 # ---------------------------------------------------------------------------
