@@ -25,7 +25,6 @@ targets += vmlinux.o
 # Add FORCE to the prequisites of a target to force it to be always rebuilt.
 # ---------------------------------------------------------------------------
 
-PHONY += FORCE
 FORCE:
 
 .PHONY: $(PHONY)
