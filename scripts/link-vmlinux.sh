@@ -66,34 +66,12 @@ kallsyms()
 	${NM} -n ${1} | scripts/kallsyms ${kallsymopt} > ${2}
 }
 
-# Perform one step in kallsyms generation, including temporary linking of
-# vmlinux.
-kallsyms_step()
-{
-	kallsymso_prev=${kallsymso}
-	kallsyms_vmlinux=.tmp_vmlinux.kallsyms${1}
-	kallsymso=${kallsyms_vmlinux}.o
-	kallsyms_S=${kallsyms_vmlinux}.S
-
-	vmlinux_link ${kallsyms_vmlinux} "${kallsymso_prev}" ${btf_vmlinux_bin_o}
-	kallsyms ${kallsyms_vmlinux} ${kallsyms_S}
-
-	info AS ${kallsyms_S}
-	${CC} ${NOSTDINC_FLAGS} ${LINUXINCLUDE} ${KBUILD_CPPFLAGS} \
-	      ${KBUILD_AFLAGS} ${KBUILD_AFLAGS_KERNEL} \
-	      -c -o ${kallsymso} ${kallsyms_S}
-}
 
 # Create map file with all symbols from ${1}
 # See mksymap for additional details
 mksysmap()
 {
 	${CONFIG_SHELL} "${srctree}/scripts/mksysmap" ${1} ${2}
-}
-
-sorttable()
-{
-	${objtree}/scripts/sorttable ${1}
 }
 
 # final build of init/
