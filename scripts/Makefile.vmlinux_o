@@ -15,7 +15,6 @@ quiet_cmd_ld_vmlinux.o = LD      $@
 
 define rule_ld_vmlinux.o
 	$(call cmd_and_savecmd,ld_vmlinux.o)
-	$(call cmd,gen_objtooldep)
 endef
 
 vmlinux.o: $(initcalls-lds) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS) FORCE
