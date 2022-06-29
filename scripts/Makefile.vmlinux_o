@@ -1,7 +1,4 @@
-# SPDX-License-Identifier: GPL-2.0-only
-
-PHONY := __default
-__default: vmlinux.o
+PHONY := vmlinux.o
 
 include $(srctree)/scripts/Kbuild.include
 
@@ -31,14 +28,5 @@ targets += vmlinux.o
 
 PHONY += FORCE
 FORCE:
-
-# Read all saved command lines and dependencies for the $(targets) we
-# may be building above, using $(if_changed{,_dep}). As an
-# optimization, we don't need to read them if the target does not
-# exist, we will rebuild anyway in that case.
-
-existing-targets := $(wildcard $(sort $(targets)))
-
--include $(foreach f,$(existing-targets),$(dir $(f)).$(notdir $(f)).cmd)
 
 .PHONY: $(PHONY)
