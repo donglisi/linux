@@ -1,4 +1,3 @@
-include $(srctree)/scripts/Kbuild.include
 
 KBUILD_VMLINUX_LIBS := lib/lib.a arch/x86/lib/lib.a
 KBUILD_VMLINUX_OBJS := arch/x86/kernel/head_64.o arch/x86/kernel/head64.o arch/x86/kernel/ebda.o arch/x86/kernel/platform-quirks.o init/built-in.a arch/x86/built-in.a kernel/built-in.a mm/built-in.a fs/built-in.a security/built-in.a crypto/built-in.a block/built-in.a lib/built-in.a arch/x86/lib/built-in.a drivers/built-in.a net/built-in.a arch/x86/pci/built-in.a
