@@ -791,29 +791,6 @@ CHECKFLAGS += -m64
 # this default value
 export KBUILD_IMAGE ?= vmlinux
 
-#
-# INSTALL_PATH specifies where to place the updated kernel and system map
-# images. Default is /boot, but you can set it to other values
-export	INSTALL_PATH ?= /boot
-
-#
-# INSTALL_DTBS_PATH specifies a prefix for relocations required by build roots.
-# Like INSTALL_MOD_PATH, it isn't defined in the Makefile, but can be passed as
-# an argument if needed. Otherwise it defaults to the kernel install path
-#
-export INSTALL_DTBS_PATH ?= $(INSTALL_PATH)/dtbs/$(KERNELRELEASE)
-
-#
-# INSTALL_MOD_PATH specifies a prefix to MODLIB for module directory
-# relocations required by build roots.  This is not defined in the
-# makefile but the argument can be passed to make if needed.
-#
-
-MODLIB	= $(INSTALL_MOD_PATH)/lib/modules/$(KERNELRELEASE)
-export MODLIB
-
-PHONY += prepare0
-
 export extmod_prefix = $(if $(KBUILD_EXTMOD),$(KBUILD_EXTMOD)/)
 export MODORDER := $(extmod_prefix)modules.order
 export MODULES_NSDEPS := $(extmod_prefix)modules.nsdeps
@@ -999,59 +976,6 @@ scripts_unifdef: scripts_basic
 	$(Q)$(MAKE) $(build)=scripts scripts/unifdef
 
 # ---------------------------------------------------------------------------
-# Install
-
-# Many distributions have the custom install script, /sbin/installkernel.
-# If DKMS is installed, 'make install' will eventually recurse back
-# to this Makefile to build and install external modules.
-# Cancel sub_make_done so that options such as M=, V=, etc. are parsed.
-
-quiet_cmd_install = INSTALL $(INSTALL_PATH)
-      cmd_install = unset sub_make_done; $(srctree)/scripts/install.sh
-
-
-PHONY += resolve_btfids_clean
-
-resolve_btfids_O = $(abspath $(objtree))/tools/bpf/resolve_btfids
-
-# tools/bpf/resolve_btfids directory might not exist
-# in output directory, skip its clean in that case
-resolve_btfids_clean:
-ifneq ($(wildcard $(resolve_btfids_O)),)
-	$(Q)$(MAKE) -sC $(srctree)/tools/bpf/resolve_btfids O=$(resolve_btfids_O) clean
-endif
-
-# Clear a bunch of variables before executing the submake
-ifeq ($(quiet),silent_)
-tools_silent=s
-endif
-
-tools/: FORCE
-	$(Q)mkdir -p $(objtree)/tools
-	$(Q)$(MAKE) LDFLAGS= MAKEFLAGS="$(tools_silent) $(filter --j% -j,$(MAKEFLAGS))" O=$(abspath $(objtree)) subdir=tools -C $(srctree)/tools/
-
-tools/%: FORCE
-	$(Q)mkdir -p $(objtree)/tools
-	$(Q)$(MAKE) LDFLAGS= MAKEFLAGS="$(tools_silent) $(filter --j% -j,$(MAKEFLAGS))" O=$(abspath $(objtree)) subdir=tools -C $(srctree)/tools/ $*
-
-# ---------------------------------------------------------------------------
-# Kernel selftest
-
-PHONY += kselftest
-kselftest:
-	$(Q)$(MAKE) -C $(srctree)/tools/testing/selftests run_tests
-
-kselftest-%: FORCE
-	$(Q)$(MAKE) -C $(srctree)/tools/testing/selftests $*
-
-PHONY += kselftest-merge
-kselftest-merge:
-	$(if $(wildcard $(objtree)/.config),, $(error No .config exists, config your kernel first!))
-	$(Q)find $(srctree)/tools/testing/selftests -name config | \
-		xargs $(srctree)/scripts/kconfig/merge_config.sh -m $(objtree)/.config
-	$(Q)$(MAKE) -f $(srctree)/Makefile olddefconfig
-
-# ---------------------------------------------------------------------------
 # Devicetree files
 
 ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/boot/dts/),)
@@ -1074,11 +998,6 @@ ifneq ($(filter dtbs_check, $(MAKECMDGOALS)),)
 export CHECK_DTBS=y
 dtbs: dt_binding_check
 endif
-
-dtbs_check: dtbs
-
-dtbs_install:
-	$(Q)$(MAKE) $(dtbinst)=$(dtstree) dst=$(INSTALL_DTBS_PATH)
 
 endif
 
