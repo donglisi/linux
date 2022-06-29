@@ -13,12 +13,8 @@ quiet_cmd_ld_vmlinux.o = LD      $@
 	--start-group $(KBUILD_VMLINUX_LIBS) --end-group \
 	$(cmd_objtool)
 
-define rule_ld_vmlinux.o
-	$(call cmd_and_savecmd,ld_vmlinux.o)
-endef
-
 vmlinux.o: $(initcalls-lds) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS) FORCE
-	$(call if_changed_rule,ld_vmlinux.o)
+	$(call cmd_and_savecmd,ld_vmlinux.o)
 
 targets += vmlinux.o
 
