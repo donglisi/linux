@@ -12,14 +12,12 @@ quiet_cmd_ld_vmlinux.o = LD      $@
 	--whole-archive $(KBUILD_VMLINUX_OBJS) --no-whole-archive \
 	--start-group $(KBUILD_VMLINUX_LIBS) --end-group
 
-vmlinux.o: $(initcalls-lds) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS) FORCE
+vmlinux.o: $(initcalls-lds) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 	$(call cmd_and_savecmd,ld_vmlinux.o)
 
 targets += vmlinux.o
 
 # Add FORCE to the prequisites of a target to force it to be always rebuilt.
 # ---------------------------------------------------------------------------
-
-FORCE:
 
 .PHONY: $(PHONY)
