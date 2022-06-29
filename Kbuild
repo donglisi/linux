@@ -35,25 +35,3 @@ arch/$(SRCARCH)/kernel/asm-offsets.s: $(timeconst-file) $(bounds-file)
 
 $(offsets-file): arch/$(SRCARCH)/kernel/asm-offsets.s FORCE
 	$(call filechk,offsets,__ASM_OFFSETS_H__)
-
-#####
-# Check for missing system calls
-
-always-y += missing-syscalls
-
-quiet_cmd_syscalls = CALL    $<
-      cmd_syscalls = $(CONFIG_SHELL) $< $(CC) $(c_flags) $(missing_syscalls_flags)
-
-missing-syscalls: scripts/checksyscalls.sh $(offsets-file) FORCE
-	$(call cmd,syscalls)
-
-#####
-# Check atomic headers are up-to-date
-
-always-y += old-atomics
-
-quiet_cmd_atomics = CALL    $<
-      cmd_atomics = $(CONFIG_SHELL) $<
-
-old-atomics: scripts/atomic/check-atomics.sh FORCE
-	$(call cmd,atomics)

@@ -86,41 +86,6 @@ vmlinux_link()
 		$@ ${ldlibs}
 }
 
-# generate .BTF typeinfo from DWARF debuginfo
-# ${1} - vmlinux image
-# ${2} - file to dump raw BTF data into
-gen_btf()
-{
-	local pahole_ver
-
-	if ! [ -x "$(command -v ${PAHOLE})" ]; then
-		echo >&2 "BTF: ${1}: pahole (${PAHOLE}) is not available"
-		return 1
-	fi
-
-	pahole_ver=$(${PAHOLE} --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/')
-	if [ "${pahole_ver}" -lt "116" ]; then
-		echo >&2 "BTF: ${1}: pahole version $(${PAHOLE} --version) is too old, need at least v1.16"
-		return 1
-	fi
-
-	vmlinux_link ${1}
-
-	info "BTF" ${2}
-	LLVM_OBJCOPY="${OBJCOPY}" ${PAHOLE} -J ${PAHOLE_FLAGS} ${1}
-
-	# Create ${2} which contains just .BTF section but no symbols. Add
-	# SHF_ALLOC because .BTF will be part of the vmlinux image. --strip-all
-	# deletes all symbols including __start_BTF and __stop_BTF, which will
-	# be redefined in the linker script. Add 2>/dev/null to suppress GNU
-	# objcopy warnings: "empty loadable segment detected at ..."
-	${OBJCOPY} --only-section=.BTF --set-section-flags .BTF=alloc,readonly \
-		--strip-all ${1} ${2} 2>/dev/null
-	# Change e_type to ET_REL so that it can be used to link final vmlinux.
-	# Unlike GNU ld, lld does not allow an ET_EXEC input.
-	printf '\1' | dd of=${2} conv=notrunc bs=1 seek=16 status=none
-}
-
 # Create ${2} .S file with all symbols from the ${1} object file
 kallsyms()
 {
