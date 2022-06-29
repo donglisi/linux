@@ -861,13 +861,6 @@ filechk_kernel.release = \
 include/config/kernel.release: FORCE
 	$(call filechk,kernel.release)
 
-# Additional helpers built in scripts/
-# Carefully list dependencies so we do not try to build scripts twice
-# in parallel
-PHONY += scripts
-scripts: scripts_basic scripts_dtc
-	$(Q)$(MAKE) $(build)=$(@)
-
 # Things we need to do before we recursively start building the kernel
 # or the modules are listed in "prepare".
 # A multi level approach is used. prepareN is processed before prepareN-1.
@@ -877,7 +870,7 @@ scripts: scripts_basic scripts_dtc
 PHONY += prepare archprepare
 
 archprepare: outputmakefile archheaders archscripts scripts include/config/kernel.release \
-	asm-generic $(version_h) $(autoksyms_h) include/generated/utsrelease.h remove-stale-files
+	asm-generic $(version_h) $(autoksyms_h) include/generated/utsrelease.h
 
 prepare0: archprepare
 	$(Q)$(MAKE) $(build)=scripts/mod
@@ -885,10 +878,6 @@ prepare0: archprepare
 
 # All the preparing..
 prepare: prepare0
-
-PHONY += remove-stale-files
-remove-stale-files:
-	$(Q)$(srctree)/scripts/remove-stale-files
 
 # Support for using generic headers in asm-generic
 asm-generic := -f $(srctree)/scripts/Makefile.asm-generic obj
@@ -944,125 +933,7 @@ headerdep:
 	$(Q)find $(srctree)/include/ -name '*.h' | xargs --max-args 1 \
 	$(srctree)/scripts/headerdep.pl -I$(srctree)/include
 
-# ---------------------------------------------------------------------------
-# Kernel headers
-
-#Default location for installed headers
-export INSTALL_HDR_PATH = $(objtree)/usr
-
-quiet_cmd_headers_install = INSTALL $(INSTALL_HDR_PATH)/include
-      cmd_headers_install = \
-	mkdir -p $(INSTALL_HDR_PATH); \
-	rsync -mrl --include='*/' --include='*\.h' --exclude='*' \
-	usr/include $(INSTALL_HDR_PATH)
-
-PHONY += headers_install
-headers_install: headers
-	$(call cmd,headers_install)
-
-PHONY += archheaders archscripts
-
-hdr-inst := -f $(srctree)/scripts/Makefile.headersinst obj
-
-PHONY += headers
-headers: $(version_h) scripts_unifdef uapi-asm-generic archheaders archscripts
-	$(if $(wildcard $(srctree)/arch/$(SRCARCH)/include/uapi/asm/Kbuild),, \
-	  $(error Headers not exportable for the $(SRCARCH) architecture))
-	$(Q)$(MAKE) $(hdr-inst)=include/uapi
-	$(Q)$(MAKE) $(hdr-inst)=arch/$(SRCARCH)/include/uapi
-
-PHONY += scripts_unifdef
-scripts_unifdef: scripts_basic
-	$(Q)$(MAKE) $(build)=scripts scripts/unifdef
-
-# ---------------------------------------------------------------------------
-# Devicetree files
-
-ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/boot/dts/),)
-dtstree := arch/$(SRCARCH)/boot/dts
-endif
-
-ifneq ($(dtstree),)
-
-%.dtb: include/config/kernel.release scripts_dtc
-	$(Q)$(MAKE) $(build)=$(dtstree) $(dtstree)/$@
-
-%.dtbo: include/config/kernel.release scripts_dtc
-	$(Q)$(MAKE) $(build)=$(dtstree) $(dtstree)/$@
-
-PHONY += dtbs dtbs_install dtbs_check
-dtbs: include/config/kernel.release scripts_dtc
-	$(Q)$(MAKE) $(build)=$(dtstree)
-
-ifneq ($(filter dtbs_check, $(MAKECMDGOALS)),)
-export CHECK_DTBS=y
-dtbs: dt_binding_check
-endif
-
-endif
-
-PHONY += scripts_dtc
-scripts_dtc: scripts_basic
-	$(Q)$(MAKE) $(build)=scripts/dtc
-
-ifneq ($(filter dt_binding_check, $(MAKECMDGOALS)),)
-export CHECK_DT_BINDING=y
-endif
-
-PHONY += dt_binding_check
-dt_binding_check: scripts_dtc
-	$(Q)$(MAKE) $(build)=Documentation/devicetree/bindings
-
-
-# Packaging of the kernel to various formats
-# ---------------------------------------------------------------------------
-
-%src-pkg: FORCE
-	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.package $@
-%pkg: include/config/kernel.release FORCE
-	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.package $@
-
-# Brief documentation of the typical targets used
-# ---------------------------------------------------------------------------
-
-boards := $(wildcard $(srctree)/arch/$(SRCARCH)/configs/*_defconfig)
-boards := $(sort $(notdir $(boards)))
-board-dirs := $(dir $(wildcard $(srctree)/arch/$(SRCARCH)/configs/*/*_defconfig))
-board-dirs := $(sort $(notdir $(board-dirs:/=)))
-
 else # KBUILD_EXTMOD
-
-###
-# External module support.
-# When building external modules the kernel used as basis is considered
-# read-only, and no consistency checks are made and the make
-# system is not used on the basis kernel. If updates are required
-# in the basis kernel ordinary make commands (without M=...) must be used.
-
-# We are always building only modules.
-KBUILD_BUILTIN :=
-KBUILD_MODULES := 1
-
-build-dirs := $(KBUILD_EXTMOD)
-$(MODORDER): descend
-	@:
-
-compile_commands.json: $(extmod_prefix)compile_commands.json
-PHONY += compile_commands.json
-
-clean-dirs := $(KBUILD_EXTMOD)
-clean: rm-files := $(KBUILD_EXTMOD)/Module.symvers $(KBUILD_EXTMOD)/modules.nsdeps \
-	$(KBUILD_EXTMOD)/compile_commands.json $(KBUILD_EXTMOD)/.thinlto-cache
-
-PHONY += prepare
-# now expand this into a simple variable to reduce the cost of shell evaluations
-prepare: CC_VERSION_TEXT := $(CC_VERSION_TEXT)
-prepare:
-	@if [ "$(CC_VERSION_TEXT)" != "$(CONFIG_CC_VERSION_TEXT)" ]; then \
-		echo >&2 "warning: the compiler differs from the one used to build the kernel"; \
-		echo >&2 "  The kernel was built by: $(CONFIG_CC_VERSION_TEXT)"; \
-		echo >&2 "  You are using:           $(CC_VERSION_TEXT)"; \
-	fi
 endif # KBUILD_EXTMOD
 
 ifdef single-build
