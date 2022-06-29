@@ -1,9 +1,6 @@
-PHONY := vmlinux.o
-
 include $(srctree)/scripts/Kbuild.include
 
 # Link of vmlinux.o used for section mismatch analysis
-# ---------------------------------------------------------------------------
 
 quiet_cmd_ld_vmlinux.o = LD      $@
       cmd_ld_vmlinux.o = \
@@ -16,8 +13,3 @@ vmlinux.o: $(initcalls-lds) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 	$(call cmd_and_savecmd,ld_vmlinux.o)
 
 targets += vmlinux.o
-
-# Add FORCE to the prequisites of a target to force it to be always rebuilt.
-# ---------------------------------------------------------------------------
-
-.PHONY: $(PHONY)
