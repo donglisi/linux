@@ -1,10 +1,10 @@
 include $(srctree)/scripts/Kbuild.include
 
-# Link of vmlinux.o used for section mismatch analysis
+KBUILD_VMLINUX_LIBS := lib/lib.a arch/x86/lib/lib.a
+KBUILD_VMLINUX_OBJS := arch/x86/kernel/head_64.o arch/x86/kernel/head64.o arch/x86/kernel/ebda.o arch/x86/kernel/platform-quirks.o init/built-in.a arch/x86/built-in.a kernel/built-in.a mm/built-in.a fs/built-in.a security/built-in.a crypto/built-in.a block/built-in.a lib/built-in.a arch/x86/lib/built-in.a drivers/built-in.a net/built-in.a arch/x86/pci/built-in.a
 
-quiet_cmd_ld_vmlinux.o = LD      $@
-      cmd_ld_vmlinux.o = \
-	$(LD) ${KBUILD_LDFLAGS} -r -o $@ \
+cmd_ld_vmlinux.o = \
+	$(LD) -m elf_x86_64 -r -o $@ \
 	$(addprefix -T , $(initcalls-lds)) \
 	--whole-archive $(KBUILD_VMLINUX_OBJS) --no-whole-archive \
 	--start-group $(KBUILD_VMLINUX_LIBS) --end-group
