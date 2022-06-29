@@ -9,7 +9,7 @@ cmd_ld_vmlinux.o = \
 	--whole-archive $(KBUILD_VMLINUX_OBJS) --no-whole-archive \
 	--start-group $(KBUILD_VMLINUX_LIBS) --end-group
 
-vmlinux.o: $(initcalls-lds) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
+vmlinux.o: $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 	$(call cmd_and_savecmd,ld_vmlinux.o)
 
 targets += vmlinux.o
