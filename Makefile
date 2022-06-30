@@ -23,8 +23,6 @@ quiet=quiet_
 Q = @
 export quiet Q KBUILD_VERBOSE
 
-export KBUILD_CHECKSRC := 0
-
 KBUILD_OUTPUT := $(O)
 abs_objtree := $(realpath $(shell mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd))
 need-sub-make := 1
@@ -65,9 +63,7 @@ else
 	building_out_of_srctree := 1
 endif
 
-ifneq ($(KBUILD_ABS_SRCTREE),)
 srctree := $(abs_srctree)
-endif
 
 objtree		:= .
 VPATH		:= $(srctree)
