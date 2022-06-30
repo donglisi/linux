@@ -83,27 +83,8 @@ export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION
 
 include $(srctree)/scripts/subarch.include
 
-# Cross compiling and selecting different set of gcc/bin-utils
-# ---------------------------------------------------------------------------
-#
-# When performing cross compilation for other architectures ARCH shall be set
-# to the target architecture. (See arch/* for the possibilities).
-# ARCH can be set during invocation of make:
-# make ARCH=ia64
-# Another way is to have ARCH set in the environment.
-# The default ARCH is the host where make is executed.
-
-# CROSS_COMPILE specify the prefix used for all executables used
-# during compilation. Only gcc and related bin-utils executables
-# are prefixed with $(CROSS_COMPILE).
-# CROSS_COMPILE can be set on the command line
-# make CROSS_COMPILE=ia64-linux-
-# Alternatively CROSS_COMPILE can be set in the environment.
-# Default value for CROSS_COMPILE is not to prefix executables
-# Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 ARCH		?= $(SUBARCH)
 
-# Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
 SRCARCH 	:= $(ARCH)
 
@@ -111,7 +92,6 @@ ifeq ($(ARCH),x86_64)
         SRCARCH := x86
 endif
 
-# SHELL used by kbuild
 CONFIG_SHELL := sh
 
 HOST_LFS_CFLAGS := $(shell getconf LFS_CFLAGS 2>/dev/null)
@@ -119,7 +99,6 @@ HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
 HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
 
 HOSTCC	= gcc
-HOSTPKG_CONFIG	= pkg-config
 
 KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
 			 -O2 -fomit-frame-pointer -std=gnu11 \
@@ -133,35 +112,23 @@ KBUILD_HOSTLDLIBS   := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
 
 # Make variables (CC, etc...)
 CPP		= $(CC) -E
-CC		= $(CROSS_COMPILE)gcc
-LD		= $(CROSS_COMPILE)ld
-AR		= $(CROSS_COMPILE)ar
-NM		= $(CROSS_COMPILE)nm
-OBJCOPY		= $(CROSS_COMPILE)objcopy
-OBJDUMP		= $(CROSS_COMPILE)objdump
-READELF		= $(CROSS_COMPILE)readelf
-STRIP		= $(CROSS_COMPILE)strip
-PAHOLE		= pahole
-RESOLVE_BTFIDS	= $(objtree)/tools/bpf/resolve_btfids/resolve_btfids
+CC		= gcc
+LD		= ld
+AR		= ar
+NM		= nm
+OBJCOPY		= objcopy
+OBJDUMP		= objdump
+READELF		= readelf
+STRIP		= strip
 LEX		= flex
 YACC		= bison
 AWK		= awk
-INSTALLKERNEL  := installkernel
-DEPMOD		= depmod
-PERL		= perl
 PYTHON3		= python3
 CHECK		= sparse
 BASH		= bash
 KGZIP		= gzip
-KBZIP2		= bzip2
-KLZOP		= lzop
-LZMA		= lzma
-LZ4		= lz4c
-XZ		= xz
-ZSTD		= zstd
 
 NOSTDINC_FLAGS :=
-CFLAGS_MODULE   =
 AFLAGS_MODULE   =
 LDFLAGS_MODULE  =
 CFLAGS_KERNEL	=
@@ -196,14 +163,13 @@ KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 KBUILD_CPPFLAGS := -D__KERNEL__ -include /a/sources/linux/config.h
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_AFLAGS_MODULE  := -DMODULE
-KBUILD_CFLAGS_MODULE  := -DMODULE
 KBUILD_LDFLAGS_MODULE :=
 KBUILD_LDFLAGS :=
 CLANG_FLAGS :=
 
 CONFIG_FRAME_WARN=1024
 
-export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS CROSS_COMPILE LD CC HOSTPKG_CONFIG
+export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS CROSS_COMPILE LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP READELF PAHOLE RESOLVE_BTFIDS LEX YACC AWK INSTALLKERNEL
 export PERL PYTHON3 CHECK MAKE UTS_MACHINE
 export KGZIP KBZIP2 KLZOP LZMA LZ4 XZ ZSTD
@@ -211,9 +177,9 @@ export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS LDFLAGS_MODULE
 export KBUILD_USERCFLAGS KBUILD_USERLDFLAGS
 
 export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE OBJCOPYFLAGS KBUILD_LDFLAGS
-export KBUILD_CFLAGS CFLAGS_KERNEL CFLAGS_MODULE
+export KBUILD_CFLAGS CFLAGS_KERNEL
 export KBUILD_AFLAGS AFLAGS_KERNEL AFLAGS_MODULE
-export KBUILD_AFLAGS_MODULE KBUILD_CFLAGS_MODULE KBUILD_LDFLAGS_MODULE
+export KBUILD_AFLAGS_MODULE KBUILD_LDFLAGS_MODULE
 export KBUILD_AFLAGS_KERNEL KBUILD_CFLAGS_KERNEL
 
 # ===========================================================================
@@ -375,39 +341,17 @@ KBUILD_CFLAGS += $(stackp-flags-y)
 
 KBUILD_CFLAGS += $(KBUILD_CFLAGS-y) -Wimplicit-fallthrough=5
 
-# gcc inanely warns about local variables called 'main'
 KBUILD_CFLAGS += -Wno-main
-
-# These warnings generated too much noise in a regular build.
-# Use make W=1 to enable them (see scripts/Makefile.extrawarn)
-KBUILD_CFLAGS += $(call cc-disable-warning, unused-but-set-variable)
-KBUILD_CFLAGS += $(call cc-disable-warning, unused-const-variable)
-
-# arch Makefile may override CC so keep this after arch Makefile is included
 NOSTDINC_FLAGS += -nostdinc
-
-# warn about C99 declaration after statement
 KBUILD_CFLAGS += -Wdeclaration-after-statement
-
-# Variable Length Arrays (VLAs) should not be used anywhere in the kernel
 KBUILD_CFLAGS += -Wvla
-
-# disable pointer signed / unsigned warnings in gcc 4.0
 KBUILD_CFLAGS += -Wno-pointer-sign
-
-# In order to make sure new function cast mismatches are not introduced
-# in the kernel (to avoid tripping CFI checking), the kernel should be
-# globally built with -Wcast-function-type.
-KBUILD_CFLAGS += $(call cc-option, -Wcast-function-type)
-
-# disable stringop warnings in gcc 8+
-KBUILD_CFLAGS += $(call cc-disable-warning, stringop-truncation)
-
-# We'll want to enable this eventually, but it's not going away for 5.7 at least
-KBUILD_CFLAGS += $(call cc-disable-warning, stringop-overflow)
-
-# Another good warning that we'll want to enable eventually
-KBUILD_CFLAGS += $(call cc-disable-warning, restrict)
+KBUILD_CFLAGS += -Wcast-function-type
+KBUILD_CFLAGS += -Wunused-const-variable
+KBUILD_CFLAGS += -Wunused-but-set-variable
+KBUILD_CFLAGS += -Wstringop-truncation
+KBUILD_CFLAGS += -Wstringop-overflow
+KBUILD_CFLAGS += -Wrestrict
 
 KBUILD_CFLAGS += -Wno-maybe-uninitialized
 KBUILD_CFLAGS += -fno-strict-overflow
@@ -417,9 +361,7 @@ KBUILD_CFLAGS += -Werror=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
-KBUILD_CPPFLAGS += $(call cc-option,-fmacro-prefix-map=$(srctree)/=)
-
-export extmod_prefix = $(if $(KBUILD_EXTMOD),$(KBUILD_EXTMOD)/)
+KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
 
 ifeq ($(KBUILD_EXTMOD),)
 core-y			+= kernel/ mm/ fs/ security/ crypto/ block/
