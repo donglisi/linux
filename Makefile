@@ -164,8 +164,6 @@ LZ4		= lz4c
 XZ		= xz
 ZSTD		= zstd
 
-CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
-		  -Wbitwise -Wno-return-void -Wno-unknown-attribute $(CF)
 NOSTDINC_FLAGS :=
 CFLAGS_MODULE   =
 AFLAGS_MODULE   =
@@ -211,7 +209,7 @@ CONFIG_FRAME_WARN=1024
 
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS CROSS_COMPILE LD CC HOSTPKG_CONFIG
 export CPP AR NM STRIP OBJCOPY OBJDUMP READELF PAHOLE RESOLVE_BTFIDS LEX YACC AWK INSTALLKERNEL
-export PERL PYTHON3 CHECK CHECKFLAGS MAKE UTS_MACHINE
+export PERL PYTHON3 CHECK MAKE UTS_MACHINE
 export KGZIP KBZIP2 KLZOP LZMA LZ4 XZ ZSTD
 export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS LDFLAGS_MODULE
 export KBUILD_USERCFLAGS KBUILD_USERLDFLAGS
@@ -277,23 +275,9 @@ ifdef need-compiler
 include $(srctree)/scripts/Makefile.compiler
 endif
 
-# ===========================================================================
-# Build targets only - this includes vmlinux, arch specific targets, clean
-# targets and others. In general all targets except *config targets.
-
-# If building an external module we do not care about the all: rule
-# but instead __all depend on modules
 PHONY += all
-ifeq ($(KBUILD_EXTMOD),)
 __all: all
-else
-__all: modules
-endif
 
-# Decide whether to build built-in, modular, or both.
-# Normally, just do built-in.
-
-KBUILD_MODULES :=
 KBUILD_BUILTIN := 1
 
 # If we have only "make modules", don't compile built-in objects.
@@ -301,52 +285,18 @@ ifeq ($(MAKECMDGOALS),modules)
   KBUILD_BUILTIN :=
 endif
 
-# If we have "make <whatever> modules", compile modules
-# in addition to whatever we do anyway.
-# Just "make" or "make all" shall build modules as well
+export KBUILD_BUILTIN
 
-ifneq ($(filter all modules nsdeps %compile_commands.json clang-%,$(MAKECMDGOALS)),)
-  KBUILD_MODULES := 1
-endif
-
-ifeq ($(MAKECMDGOALS),)
-  KBUILD_MODULES := 1
-endif
-
-export KBUILD_MODULES KBUILD_BUILTIN
-
-ifeq ($(KBUILD_EXTMOD),)
-# Objects we will link into vmlinux / subdirs we need to visit
-core-y		:= init/ arch/$(SRCARCH)/
-drivers-y	:= drivers/
+core-y := init/ arch/$(SRCARCH)/
+drivers-y := drivers/
 drivers-y += net/
-libs-y		:= lib/
-endif # KBUILD_EXTMOD
+libs-y := lib/
 
-# The all: target is the default when no target is given on the
-# command line.
-# This allow a user to issue only 'make' to build a kernel including modules
-# Defaults to vmlinux, but the arch makefile usually adds further targets
 all: vmlinux
 
 CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
 CFLAGS_GCOV	+= -fno-tree-loop-im
 export CFLAGS_GCOV
-
-# ---------------------------------------------------
-RETPOLINE_CFLAGS	:= $(call cc-option,-mindirect-branch=thunk-extern -mindirect-branch-register)
-RETPOLINE_CFLAGS	+= $(call cc-option,-mindirect-branch-cs-prefix)
-RETPOLINE_VDSO_CFLAGS	:= $(call cc-option,-mindirect-branch=thunk-inline -mindirect-branch-register)
-export RETPOLINE_CFLAGS
-export RETPOLINE_VDSO_CFLAGS
-
-ifneq ($(call cc-option, -mpreferred-stack-boundary=4),)
-      cc_stack_align4 := -mpreferred-stack-boundary=2
-      cc_stack_align8 := -mpreferred-stack-boundary=3
-else ifneq ($(call cc-option, -mstack-alignment=16),)
-      cc_stack_align4 := -mstack-alignment=4
-      cc_stack_align8 := -mstack-alignment=8
-endif
 
 REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS \
 		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
@@ -357,65 +307,31 @@ REALMODE_CFLAGS += -include /a/sources/linux/config.h
 REALMODE_CFLAGS += -ffreestanding
 REALMODE_CFLAGS += -fno-stack-protector
 REALMODE_CFLAGS += -Wno-address-of-packed-member
-REALMODE_CFLAGS += $(cc_stack_align4)
 REALMODE_CFLAGS += $(CLANG_FLAGS)
 export REALMODE_CFLAGS
 
-export BITS
 
-#
-# Prevent GCC from generating any FP code by mistake.
-#
-# This must happen before we try the -mpreferred-stack-boundary, see:
-#
-#    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53383
-#
 KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx
 
-KBUILD_CFLAGS += $(call cc-option,-fcf-protection=none)
-
-BITS := 64
+export BITS := 64
 UTS_MACHINE := x86_64
-CHECKFLAGS += -D__x86_64__
 
 KBUILD_AFLAGS += -m64
+
 KBUILD_CFLAGS += -m64
-
-# Align jump targets to 1 byte, not the default 16 bytes:
-KBUILD_CFLAGS += $(call cc-option,-falign-jumps=1)
-
-# Pack loops tightly as well:
-KBUILD_CFLAGS += $(call cc-option,-falign-loops=1)
-
-# Don't autogenerate traditional x87 instructions
+KBUILD_CFLAGS += -falign-jumps=1
+KBUILD_CFLAGS += -falign-loops=1
 KBUILD_CFLAGS += -mno-80387
-KBUILD_CFLAGS += $(call cc-option,-mno-fp-ret-in-387)
-
-# By default gcc and clang use a stack alignment of 16 bytes for x86.
-# However the standard kernel entry on x86-64 leaves the stack on an
-# 8-byte boundary. If the compiler isn't informed about the actual
-# alignment it will generate extra alignment instructions for the
-# default alignment which keep the stack *mis*aligned.
-# Furthermore an alignment to the register width reduces stack usage
-# and the number of alignment instructions.
-KBUILD_CFLAGS += $(cc_stack_align8)
-
-# Use -mskip-rax-setup if supported.
-KBUILD_CFLAGS += $(call cc-option,-mskip-rax-setup)
-
-# FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
-cflags-y	+= -mtune=generic
-KBUILD_CFLAGS += $(cflags-y)
-
+KBUILD_CFLAGS += -mno-fp-ret-in-387
+KBUILD_CFLAGS += -mskip-rax-setup
 KBUILD_CFLAGS += -mno-red-zone
 KBUILD_CFLAGS += -mcmodel=kernel
 KBUILD_CFLAGS += -Wno-sign-compare
 KBUILD_CFLAGS += -fno-asynchronous-unwind-tables
+
 KBUILD_LDFLAGS += -m elf_x86_64
 
-
 LDFLAGS_vmlinux := -z max-page-size=0x200000
-
 
 archscripts: scripts_basic
 	$(Q)$(MAKE) $(build)=arch/x86/tools relocs
@@ -565,15 +481,6 @@ KBUILD_CFLAGS   += $(KCFLAGS)
 KBUILD_USERCFLAGS  += $(filter -m32 -m64 --target=%, $(KBUILD_CFLAGS))
 KBUILD_USERLDFLAGS += $(filter -m32 -m64 --target=%, $(KBUILD_CFLAGS))
 
-# make the checker run with the right architecture
-CHECKFLAGS += --arch=$(ARCH)
-
-# insure the checker run with the right endianness
-CHECKFLAGS += $(if $(CONFIG_CPU_BIG_ENDIAN),-mbig-endian,-mlittle-endian)
-
-# the checker needs the correct machine size
-CHECKFLAGS += -m64
-
 # Default kernel image to build when no specific target is given.
 # KBUILD_IMAGE may be overruled on the command line or
 # set in the environment
@@ -582,8 +489,6 @@ CHECKFLAGS += -m64
 export KBUILD_IMAGE ?= vmlinux
 
 export extmod_prefix = $(if $(KBUILD_EXTMOD),$(KBUILD_EXTMOD)/)
-export MODORDER := $(extmod_prefix)modules.order
-export MODULES_NSDEPS := $(extmod_prefix)modules.nsdeps
 
 ifeq ($(KBUILD_EXTMOD),)
 core-y			+= kernel/ mm/ fs/ security/ crypto/ block/
@@ -595,10 +500,6 @@ vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, \
 vmlinux-alldirs	:= $(sort $(vmlinux-dirs) Documentation \
 		     $(patsubst %/,%,$(filter %/, $(core-) \
 			$(drivers-) $(libs-))))
-
-subdir-modorder := $(addsuffix modules.order,$(filter %/, \
-			$(core-y) $(core-m) $(libs-y) $(libs-m) \
-			$(drivers-y) $(drivers-m)))
 
 build-dirs	:= $(vmlinux-dirs)
 clean-dirs	:= $(vmlinux-alldirs)
@@ -642,7 +543,7 @@ targets := vmlinux
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
-$(sort $(vmlinux-deps) $(subdir-modorder)): descend ;
+$(sort $(vmlinux-deps)): descend ;
 
 filechk_kernel.release = \
 	echo "$(KERNELVERSION)"
@@ -735,19 +636,6 @@ $(single-ko): single_modpost
 $(single-no-ko): descend
 	@:
 
-ifeq ($(KBUILD_EXTMOD),)
-# For the single build of in-tree modules, use a temporary file to avoid
-# the situation of modules_install installing an invalid modules.order.
-MODORDER := .modules.tmp
-endif
-
-PHONY += single_modpost
-single_modpost: $(single-no-ko) modules_prepare
-	$(Q){ $(foreach m, $(single-ko), echo $(extmod_prefix)$m;) } > $(MODORDER)
-	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modpost
-
-KBUILD_MODULES := 1
-
 export KBUILD_SINGLE_TARGETS := $(addprefix $(extmod_prefix), $(single-no-ko))
 
 # trim unrelated directories
@@ -766,14 +654,14 @@ descend: $(build-dirs)
 $(build-dirs): prepare0
 	$(Q)$(MAKE) $(build)=$@ \
 	single-build=$(if $(filter-out $@/, $(filter $@/%, $(KBUILD_SINGLE_TARGETS))),1) \
-	need-builtin=1 need-modorder=1
+	need-builtin=1
 
 quiet_cmd_gen_compile_commands = GEN     $@
       cmd_gen_compile_commands = $(PYTHON3) $< -a $(AR) -o $@ $(filter-out $<, $(real-prereqs))
 
 $(extmod_prefix)compile_commands.json: scripts/clang-tools/gen_compile_commands.py \
 	$(if $(KBUILD_EXTMOD),,$(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)) \
-	$(if $(CONFIG_MODULES), $(MODORDER)) FORCE
+	$(if $(CONFIG_MODULES),) FORCE
 	$(call if_changed,gen_compile_commands)
 
 targets += $(extmod_prefix)compile_commands.json
