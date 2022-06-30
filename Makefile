@@ -88,19 +88,10 @@ else
 abs_objtree := $(CURDIR)
 endif # ifneq ($(KBUILD_OUTPUT),)
 
-ifeq ($(abs_objtree),$(CURDIR))
-# Suppress "Entering directory ..." unless we are changing the work directory.
-MAKEFLAGS += --no-print-directory
-else
 need-sub-make := 1
-endif
 
 this-makefile := $(lastword $(MAKEFILE_LIST))
 abs_srctree := $(realpath $(dir $(this-makefile)))
-
-ifneq ($(words $(subst :, ,$(abs_srctree))), 1)
-$(error source directory cannot contain spaces or colons)
-endif
 
 ifneq ($(abs_srctree),$(abs_objtree))
 # Look for make include files relative to root of kernel src
@@ -110,18 +101,8 @@ ifneq ($(abs_srctree),$(abs_objtree))
 MAKEFLAGS += --include-dir=$(abs_srctree)
 endif
 
-ifneq ($(filter 3.%,$(MAKE_VERSION)),)
-# 'MAKEFLAGS += -rR' does not immediately become effective for GNU Make 3.x
-# We need to invoke sub-make to avoid implicit rules in the top Makefile.
-need-sub-make := 1
-# Cancel implicit rules for this Makefile.
-$(this-makefile): ;
-endif
-
 export abs_srctree abs_objtree
 export sub_make_done := 1
-
-ifeq ($(need-sub-make),1)
 
 PHONY += $(MAKECMDGOALS) __sub-make
 
@@ -132,7 +113,6 @@ $(filter-out $(this-makefile), $(MAKECMDGOALS)) __all: __sub-make
 __sub-make:
 	$(Q)$(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile $(MAKECMDGOALS)
 
-endif # need-sub-make
 endif # sub_make_done
 
 # We process the rest of the Makefile if this is the final invocation of make
@@ -180,29 +160,10 @@ version_h := include/generated/uapi/linux/version.h
 single-targets := %.a %.i %.ko %.lds %.ll %.lst %.mod %.o %.s %.symtypes %/
 
 config-build	:=
-mixed-build	:=
 need-config	:= 1
 need-compiler	:= 1
 may-sync-config	:= 1
 single-build	:=
-
-ifdef mixed-build
-# ===========================================================================
-# We're called with mixed targets (*config and build targets).
-# Handle them one by one.
-
-PHONY += $(MAKECMDGOALS) __build_one_by_one
-
-$(MAKECMDGOALS): __build_one_by_one
-	@:
-
-__build_one_by_one:
-	$(Q)set -e; \
-	for i in $(MAKECMDGOALS); do \
-		$(MAKE) -f $(srctree)/Makefile $$i; \
-	done
-
-else # !mixed-build
 
 include $(srctree)/scripts/Kbuild.include
 
@@ -910,7 +871,6 @@ existing-targets := $(wildcard $(sort $(targets)))
 
 -include $(foreach f,$(existing-targets),$(dir $(f)).$(notdir $(f)).cmd)
 
-endif # mixed-build
 endif # need-sub-make
 
 PHONY += FORCE
