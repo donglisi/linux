@@ -343,39 +343,34 @@ KBUILD_CFLAGS += $(KBUILD_CFLAGS-y) -Wimplicit-fallthrough=5
 
 KBUILD_CFLAGS += -Wno-main
 NOSTDINC_FLAGS += -nostdinc
-KBUILD_CFLAGS += -Wdeclaration-after-statement
-KBUILD_CFLAGS += -Wvla
+KBUILD_CFLAGS += -Wno-declaration-after-statement
+KBUILD_CFLAGS += -Wno-vla
 KBUILD_CFLAGS += -Wno-pointer-sign
-KBUILD_CFLAGS += -Wcast-function-type
-KBUILD_CFLAGS += -Wunused-const-variable
-KBUILD_CFLAGS += -Wunused-but-set-variable
-KBUILD_CFLAGS += -Wstringop-truncation
-KBUILD_CFLAGS += -Wstringop-overflow
-KBUILD_CFLAGS += -Wrestrict
+KBUILD_CFLAGS += -Wno-cast-function-type
+KBUILD_CFLAGS += -Wno-unused-const-variable
+KBUILD_CFLAGS += -Wno-unused-but-set-variable
+KBUILD_CFLAGS += -Wno-stringop-truncation
+KBUILD_CFLAGS += -Wno-stringop-overflow
+KBUILD_CFLAGS += -Wno-restrict
 
 KBUILD_CFLAGS += -Wno-maybe-uninitialized
 KBUILD_CFLAGS += -fno-strict-overflow
 KBUILD_CFLAGS += -fno-stack-check
 KBUILD_CFLAGS += -fconserve-stack
-KBUILD_CFLAGS += -Werror=date-time
+KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
 KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
 
 ifeq ($(KBUILD_EXTMOD),)
-core-y			+= kernel/ mm/ fs/ security/ crypto/ block/
+core-y += kernel/ mm/ fs/ security/ crypto/ block/
 
 vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, \
 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
 		     $(libs-y) $(libs-m)))
 
-vmlinux-alldirs	:= $(sort $(vmlinux-dirs) Documentation \
-		     $(patsubst %/,%,$(filter %/, $(core-) \
-			$(drivers-) $(libs-))))
-
 build-dirs	:= $(vmlinux-dirs)
-clean-dirs	:= $(vmlinux-alldirs)
 
 # Externally visible symbols (used by link-vmlinux.sh)
 KBUILD_VMLINUX_OBJS := $(head-y) $(patsubst %/,%/built-in.a, $(core-y))
@@ -385,8 +380,6 @@ KBUILD_VMLINUX_OBJS += $(patsubst %/,%/built-in.a, $(drivers-y))
 
 export KBUILD_VMLINUX_OBJS KBUILD_VMLINUX_LIBS
 export KBUILD_LDS          := arch/$(SRCARCH)/kernel/vmlinux.lds
-# used by scripts/Makefile.package
-export KBUILD_ALLDIRS := $(sort $(filter-out arch/%,$(vmlinux-alldirs)) LICENSES arch include scripts tools)
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 
