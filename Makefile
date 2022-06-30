@@ -3,12 +3,8 @@ VERSION = 5
 PATCHLEVEL = 19
 SUBLEVEL = 0
 EXTRAVERSION = -rc1
-NAME = Superb Owl
 
 CONFIG_CC_VERSION_TEXT="gcc_12"
-
-$(if $(filter __%, $(MAKECMDGOALS)), \
-	$(error targets prefixed with '__' are only for internal use))
 
 PHONY := __all
 __all:
@@ -16,8 +12,6 @@ __all:
 ifneq ($(sub_make_done),1)
 
 MAKEFLAGS += -rR
-
-
 KBUILD_VERBOSE := 0
 quiet=quiet_
 Q = @
