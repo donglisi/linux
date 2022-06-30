@@ -27,31 +27,22 @@ export KBUILD_CHECKSRC := 0
 
 KBUILD_OUTPUT := $(O)
 abs_objtree := $(realpath $(shell mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd))
-
 need-sub-make := 1
 
 this-makefile := $(lastword $(MAKEFILE_LIST))
 abs_srctree := $(realpath $(dir $(this-makefile)))
 
-ifneq ($(abs_srctree),$(abs_objtree))
-# Look for make include files relative to root of kernel src
-#
-# --included-dir is added for backward compatibility, but you should not rely on
-# it. Please add $(srctree)/ prefix to include Makefiles in the source tree.
 MAKEFLAGS += --include-dir=$(abs_srctree)
-endif
 
 export abs_srctree abs_objtree
+
 export sub_make_done := 1
 
-PHONY += $(MAKECMDGOALS) __sub-make
-
-$(filter-out $(this-makefile), $(MAKECMDGOALS)) __all: __sub-make
+$(filter-out Makefile,) __all: __sub-make
 	@:
 
-# Invoke a second make in the output directory, passing relevant variables
 __sub-make:
-	$(Q)$(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile $(MAKECMDGOALS)
+	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
 
 endif # sub_make_done
 
@@ -95,9 +86,6 @@ export building_out_of_srctree srctree objtree VPATH
 # of make so .config is not included in this case either (for *config).
 
 version_h := include/generated/uapi/linux/version.h
-
-
-single-targets := %.a %.i %.ko %.lds %.ll %.lst %.mod %.o %.s %.symtypes %/
 
 config-build	:=
 need-config	:= 1
