@@ -561,22 +561,6 @@ $(build-dirs): prepare0
 	$(Q)$(MAKE) $(build)=$@ \
 	need-builtin=1
 
-quiet_cmd_gen_compile_commands = GEN     $@
-      cmd_gen_compile_commands = $(PYTHON3) $< -a $(AR) -o $@ $(filter-out $<, $(real-prereqs))
-
-$(extmod_prefix)compile_commands.json: scripts/clang-tools/gen_compile_commands.py \
-	$(if $(KBUILD_EXTMOD),,$(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)) \
-	$(if $(CONFIG_MODULES),) FORCE
-	$(call if_changed,gen_compile_commands)
-
-targets += $(extmod_prefix)compile_commands.json
-
-
-# read saved command lines for existing targets
-existing-targets := $(wildcard $(sort $(targets)))
-
--include $(foreach f,$(existing-targets),$(dir $(f)).$(notdir $(f)).cmd)
-
 endif # need-sub-make
 
 PHONY += FORCE
