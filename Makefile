@@ -323,15 +323,6 @@ export KBUILD_LDS          := arch/$(SRCARCH)/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 
-# Recurse until adjust_autoksyms.sh is satisfied
-PHONY += autoksyms_recursive
-
-autoksyms_h := $(if $(CONFIG_TRIM_UNUSED_KSYMS), include/generated/autoksyms.h)
-
-quiet_cmd_autoksyms_h = GEN     $@
-      cmd_autoksyms_h = mkdir -p $(dir $@); \
-			$(CONFIG_SHELL) $(srctree)/scripts/gen_autoksyms.sh $@
-
 $(autoksyms_h):
 	$(call cmd,autoksyms_h)
 
@@ -342,7 +333,7 @@ cmd_link-vmlinux =                                                 \
 	$(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)";    \
 	$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) $@, true)
 
-vmlinux: scripts/link-vmlinux.sh autoksyms_recursive $(vmlinux-deps) FORCE
+vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps) FORCE
 	+$(call if_changed_dep,link-vmlinux)
 
 targets := vmlinux
@@ -357,12 +348,6 @@ filechk_kernel.release = \
 # Store (new) KERNELRELEASE string in include/config/kernel.release
 include/config/kernel.release: FORCE
 	$(call filechk,kernel.release)
-
-# Things we need to do before we recursively start building the kernel
-# or the modules are listed in "prepare".
-# A multi level approach is used. prepareN is processed before prepareN-1.
-# archprepare is used in arch Makefiles and when processed asm symlink,
-# version.h and scripts_basic is processed / created.
 
 PHONY += prepare0 archprepare
 
@@ -383,12 +368,6 @@ asm-generic: uapi-asm-generic
 uapi-asm-generic:
 	$(Q)$(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
 	generic=include/uapi/asm-generic
-
-# Generate some files
-# ---------------------------------------------------------------------------
-
-# KERNELRELEASE can change from a few different places, meaning version.h
-# needs to be updated, so this check is forced on all builds
 
 uts_len := 64
 define filechk_utsrelease.h
@@ -425,11 +404,6 @@ include/generated/utsrelease.h: include/config/kernel.release FORCE
 else # KBUILD_EXTMOD
 endif # KBUILD_EXTMOD
 
-# Handle descending into subdirectories listed in $(build-dirs)
-# Preset locale variables to speed up the build process. Limit locale
-# tweaks to this spot to avoid wrong language settings when running
-# make menuconfig etc.
-# Error messages still appears in the original language
 PHONY += descend $(build-dirs)
 descend: $(build-dirs)
 $(build-dirs): prepare0
