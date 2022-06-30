@@ -38,10 +38,7 @@ export abs_srctree abs_objtree
 
 export sub_make_done := 1
 
-$(filter-out Makefile,) __all: __sub-make
-	@:
-
-__sub-make:
+__all:
 	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
 
 endif # sub_make_done
