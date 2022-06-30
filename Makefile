@@ -72,10 +72,7 @@ export building_out_of_srctree srctree objtree VPATH
 
 version_h := include/generated/uapi/linux/version.h
 
-config-build	:=
-need-config	:= 1
 need-compiler	:= 1
-may-sync-config	:= 1
 single-build	:=
 
 include $(srctree)/scripts/Kbuild.include
@@ -353,30 +350,12 @@ PHONY += bzImage
 # Default kernel to build
 all: bzImage
 
-# KBUILD_IMAGE specify target image being built
-KBUILD_IMAGE := $(boot)/bzImage
+export KBUILD_IMAGE := $(boot)/bzImage
 
 bzImage: vmlinux
 	$(Q)$(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
 	$(Q)mkdir -p $(objtree)/arch/x86_64/boot
 	$(Q)ln -fsn ../../x86/boot/bzImage $(objtree)/arch/x86_64/boot/$@
-
-# ---------------------------------------------------
-
-ifdef need-config
-ifdef may-sync-config
-# Read in dependencies to all Kconfig* files, make sure to run syncconfig if
-# changes are detected. This should be included after arch/$(SRCARCH)/Makefile
-# because some architectures define CROSS_COMPILE there.
-
-else # !may-sync-config
-# External modules and some install targets need include/generated/autoconf.h
-# and include/config/auto.conf but do not care if they are up-to-date.
-# Use auto.conf to trigger the test
-
-
-endif # may-sync-config
-endif # need-config
 
 KBUILD_CFLAGS	+= -fno-delete-null-pointer-checks
 KBUILD_CFLAGS	+= $(call cc-disable-warning,frame-address,)
@@ -431,62 +410,15 @@ KBUILD_CFLAGS += $(call cc-disable-warning, stringop-overflow)
 # Another good warning that we'll want to enable eventually
 KBUILD_CFLAGS += $(call cc-disable-warning, restrict)
 
-# Enabled with W=2, disabled by default as noisy
 KBUILD_CFLAGS += -Wno-maybe-uninitialized
+KBUILD_CFLAGS += -fno-strict-overflow
+KBUILD_CFLAGS += -fno-stack-check
+KBUILD_CFLAGS += -fconserve-stack
+KBUILD_CFLAGS += -Werror=date-time
+KBUILD_CFLAGS += -Werror=incompatible-pointer-types
+KBUILD_CFLAGS += -Werror=designated-init
 
-# The allocators already balk at large sizes, so silence the compiler
-# warnings for bounds checks involving those possible values. While
-# -Wno-alloc-size-larger-than would normally be used here, earlier versions
-# of gcc (<9.1) weirdly don't handle the option correctly when _other_
-# warnings are produced (?!). Using -Walloc-size-larger-than=SIZE_MAX
-# doesn't work (as it is documented to), silently resolving to "0" prior to
-# version 9.1 (and producing an error more recently). Numeric values larger
-# than PTRDIFF_MAX also don't work prior to version 9.1, which are silently
-# ignored, continuing to default to PTRDIFF_MAX. So, left with no other
-# choice, we must perform a versioned check to disable this warning.
-# https://lore.kernel.org/lkml/20210824115859.187f272f@canb.auug.org.au
-KBUILD_CFLAGS += $(call cc-ifversion, -ge, 0901, -Wno-alloc-size-larger-than)
-
-# disable invalid "can't wrap" optimizations for signed / pointers
-KBUILD_CFLAGS	+= -fno-strict-overflow
-
-# Make sure -fstack-check isn't enabled (like gentoo apparently did)
-KBUILD_CFLAGS  += -fno-stack-check
-
-# conserve stack if available
-KBUILD_CFLAGS   += -fconserve-stack
-
-# Prohibit date/time macros, which would make the build non-deterministic
-KBUILD_CFLAGS   += -Werror=date-time
-
-# enforce correct pointer usage
-KBUILD_CFLAGS   += $(call cc-option,-Werror=incompatible-pointer-types)
-
-# Require designated initializers for all marked structures
-KBUILD_CFLAGS   += $(call cc-option,-Werror=designated-init)
-
-# change __FILE__ to the relative path from the srctree
 KBUILD_CPPFLAGS += $(call cc-option,-fmacro-prefix-map=$(srctree)/=)
-
-# scripts/Makefile.gcc-plugins is intentionally included last.
-# Do not add $(call cc-option,...) below this line. When you build the kernel
-# from the clean source tree, the GCC plugins do not exist at this point.
-
-# Add user supplied CPPFLAGS, AFLAGS and CFLAGS as the last assignments
-KBUILD_CPPFLAGS += $(KCPPFLAGS)
-KBUILD_AFLAGS   += $(KAFLAGS)
-KBUILD_CFLAGS   += $(KCFLAGS)
-
-# Align the bit size of userspace programs with the kernel
-KBUILD_USERCFLAGS  += $(filter -m32 -m64 --target=%, $(KBUILD_CFLAGS))
-KBUILD_USERLDFLAGS += $(filter -m32 -m64 --target=%, $(KBUILD_CFLAGS))
-
-# Default kernel image to build when no specific target is given.
-# KBUILD_IMAGE may be overruled on the command line or
-# set in the environment
-# Also any assignments in arch/$(ARCH)/Makefile take precedence over
-# this default value
-export KBUILD_IMAGE ?= vmlinux
 
 export extmod_prefix = $(if $(KBUILD_EXTMOD),$(KBUILD_EXTMOD)/)
 
@@ -615,11 +547,6 @@ $(version_h): FORCE
 
 include/generated/utsrelease.h: include/config/kernel.release FORCE
 	$(call filechk,utsrelease.h)
-
-PHONY += headerdep
-headerdep:
-	$(Q)find $(srctree)/include/ -name '*.h' | xargs --max-args 1 \
-	$(srctree)/scripts/headerdep.pl -I$(srctree)/include
 
 else # KBUILD_EXTMOD
 endif # KBUILD_EXTMOD
