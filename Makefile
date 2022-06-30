@@ -72,8 +72,6 @@ export building_out_of_srctree srctree objtree VPATH
 
 version_h := include/generated/uapi/linux/version.h
 
-need-compiler	:= 1
-
 include $(srctree)/scripts/Kbuild.include
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
@@ -214,12 +212,6 @@ CC_VERSION_TEXT = $(subst $(pound),,$(shell LC_ALL=C $(CC) --version 2>/dev/null
 
 ifneq ($(findstring clang,$(CC_VERSION_TEXT)),)
 include $(srctree)/scripts/Makefile.clang
-endif
-
-# Include this also for config targets because some architectures need
-# cc-cross-prefix to determine CROSS_COMPILE.
-ifdef need-compiler
-include $(srctree)/scripts/Makefile.compiler
 endif
 
 PHONY += all
