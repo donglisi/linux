@@ -262,27 +262,19 @@ bzImage: vmlinux
 	$(Q)mkdir -p $(objtree)/arch/x86_64/boot
 	$(Q)ln -fsn ../../x86/boot/bzImage $(objtree)/arch/x86_64/boot/$@
 
-KBUILD_CFLAGS	+= -fno-delete-null-pointer-checks
-KBUILD_CFLAGS	+= -Wno-frame-address
-KBUILD_CFLAGS	+= -Wno-format-truncation
-KBUILD_CFLAGS	+= -Wno-format-overflow
-KBUILD_CFLAGS	+= -Wno-address-of-packed-member
-
-KBUILD_CFLAGS += -O2
-
-# Tell gcc to never replace conditional load with a non-conditional one
-# gcc-10 renamed --param=allow-store-data-races=0 to
-# -fno-allow-store-data-races.
-KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
-KBUILD_CFLAGS	+= $(call cc-option,-fno-allow-store-data-races)
-
-stackp-flags-y                                    := -fno-stack-protector
-KBUILD_CFLAGS += $(stackp-flags-y)
-
-KBUILD_CFLAGS += $(KBUILD_CFLAGS-y) -Wimplicit-fallthrough=5
-
-KBUILD_CFLAGS += -Wno-main
 NOSTDINC_FLAGS += -nostdinc
+KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
+
+KBUILD_CFLAGS += -fno-delete-null-pointer-checks
+KBUILD_CFLAGS += -Wno-frame-address
+KBUILD_CFLAGS += -Wno-format-truncation
+KBUILD_CFLAGS += -Wno-format-overflow
+KBUILD_CFLAGS += -Wno-address-of-packed-member
+KBUILD_CFLAGS += -O2
+KBUILD_CFLAGS += -fno-allow-store-data-races
+KBUILD_CFLAGS += -Wno-main
+KBUILD_CFLAGS += -fno-stack-protector
+KBUILD_CFLAGS += -Wimplicit-fallthrough=5
 KBUILD_CFLAGS += -Wno-declaration-after-statement
 KBUILD_CFLAGS += -Wno-vla
 KBUILD_CFLAGS += -Wno-pointer-sign
@@ -292,7 +284,6 @@ KBUILD_CFLAGS += -Wno-unused-but-set-variable
 KBUILD_CFLAGS += -Wno-stringop-truncation
 KBUILD_CFLAGS += -Wno-stringop-overflow
 KBUILD_CFLAGS += -Wno-restrict
-
 KBUILD_CFLAGS += -Wno-maybe-uninitialized
 KBUILD_CFLAGS += -fno-strict-overflow
 KBUILD_CFLAGS += -fno-stack-check
@@ -300,8 +291,6 @@ KBUILD_CFLAGS += -fconserve-stack
 KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
-
-KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
 
 ifeq ($(KBUILD_EXTMOD),)
 core-y += kernel/ mm/ fs/ security/ crypto/ block/
