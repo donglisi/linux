@@ -73,7 +73,6 @@ export building_out_of_srctree srctree objtree VPATH
 version_h := include/generated/uapi/linux/version.h
 
 need-compiler	:= 1
-single-build	:=
 
 include $(srctree)/scripts/Kbuild.include
 
@@ -551,26 +550,6 @@ include/generated/utsrelease.h: include/config/kernel.release FORCE
 else # KBUILD_EXTMOD
 endif # KBUILD_EXTMOD
 
-ifdef single-build
-
-# .ko is special because modpost is needed
-single-ko := $(sort $(filter %.ko, $(MAKECMDGOALS)))
-single-no-ko := $(filter-out $(single-ko), $(MAKECMDGOALS)) \
-		$(foreach x, o mod, $(patsubst %.ko, %.$x, $(single-ko)))
-
-$(single-ko): single_modpost
-	@:
-$(single-no-ko): descend
-	@:
-
-export KBUILD_SINGLE_TARGETS := $(addprefix $(extmod_prefix), $(single-no-ko))
-
-# trim unrelated directories
-build-dirs := $(foreach d, $(build-dirs), \
-			$(if $(filter $(d)/%, $(KBUILD_SINGLE_TARGETS)), $(d)))
-
-endif
-
 # Handle descending into subdirectories listed in $(build-dirs)
 # Preset locale variables to speed up the build process. Limit locale
 # tweaks to this spot to avoid wrong language settings when running
@@ -580,7 +559,6 @@ PHONY += descend $(build-dirs)
 descend: $(build-dirs)
 $(build-dirs): prepare0
 	$(Q)$(MAKE) $(build)=$@ \
-	single-build=$(if $(filter-out $@/, $(filter $@/%, $(KBUILD_SINGLE_TARGETS))),1) \
 	need-builtin=1
 
 quiet_cmd_gen_compile_commands = GEN     $@
