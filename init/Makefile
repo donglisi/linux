@@ -1,5 +1,3 @@
-CONFIG_CC_VERSION_TEXT="gcc_12"
-
 ccflags-y := -fno-function-sections -fno-data-sections
 
 obj-y                          := main.o version.o mounts.o

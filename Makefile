@@ -4,8 +4,6 @@ PATCHLEVEL = 19
 SUBLEVEL = 0
 EXTRAVERSION = -rc1
 
-CONFIG_CC_VERSION_TEXT="gcc_12"
-
 PHONY := __all
 __all:
 
