@@ -243,10 +243,7 @@ intermediate_targets = $(foreach sfx, $(2), \
 # ---------------------------------------------------------------------------
 
 
-__build: $(if $(KBUILD_BUILTIN), $(targets-for-builtin)) \
-	 $(subdir-ym) $(always-y)
-	@:
-
+__build: $(targets-for-builtin) $(subdir-ym) $(always-y)
 
 # Descending
 # ---------------------------------------------------------------------------

@@ -62,14 +62,6 @@ VPATH		:= $(srctree)
 
 export building_out_of_srctree srctree objtree VPATH
 
-# To make sure we do not include .config for any of the *config targets
-# catch them early, and hand them over to scripts/kconfig/Makefile
-# It is allowed to specify more targets when calling make, including
-# mixing *config targets and build targets.
-# For example 'make oldconfig all'.
-# Detect when mixed targets is specified, and make a second invocation
-# of make so .config is not included in this case either (for *config).
-
 version_h := include/generated/uapi/linux/version.h
 
 include $(srctree)/scripts/Kbuild.include
@@ -127,8 +119,6 @@ BASH		= bash
 KGZIP		= gzip
 
 NOSTDINC_FLAGS :=
-AFLAGS_MODULE   =
-LDFLAGS_MODULE  =
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 LDFLAGS_vmlinux =
@@ -160,24 +150,18 @@ KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 
 KBUILD_CPPFLAGS := -D__KERNEL__ -include /a/sources/linux/config.h
 KBUILD_AFLAGS_KERNEL :=
-KBUILD_AFLAGS_MODULE  := -DMODULE
-KBUILD_LDFLAGS_MODULE :=
 KBUILD_LDFLAGS :=
-CLANG_FLAGS :=
-
-CONFIG_FRAME_WARN=1024
 
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS CROSS_COMPILE LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP READELF PAHOLE RESOLVE_BTFIDS LEX YACC AWK INSTALLKERNEL
 export PERL PYTHON3 CHECK MAKE UTS_MACHINE
 export KGZIP KBZIP2 KLZOP LZMA LZ4 XZ ZSTD
-export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS LDFLAGS_MODULE
+export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS
 export KBUILD_USERCFLAGS KBUILD_USERLDFLAGS
 
 export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE OBJCOPYFLAGS KBUILD_LDFLAGS
 export KBUILD_CFLAGS CFLAGS_KERNEL
-export KBUILD_AFLAGS AFLAGS_KERNEL AFLAGS_MODULE
-export KBUILD_AFLAGS_MODULE KBUILD_LDFLAGS_MODULE
+export KBUILD_AFLAGS AFLAGS_KERNEL
 export KBUILD_AFLAGS_KERNEL KBUILD_CFLAGS_KERNEL
 
 # ===========================================================================
@@ -204,27 +188,8 @@ quiet_cmd_makefile = GEN     Makefile
 	} > Makefile
 endif
 
-# The expansion should be delayed until arch/$(SRCARCH)/Makefile is included.
-# Some architectures define CROSS_COMPILE in arch/$(SRCARCH)/Makefile.
-# CC_VERSION_TEXT is referenced from Kconfig (so it needs export),
-# and from include/config/auto.conf.cmd to detect the compiler upgrade.
-CC_VERSION_TEXT = $(subst $(pound),,$(shell LC_ALL=C $(CC) --version 2>/dev/null | head -n 1))
-
-ifneq ($(findstring clang,$(CC_VERSION_TEXT)),)
-include $(srctree)/scripts/Makefile.clang
-endif
-
 PHONY += all
 __all: all
-
-KBUILD_BUILTIN := 1
-
-# If we have only "make modules", don't compile built-in objects.
-ifeq ($(MAKECMDGOALS),modules)
-  KBUILD_BUILTIN :=
-endif
-
-export KBUILD_BUILTIN
 
 core-y := init/ arch/$(SRCARCH)/
 drivers-y := drivers/
@@ -241,12 +206,10 @@ REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS \
 		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
 		   -fno-strict-aliasing -fomit-frame-pointer -fno-pic \
 		   -mno-mmx -mno-sse $(call cc-option,-fcf-protection=none)
-
 REALMODE_CFLAGS += -include /a/sources/linux/config.h
 REALMODE_CFLAGS += -ffreestanding
 REALMODE_CFLAGS += -fno-stack-protector
 REALMODE_CFLAGS += -Wno-address-of-packed-member
-REALMODE_CFLAGS += $(CLANG_FLAGS)
 export REALMODE_CFLAGS
 
 
@@ -283,7 +246,7 @@ head-y += arch/x86/kernel/head64.o
 head-y += arch/x86/kernel/ebda.o
 head-y += arch/x86/kernel/platform-quirks.o
 libs-y  += arch/x86/lib/
-drivers-y           += arch/x86/pci/
+drivers-y += arch/x86/pci/
 
 boot := arch/x86/boot
 
