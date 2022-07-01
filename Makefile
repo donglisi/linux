@@ -307,7 +307,6 @@ archprepare: outputmakefile archheaders archscripts scripts include/config/kerne
 	asm-generic $(version_h) $(autoksyms_h) include/generated/utsrelease.h
 
 prepare0: archprepare
-	$(Q)$(MAKE) $(build)=scripts/mod
 	$(Q)$(MAKE) $(build)=.
 
 # Support for using generic headers in asm-generic
