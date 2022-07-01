@@ -1,22 +1,3 @@
-# SPDX-License-Identifier: GPL-2.0
-#
-# linux/arch/x86/boot/compressed/Makefile
-#
-# create a compressed vmlinux image from the original vmlinux
-#
-# vmlinuz is:
-#	decompression code (*.o)
-#	asm globals (piggy.S), including:
-#		vmlinux.bin.(gz|bz2|lzma|...)
-#
-# vmlinux.bin is:
-#	vmlinux stripped of debugging and comments
-# vmlinux.bin.all is:
-#	vmlinux.bin + vmlinux.relocs
-# vmlinux.bin.(gz|bz2|lzma|...) is:
-#	(see scripts/Makefile.lib size_append)
-#	compressed vmlinux.bin.all + u32 size of vmlinux.bin.all
-
 targets := vmlinux vmlinux.bin vmlinux.bin.gz
 
 KBUILD_CFLAGS := -m$(BITS) -O2
@@ -40,12 +21,12 @@ KBUILD_AFLAGS  := $(KBUILD_CFLAGS) -D__ASSEMBLY__
 GCOV_PROFILE := n
 UBSAN_SANITIZE :=n
 
-KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE)
-KBUILD_LDFLAGS += $(call ld-option,--no-ld-generated-unwind-info)
+KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE) --no-ld-generated-unwind-info
 
 LDFLAGS_vmlinux := --no-dynamic-linker -T
 
 hostprogs	:= mkpiggy
+
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include
 
 targets += ../voffset.h
