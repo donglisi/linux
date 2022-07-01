@@ -6,15 +6,6 @@ extra-y	+= vmlinux.lds
 
 CPPFLAGS_vmlinux.lds += -U$(UTS_MACHINE)
 
-KASAN_SANITIZE_head$(BITS).o				:= n
-KASAN_SANITIZE_dumpstack.o				:= n
-KASAN_SANITIZE_dumpstack_$(BITS).o			:= n
-KASAN_SANITIZE_stacktrace.o				:= n
-KASAN_SANITIZE_paravirt.o				:= n
-KASAN_SANITIZE_sev.o					:= n
-
-KCSAN_SANITIZE := n
-
 OBJECT_FILES_NON_STANDARD_test_nx.o			:= y
 
 KCOV_INSTRUMENT		:= n
