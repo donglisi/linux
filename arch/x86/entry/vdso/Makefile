@@ -2,7 +2,6 @@ ARCH_REL_TYPE_ABS := R_X86_64_JUMP_SLOT|R_X86_64_GLOB_DAT|R_X86_64_RELATIVE|
 ARCH_REL_TYPE_ABS += R_386_GLOB_DAT|R_386_JMP_SLOT|R_386_RELATIVE
 include $(srctree)/lib/vdso/Makefile
 
-# files to link into the vdso
 vobjs-y := vdso-note.o vclock_gettime.o vgetcpu.o
 
 obj-y				+= vma.o extable.o
@@ -26,16 +25,13 @@ CPPFLAGS_vdso.lds += -P -C
 VDSO_LDFLAGS_vdso.lds = -m elf_x86_64 -soname linux-vdso.so.1 --no-undefined -z max-page-size=4096
 
 $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs)
-	$(cmd_vdso); $(cmd_vdso_check)
+	$(cmd_vdso)
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include -I$(srctree)/include/uapi -I$(srctree)/arch/$(SUBARCH)/include/uapi
 hostprogs += vdso2c
 
-quiet_cmd_vdso2c = VDSO2C  $@
-      cmd_vdso2c = $(obj)/vdso2c $< $(<:%.dbg=%) $@
-
-$(obj)/vdso-image-%.c: $(obj)/vdso%.so.dbg $(obj)/vdso%.so $(obj)/vdso2c FORCE
-	$(call if_changed,vdso2c)
+$(obj)/vdso-image-%.c: $(obj)/vdso%.so.dbg $(obj)/vdso%.so $(obj)/vdso2c
+	$(obj)/vdso2c $< $(<:%.dbg=%) $@
 
 CFL := $(PROFILING) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 \
        $(filter -g%,$(KBUILD_CFLAGS)) -fno-stack-protector \
@@ -48,9 +44,8 @@ CFLAGS_REMOVE_vclock_gettime.o = -pg
 CFLAGS_REMOVE_vgetcpu.o = -pg
 CFLAGS_REMOVE_vsgx.o = -pg
 
-$(obj)/%.so: OBJCOPYFLAGS := -S --remove-section __ex_table
-$(obj)/%.so: $(obj)/%.so.dbg FORCE
-	$(call if_changed,objcopy)
+$(obj)/%.so: $(obj)/%.so.dbg
+	$(OBJCOPY) -S --remove-section __ex_table $(OBJCOPYFLAGS_$(@F)) $< $@
 
 quiet_cmd_vdso = VDSO    $@
       cmd_vdso = $(LD) -o $@ \
@@ -58,13 +53,8 @@ quiet_cmd_vdso = VDSO    $@
 		       -T $(filter %.lds,$^) $(filter %.o,$^) && \
 		 sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
 
-VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 \
-	$(call ld-option, --eh-frame-hdr) -Bsymbolic
-
-vdso_img_insttargets := $(vdso_img_sodbg:%.dbg=install_%)
+VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 $(call ld-option, --eh-frame-hdr) -Bsymbolic
 
 $(MODLIB)/vdso: FORCE
 	@mkdir -p $(MODLIB)/vdso
 
-$(vdso_img_insttargets): install_%: $(obj)/%.dbg $(MODLIB)/vdso
-	$(call cmd,vdso_install)
