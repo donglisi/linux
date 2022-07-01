@@ -71,10 +71,6 @@ SRCARCH := $(ARCH)
 
 CONFIG_SHELL := sh
 
-HOST_LFS_CFLAGS := $(shell getconf LFS_CFLAGS 2>/dev/null)
-HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
-HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
-
 HOSTCC	= gcc
 
 KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
@@ -152,15 +148,12 @@ quiet_cmd_makefile = GEN     Makefile
 	} > Makefile
 endif
 
-PHONY += all
-__all: all
+all: vmlinux
 
 core-y := init/ arch/$(SRCARCH)/
 drivers-y := drivers/
 drivers-y += net/
 libs-y := lib/
-
-all: vmlinux
 
 CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
 CFLAGS_GCOV	+= -fno-tree-loop-im
