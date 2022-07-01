@@ -147,10 +147,6 @@ export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE KBUILD_LDFLAGS
 export KBUILD_CFLAGS CFLAGS_KERNEL
 export KBUILD_AFLAGS
 
-PHONY += scripts_basic
-scripts_basic:
-	$(Q)$(MAKE) $(build)=scripts/basic
-
 PHONY += outputmakefile
 ifdef building_out_of_srctree
 quiet_cmd_makefile = GEN     Makefile
@@ -204,7 +200,7 @@ KBUILD_LDFLAGS += -m elf_x86_64
 
 LDFLAGS_vmlinux := -z max-page-size=0x200000
 
-archscripts: scripts_basic
+archscripts:
 	$(Q)$(MAKE) $(build)=arch/x86/tools relocs
 
 archheaders:

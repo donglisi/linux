@@ -147,10 +147,10 @@ cmd_and_savecmd =                                                            \
 # Execute the command and also postprocess generated .d dependencies file.
 if_changed_dep = $(if $(if-changed-cond),$(cmd_and_fixdep),@:)
 
+# $(error $(cmd))
+
 cmd_and_fixdep =                                                             \
-	$(cmd);                                                              \
-	scripts/basic/fixdep $(depfile) $@ '$(make-cmd)' > $(dot-target).cmd;\
-	rm -f $(depfile)
+	$(cmd);                                                              
 
 # Usage: $(call if_changed_rule,foo)
 # Will check if $(cmd_foo) or any of the prerequisites changed,
