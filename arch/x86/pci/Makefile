@@ -1,9 +1,1 @@
-obj-y				:= i386.o init.o
-
-obj-y	+= direct.o
-
-obj-y				+= fixup.o
-obj-y				+= legacy.o irq.o
-
-obj-y				+= common.o early.o
-obj-y				+= bus_numa.o
+obj-y := i386.o init.o direct.o fixup.o legacy.o irq.o common.o early.o bus_numa.o
