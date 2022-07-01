@@ -52,19 +52,13 @@ KBUILD_CFLAGS += -include /a/sources/linux/config.h
 KBUILD_CFLAGS += $(call as-option,-Wa$(comma)-mrelax-relocations=no)
 KBUILD_CFLAGS += -include $(srctree)/include/linux/hidden.h
 
-# sev.c indirectly inludes inat-table.h which is generated during
-# compilation and stored in $(objtree). Add the directory to the includes so
-# that the compiler finds it even with out-of-tree builds (make O=/some/path).
-CFLAGS_sev.o += -I$(objtree)/arch/x86/lib/
-
 KBUILD_AFLAGS  := $(KBUILD_CFLAGS) -D__ASSEMBLY__
 GCOV_PROFILE := n
 UBSAN_SANITIZE :=n
 
 KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE)
 KBUILD_LDFLAGS += $(call ld-option,--no-ld-generated-unwind-info)
-# Compressed kernel should be built as PIE since it may be loaded at any
-# address by the bootloader.
+
 LDFLAGS_vmlinux := -pie $(call ld-option, --no-dynamic-linker)
 LDFLAGS_vmlinux += -T
 
@@ -94,43 +88,21 @@ vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) += $(obj)/kaslr.o
 	vmlinux-objs-y += $(obj)/mem_encrypt.o
 	vmlinux-objs-y += $(obj)/pgtable_64.o
 
-$(obj)/vmlinux: $(vmlinux-objs-y) $(efi-obj-y) FORCE
-	$(call if_changed,ld)
+$(obj)/vmlinux: $(vmlinux-objs-y) $(efi-obj-y)
+	$(LD) $(ld_flags) $(real-prereqs) -o $@
 
-OBJCOPYFLAGS_vmlinux.bin :=  -R .comment -S
-$(obj)/vmlinux.bin: vmlinux FORCE
-	$(call if_changed,objcopy)
+$(obj)/vmlinux.bin: vmlinux
+	$(OBJCOPY) $(OBJCOPYFLAGS) -R .comment -S $< $@
 
-targets += $(patsubst $(obj)/%,%,$(vmlinux-objs-y)) vmlinux.bin.all vmlinux.relocs
+targets += $(patsubst $(obj)/%,%,$(vmlinux-objs-y)) vmlinux.relocs
 
 CMD_RELOCS = arch/x86/tools/relocs
-quiet_cmd_relocs = RELOCS  $@
-      cmd_relocs = $(CMD_RELOCS) $< > $@;$(CMD_RELOCS) --abs-relocs $<
-$(obj)/vmlinux.relocs: vmlinux FORCE
-	$(call if_changed,relocs)
+$(obj)/vmlinux.relocs: vmlinux
+	$(CMD_RELOCS) $< > $@;$(CMD_RELOCS) --abs-relocs $<
 
-vmlinux.bin.all-y := $(obj)/vmlinux.bin
-
-$(obj)/vmlinux.bin.gz: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,gzip)
-$(obj)/vmlinux.bin.bz2: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,bzip2_with_size)
-$(obj)/vmlinux.bin.lzma: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,lzma_with_size)
-$(obj)/vmlinux.bin.xz: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,xzkern_with_size)
-$(obj)/vmlinux.bin.lzo: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,lzo_with_size)
-$(obj)/vmlinux.bin.lz4: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,lz4_with_size)
-$(obj)/vmlinux.bin.zst: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,zstd22_with_size)
-
-suffix-y	:= gz
-
-quiet_cmd_mkpiggy = MKPIGGY $@
-      cmd_mkpiggy = $(obj)/mkpiggy $< > $@
+$(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin
+	cat $(real-prereqs) | gzip -n -f -9 > $@
 
 targets += piggy.S
-$(obj)/piggy.S: $(obj)/vmlinux.bin.$(suffix-y) $(obj)/mkpiggy FORCE
-	$(call if_changed,mkpiggy)
+$(obj)/piggy.S: $(obj)/vmlinux.bin.gz $(obj)/mkpiggy
+	$(obj)/mkpiggy $< > $@

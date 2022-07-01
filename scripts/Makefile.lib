@@ -86,9 +86,6 @@ quiet_cmd_ar = AR      $@
 quiet_cmd_objcopy = OBJCOPY $@
 	cmd_objcopy = $(OBJCOPY) $(OBJCOPYFLAGS) $(OBJCOPYFLAGS_$(@F)) $< $@
 
-quiet_cmd_gzip = GZIP    $@
-      cmd_gzip = cat $(real-prereqs) | $(KGZIP) -n -f -9 > $@
-
 define sed-offsets
 	's:^[[:space:]]*\.ascii[[:space:]]*"\(.*\)".*:\1:; \
 	/^->/{s:->#\(.*\):/* \1 */:; \

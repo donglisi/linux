@@ -82,7 +82,6 @@ YACC		= bison
 AWK		= awk
 CHECK		= sparse
 BASH		= bash
-KGZIP		= gzip
 
 NOSTDINC_FLAGS :=
 CFLAGS_KERNEL	=
@@ -118,7 +117,7 @@ KBUILD_LDFLAGS :=
 
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
-export CHECK MAKE UTS_MACHINE KGZIP
+export CHECK MAKE UTS_MACHINE
 export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS
 export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE KBUILD_LDFLAGS
 export KBUILD_CFLAGS CFLAGS_KERNEL
@@ -191,9 +190,9 @@ all: bzImage
 export KBUILD_IMAGE := $(boot)/bzImage
 
 bzImage: vmlinux
-	$(Q)$(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
-	$(Q)mkdir -p $(objtree)/arch/x86_64/boot
-	$(Q)ln -fsn ../../x86/boot/bzImage $(objtree)/arch/x86_64/boot/$@
+	$(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
+	mkdir -p $(objtree)/arch/x86_64/boot
+	ln -fsn ../../x86/boot/bzImage $(objtree)/arch/x86_64/boot/vmlinux
 
 NOSTDINC_FLAGS += -nostdinc
 KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
