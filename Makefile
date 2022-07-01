@@ -276,17 +276,14 @@ export KBUILD_LDS := arch/$(SRCARCH)/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 
-cmd_link-vmlinux =                                                 \
-	$(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)";    \
-	$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) $@, true)
-
 .PHONY += vmlinux
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
-	+$(call if_changed,link-vmlinux)
+	$(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)"; \
+	$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) $@, true)
 
 targets := vmlinux
 
-$(sort $(vmlinux-deps)): $(build-dirs) ;
+$(sort $(vmlinux-deps)): $(vmlinux-dirs)
 
 filechk_kernel.release = \
 	echo "$(KERNELVERSION)"
