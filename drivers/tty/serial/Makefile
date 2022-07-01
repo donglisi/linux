@@ -1,4 +1,1 @@
-obj-y += serial_core.o
-
-obj-y += earlycon.o
-obj-y += 8250/
+obj-y := serial_core.o earlycon.o 8250/

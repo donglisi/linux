@@ -1,12 +1,1 @@
-obj-y += pci/
-obj-y += video/
-obj-y += rtc/
-obj-y += input/
-obj-y += virtio/
-obj-y += tty/
-obj-y += char/
-obj-y += base/
-obj-y += block/
-obj-y += net/
-obj-y += clocksource/
-obj-y += firmware/
+obj-y := pci/ video/ rtc/ input/ virtio/ tty/ char/ base/ block/ net/ clocksource/ firmware/
