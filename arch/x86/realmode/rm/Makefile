@@ -1,16 +1,4 @@
-KASAN_SANITIZE			:= n
-KCSAN_SANITIZE			:= n
-OBJECT_FILES_NON_STANDARD	:= y
-
-KCOV_INSTRUMENT		:= n
-
 always-y := realmode.bin realmode.relocs
-
-wakeup-objs	:= wakeup_asm.o wakemain.o video-mode.o
-wakeup-objs	+= copy.o bioscall.o regs.o
-wakeup-objs	+= video-vga.o
-wakeup-objs	+= video-vesa.o
-wakeup-objs	+= video-bios.o
 
 realmode-y			+= header.o
 realmode-y			+= trampoline_$(BITS).o
@@ -46,16 +34,12 @@ targets += realmode.bin
 $(obj)/realmode.bin: $(obj)/realmode.elf $(obj)/realmode.relocs FORCE
 	$(call if_changed,objcopy)
 
-quiet_cmd_relocs = RELOCS  $@
-      cmd_relocs = arch/x86/tools/relocs --realmode $< > $@
-
 targets += realmode.relocs
-$(obj)/realmode.relocs: $(obj)/realmode.elf FORCE
-	$(call if_changed,relocs)
+$(obj)/realmode.relocs: $(obj)/realmode.elf
+	arch/x86/tools/relocs --realmode $< > $@
 
 KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_SETUP -D_WAKEUP \
 		   -I$(srctree)/arch/x86/boot
 KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
 KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
-GCOV_PROFILE := n
-UBSAN_SANITIZE := n
+

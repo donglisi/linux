@@ -1,11 +1,3 @@
-KASAN_SANITIZE			:= n
-KCSAN_SANITIZE			:= n
-OBJECT_FILES_NON_STANDARD	:= y
-
-KCOV_INSTRUMENT		:= n
-
-SVGA_MODE	:= -DSVGA_MODE=NORMAL_VGA
-
 targets		:= vmlinux.bin setup.bin setup.elf bzImage
 targets		+= fdimage fdimage144 fdimage288 image.iso hdimage
 subdir-		:= compressed
@@ -40,18 +32,10 @@ KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
 KBUILD_CFLAGS	+= $(call cc-option,-fmacro-prefix-map=$(srctree)/=)
 KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
 KBUILD_CFLAGS	+= -include /a/sources/linux/config.h
-GCOV_PROFILE := n
-UBSAN_SANITIZE := n
 
-$(obj)/bzImage: asflags-y  := $(SVGA_MODE)
-
-quiet_cmd_image = BUILD   $@
-silent_redirect_image = >/dev/null
-cmd_image = $(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin \
+$(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build
+	$(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin \
 			       $(obj)/zoffset.h $@ $($(quiet)redirect_image)
-
-$(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build FORCE
-	$(call if_changed,image)
 
 OBJCOPYFLAGS_vmlinux.bin := -O binary -R .note -R .comment -S
 $(obj)/vmlinux.bin: $(obj)/compressed/vmlinux FORCE
