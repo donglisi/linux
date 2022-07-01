@@ -155,10 +155,6 @@ drivers-y := drivers/
 drivers-y += net/
 libs-y := lib/
 
-CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
-CFLAGS_GCOV	+= -fno-tree-loop-im
-export CFLAGS_GCOV
-
 REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS \
 		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
 		   -fno-strict-aliasing -fomit-frame-pointer -fno-pic \
@@ -168,7 +164,6 @@ REALMODE_CFLAGS += -ffreestanding
 REALMODE_CFLAGS += -fno-stack-protector
 REALMODE_CFLAGS += -Wno-address-of-packed-member
 export REALMODE_CFLAGS
-
 
 KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx
 
