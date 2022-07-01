@@ -36,20 +36,7 @@ ifeq ($(need-sub-make),)
 
 MAKEFLAGS += --no-print-directory
 
-ifeq ($(abs_srctree),$(abs_objtree))
-        # building in the source tree
-        srctree := .
-	building_out_of_srctree :=
-else
-        ifeq ($(abs_srctree)/,$(dir $(abs_objtree)))
-                # building in a subdirectory of the source tree
-                srctree := ..
-        else
-                srctree := $(abs_srctree)
-        endif
-	building_out_of_srctree := 1
-endif
-
+building_out_of_srctree := 1
 srctree := $(abs_srctree)
 
 objtree		:= .
