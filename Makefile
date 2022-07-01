@@ -281,8 +281,9 @@ cmd_link-vmlinux =                                                 \
 	$(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)";    \
 	$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) $@, true)
 
-vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps) FORCE
-	+$(call if_changed_dep,link-vmlinux)
+.PHONY += vmlinux
+vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
+	+$(call if_changed,link-vmlinux)
 
 targets := vmlinux
 
