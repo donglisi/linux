@@ -1,4 +1,1 @@
-# SPDX-License-Identifier: GPL-2.0
-obj-y := core.o ring_buffer.o callchain.o
-
-obj-y += hw_breakpoint.o
+obj-y := core.o ring_buffer.o callchain.o hw_breakpoint.o
