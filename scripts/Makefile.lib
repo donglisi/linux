@@ -70,13 +70,9 @@ _a_flags       = $(filter-out $(AFLAGS_REMOVE_$(target-stem).o), \
 
 _cpp_flags     = $(KBUILD_CPPFLAGS) $(cppflags-y) $(CPPFLAGS_$(target-stem).lds)
 
-ifeq ($(KBUILD_EXTMOD),)
-ifdef building_out_of_srctree
 _c_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 _a_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 _cpp_flags += -I $(srctree)/$(src) -I $(objtree)/$(obj)
-endif
-endif
 
 part-of-module = $(if $(filter $(basename $@).o, $(real-obj-m)),y)
 quiet_modtag = $(if $(part-of-module),[M],   )
