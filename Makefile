@@ -76,12 +76,10 @@ AR		= ar
 NM		= nm
 OBJCOPY		= objcopy
 OBJDUMP		= objdump
-READELF		= readelf
 STRIP		= strip
 LEX		= flex
 YACC		= bison
 AWK		= awk
-PYTHON3		= python3
 CHECK		= sparse
 BASH		= bash
 KGZIP		= gzip
@@ -119,14 +117,13 @@ KBUILD_CPPFLAGS := -D__KERNEL__ -include /a/sources/linux/config.h
 KBUILD_LDFLAGS :=
 
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS LD CC
-export CPP AR NM STRIP OBJCOPY OBJDUMP READELF LEX YACC AWK INSTALLKERNEL
-export PERL PYTHON3 CHECK MAKE UTS_MACHINE KGZIP
+export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
+export CHECK MAKE UTS_MACHINE KGZIP
 export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS
 export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE KBUILD_LDFLAGS
 export KBUILD_CFLAGS CFLAGS_KERNEL
 export KBUILD_AFLAGS
 
-PHONY += outputmakefile
 ifdef building_out_of_srctree
 quiet_cmd_makefile = GEN     Makefile
       cmd_makefile = { \
@@ -264,7 +261,7 @@ include/config/kernel.release: FORCE
 
 PHONY += prepare0 archprepare
 
-archprepare: outputmakefile archheaders archscripts scripts include/config/kernel.release \
+archprepare: archheaders archscripts scripts include/config/kernel.release \
 	asm-generic $(version_h) $(autoksyms_h) include/generated/utsrelease.h
 
 prepare0: archprepare
