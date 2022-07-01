@@ -1,6 +1,5 @@
 vmlinux.o: $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
-	$(LD) -m elf_x86_64 -r -o $@ \
-	$(addprefix -T , $(initcalls-lds)) \
+	$(LD) -m elf_x86_64 -r -o $@ $(addprefix -T , $(initcalls-lds)) \
 	--whole-archive $(KBUILD_VMLINUX_OBJS) --no-whole-archive \
 	--start-group $(KBUILD_VMLINUX_LIBS) --end-group
 

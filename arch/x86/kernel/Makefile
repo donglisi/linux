@@ -6,10 +6,6 @@ extra-y	+= vmlinux.lds
 
 CPPFLAGS_vmlinux.lds += -U$(UTS_MACHINE)
 
-OBJECT_FILES_NON_STANDARD_test_nx.o			:= y
-
-KCOV_INSTRUMENT		:= n
-
 CFLAGS_irq.o := -I $(srctree)/$(src)/../include/asm/trace
 obj-y			:= process_$(BITS).o signal.o
 obj-y			+= traps.o idt.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
@@ -37,7 +33,6 @@ obj-y				+= stacktrace.o
 obj-y				+= cpu/
 obj-y				+= reboot.o
 obj-y		+= early-quirks.o
-apm-y				:= apm_32.o
 obj-y		+= smp.o
 obj-y		+= smpboot.o
 obj-y		+= tsc_sync.o
