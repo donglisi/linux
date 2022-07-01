@@ -1,3 +1,1 @@
-obj-y					+= core.o probe.o
-obj-y					+= amd/
-obj-y            += msr.o
+obj-y := core.o probe.o amd/ msr.o
