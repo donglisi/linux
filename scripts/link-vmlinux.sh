@@ -12,23 +12,14 @@ info()
 	printf "  %-7s %s\n" "${1}" "${2}"
 }
 
-# Create map file with all symbols from ${1}
-# See mksymap for additional details
-mksysmap()
-{
-	${CONFIG_SHELL} "${srctree}/scripts/mksysmap" ${1} ${2}
-}
-
-# final build of init/
 ${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init need-builtin=1
 
-#link vmlinux.o
 ${MAKE} -f "${srctree}/scripts/Makefile.vmlinux_o"
 
 ${LD} ${KBUILD_LDFLAGS} ${LDFLAGS_vmlinux} --script=${objtree}/${KBUILD_LDS} --strip-debug -o vmlinux --whole-archive ${KBUILD_VMLINUX_OBJS} --no-whole-archive --start-group ${KBUILD_VMLINUX_LIBS} --end-group
 
 info SYSMAP System.map
-mksysmap vmlinux System.map
+$NM -n vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > System.map
 
 # For fixdep
 echo "vmlinux: $0" > .vmlinux.d
