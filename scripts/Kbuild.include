@@ -74,27 +74,10 @@ endef
 # $(Q)$(MAKE) $(build)=dir
 build := -f $(srctree)/scripts/Makefile.build obj
 
-###
-# Shorthand for $(Q)$(MAKE) -f scripts/Makefile.dtbinst obj=
-# Usage:
-# $(Q)$(MAKE) $(dtbinst)=dir
-dtbinst := -f $(srctree)/scripts/Makefile.dtbinst obj
-
-###
-# Shorthand for $(Q)$(MAKE) -f scripts/Makefile.clean obj=
-# Usage:
-# $(Q)$(MAKE) $(clean)=dir
-clean := -f $(srctree)/scripts/Makefile.clean obj
-
 # echo command.
 # Short version is used, if $(quiet) equals `quiet_', otherwise full one.
 echo-cmd = $(if $($(quiet)cmd_$(1)),\
 	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
-
-# sink stdout for 'make -s'
-       redirect :=
- quiet_redirect :=
-silent_redirect := exec >/dev/null;
 
 # printing commands
 cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
