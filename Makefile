@@ -5,7 +5,6 @@ SUBLEVEL = 0
 EXTRAVERSION = -rc1
 
 PHONY := __all
-# __all:
 
 ifneq ($(sub_make_done),1)
 
@@ -287,9 +286,7 @@ vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
 
 targets := vmlinux
 
-# The actual objects are generated when descending,
-# make sure no implicit rule kicks in
-$(sort $(vmlinux-deps)): descend ;
+$(sort $(vmlinux-deps)): $(build-dirs) ;
 
 filechk_kernel.release = \
 	echo "$(KERNELVERSION)"
@@ -352,8 +349,7 @@ include/generated/utsrelease.h: include/config/kernel.release FORCE
 else # KBUILD_EXTMOD
 endif # KBUILD_EXTMOD
 
-PHONY += descend $(build-dirs)
-descend: $(build-dirs)
+PHONY += $(build-dirs)
 $(build-dirs): prepare0
 	$(Q) $(MAKE) $(build)=$@ need-builtin=1
 
