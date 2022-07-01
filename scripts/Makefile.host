@@ -35,19 +35,16 @@ hostc_flags    = -Wp,-MMD,$(depfile) $(_hostc_flags)
 # Create executable from a single .c file
 # host-csingle -> Executable
 quiet_cmd_host-csingle 	= HOSTCC  $@
-      cmd_host-csingle	= $(HOSTCC) $(hostc_flags) $(KBUILD_HOSTLDFLAGS) -o $@ $< \
-		$(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
+      cmd_host-csingle	= 
 $(host-csingle): $(obj)/%: $(src)/%.c FORCE
-	$(call if_changed_dep,host-csingle)
+	$(Q) $(HOSTCC) $(hostc_flags) $(KBUILD_HOSTLDFLAGS) -o $@ $< \
+		$(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
 
-# Link an executable based on list of .o files, all plain c
-# host-cmulti -> executable
-quiet_cmd_host-cmulti	= HOSTLD  $@
-      cmd_host-cmulti	= $(HOSTCC) $(KBUILD_HOSTLDFLAGS) -o $@ \
+$(host-cmulti):
+	$(Q) $(HOSTCC) $(KBUILD_HOSTLDFLAGS) -o $@ \
 			  $(addprefix $(obj)/, $($(target-stem)-objs)) \
 			  $(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
-$(host-cmulti): FORCE
-	$(call if_changed,host-cmulti)
+
 $(call multi_depend, $(host-cmulti), , -objs)
 
 # Create .o file from a single .c file
