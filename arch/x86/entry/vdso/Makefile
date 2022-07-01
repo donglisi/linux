@@ -25,7 +25,8 @@ CPPFLAGS_vdso.lds += -P -C
 VDSO_LDFLAGS_vdso.lds = -m elf_x86_64 -soname linux-vdso.so.1 --no-undefined -z max-page-size=4096
 
 $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs)
-	$(cmd_vdso)
+	$(LD) -o $@ $(VDSO_LDFLAGS) $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) -T $(filter %.lds,$^) \
+		$(filter %.o,$^) && sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include -I$(srctree)/include/uapi -I$(srctree)/arch/$(SUBARCH)/include/uapi
 hostprogs += vdso2c
@@ -47,14 +48,8 @@ CFLAGS_REMOVE_vsgx.o = -pg
 $(obj)/%.so: $(obj)/%.so.dbg
 	$(OBJCOPY) -S --remove-section __ex_table $(OBJCOPYFLAGS_$(@F)) $< $@
 
-quiet_cmd_vdso = VDSO    $@
-      cmd_vdso = $(LD) -o $@ \
-		       $(VDSO_LDFLAGS) $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) \
-		       -T $(filter %.lds,$^) $(filter %.o,$^) && \
-		 sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
-
 VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 $(call ld-option, --eh-frame-hdr) -Bsymbolic
 
-$(MODLIB)/vdso: FORCE
+$(MODLIB)/vdso:
 	@mkdir -p $(MODLIB)/vdso
 
