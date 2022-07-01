@@ -5,7 +5,7 @@ SUBLEVEL = 0
 EXTRAVERSION = -rc1
 
 PHONY := __all
-__all:
+# __all:
 
 ifneq ($(sub_make_done),1)
 
@@ -355,13 +355,11 @@ endif # KBUILD_EXTMOD
 PHONY += descend $(build-dirs)
 descend: $(build-dirs)
 $(build-dirs): prepare0
-	$(Q)$(MAKE) $(build)=$@ \
-	need-builtin=1
+	$(Q) $(MAKE) $(build)=$@ need-builtin=1
 
 endif # need-sub-make
 
 PHONY += FORCE
-FORCE:
 
 # Declare the contents of the PHONY variable as phony.  We keep that
 # information in a variable so we can use it in if_changed and friends.
