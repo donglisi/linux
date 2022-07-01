@@ -17,17 +17,16 @@ targets += vdso.lds $(vobjs-y)
 
 vdso_img_objs := $(vdso_img-y:%=vdso-image-%.o)
 vdso_img_cfiles := $(vdso_img-y:%=vdso-image-%.c)
-vdso_img_sodbg := $(vdso_img-y:%=vdso%.so.dbg)
 obj-y += $(vdso_img_objs)
 targets += $(vdso_img_cfiles)
-targets += $(vdso_img_sodbg) $(vdso_img-y:%=vdso%.so)
+targets += $(vdso_img-y:%=vdso%.so)
 
 CPPFLAGS_vdso.lds += -P -C
 
 VDSO_LDFLAGS_vdso.lds = -m elf_x86_64 -soname linux-vdso.so.1 --no-undefined -z max-page-size=4096
 
-$(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs) FORCE
-	$(call if_changed,vdso_and_check)
+$(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs)
+	$(cmd_vdso); $(cmd_vdso_check)
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include -I$(srctree)/include/uapi -I$(srctree)/arch/$(SUBARCH)/include/uapi
 hostprogs += vdso2c
@@ -61,10 +60,6 @@ quiet_cmd_vdso = VDSO    $@
 
 VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 \
 	$(call ld-option, --eh-frame-hdr) -Bsymbolic
-GCOV_PROFILE := n
-
-quiet_cmd_vdso_and_check = VDSO    $@
-      cmd_vdso_and_check = $(cmd_vdso); $(cmd_vdso_check)
 
 vdso_img_insttargets := $(vdso_img_sodbg:%.dbg=install_%)
 
