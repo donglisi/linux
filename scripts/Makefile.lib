@@ -18,20 +18,12 @@ suffix-search = $(strip $(foreach s, $3, $($(1:%$(strip $2)=%$s))))
 multi-search = $(sort $(foreach m, $1, $(if $(call suffix-search, $m, $2, $3 -), $m)))
 real-search = $(foreach m, $1, $(if $(call suffix-search, $m, $2, $3 -), $(call suffix-search, $m, $2, $3), $m))
 
-multi-obj-y := $(call multi-search, $(obj-y), .o, -objs -y)
-
 real-obj-y := $(call real-search, $(obj-y), .o, -objs -y)
 
 extra-y		:= $(addprefix $(obj)/, $(extra-y))
-always-y	:= $(addprefix $(obj)/, $(always-y))
 targets		:= $(addprefix $(obj)/, $(targets))
-obj-m		:= $(addprefix $(obj)/, $(obj-m))
 lib-y		:= $(addprefix $(obj)/, $(lib-y))
 real-obj-y	:= $(addprefix $(obj)/, $(real-obj-y))
-real-obj-m	:= $(addprefix $(obj)/, $(real-obj-m))
-multi-obj-m	:= $(addprefix $(obj)/, $(multi-obj-m))
-multi-dtb-y	:= $(addprefix $(obj)/, $(multi-dtb-y))
-real-dtb-y	:= $(addprefix $(obj)/, $(real-dtb-y))
 subdir-ym	:= $(addprefix $(obj)/, $(subdir-ym))
 
 modname-multi = $(sort $(foreach m,$(multi-obj-ym), $(if $(filter $*.o, $(call suffix-search, $m, .o, -objs -y -m)),$(m:.o=))))
