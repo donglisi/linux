@@ -1,46 +1,21 @@
-# SPDX-License-Identifier: GPL-2.0
+host-csingle	:= $(foreach m,$(hostprogs), $(if $($(m)-objs)$($(m)-cxxobjs),,$(m)))
 
-# C code
-# Executables compiled from a single .c file
-host-csingle	:= $(foreach m,$(hostprogs), \
-			$(if $($(m)-objs)$($(m)-cxxobjs),,$(m)))
+host-cmulti	:= $(foreach m,$(hostprogs), $(if $($(m)-cxxobjs),,$(if $($(m)-objs),$(m))))
 
-# C executables linked based on several .o files
-host-cmulti	:= $(foreach m,$(hostprogs),\
-		   $(if $($(m)-cxxobjs),,$(if $($(m)-objs),$(m))))
-
-# Object (.o) files compiled from .c files
 host-cobjs	:= $(sort $(foreach m,$(hostprogs),$($(m)-objs)))
 host-csingle	:= $(addprefix $(obj)/,$(host-csingle))
 host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
 host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
-#####
-# Handle options to gcc. Support building with separate output directory
 
-_hostc_flags   = $(KBUILD_HOSTCFLAGS)   $(HOST_EXTRACFLAGS)   \
-                 $(HOSTCFLAGS_$(target-stem).o)
-
-# $(objtree)/$(obj) for including generated headers from checkin source files
-ifeq ($(KBUILD_EXTMOD),)
-ifdef building_out_of_srctree
-_hostc_flags   += -I $(objtree)/$(obj)
-endif
-endif
-
-hostc_flags    = -Wp,-MMD,$(depfile) $(_hostc_flags)
-
+hostc_flags    = -Wp,-MMD,$(depfile) $(KBUILD_HOSTCFLAGS)   $(HOST_EXTRACFLAGS) $(HOSTCFLAGS_$(target-stem).o) -I $(objtree)/$(obj)
 
 $(host-csingle): $(obj)/%: $(src)/%.c
-	$(Q) $(HOSTCC) $(hostc_flags) $(KBUILD_HOSTLDFLAGS) -o $@ $< \
-		$(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
+	$(Q) $(HOSTCC) $(hostc_flags) $(KBUILD_HOSTLDFLAGS) -o $@ $< $(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
 
 $(host-cmulti):
-	$(Q) $(HOSTCC) $(KBUILD_HOSTLDFLAGS) -o $@ \
-			  $(addprefix $(obj)/, $($(target-stem)-objs)) \
-			  $(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
+	$(Q) $(HOSTCC) $(KBUILD_HOSTLDFLAGS) -o $@ $(addprefix $(obj)/, $($(target-stem)-objs)) $(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
 
 $(call multi_depend, $(host-cmulti), , -objs)
-
 
 $(host-cobjs): $(obj)/%.o: $(src)/%.c
 	$(Q) $(HOSTCC) $(hostc_flags) -c -o $@ $<
