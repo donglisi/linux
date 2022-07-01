@@ -1,2 +1,1 @@
-obj-y += dmi_scan.o
-obj-y += memmap.o
+obj-y := dmi_scan.o memmap.o

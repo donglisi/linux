@@ -1,2 +1,1 @@
-obj-y += commoncap.o
-obj-y += min_addr.o
+obj-y += commoncap.o min_addr.o

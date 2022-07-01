@@ -1,2 +1,1 @@
-obj-y		+= lib.o
-obj-y	+= rtc-mc146818-lib.o
+obj-y := lib.o rtc-mc146818-lib.o

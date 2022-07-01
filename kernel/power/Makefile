@@ -1,1 +1,1 @@
-obj-y				+= qos.o
+obj-y += qos.o

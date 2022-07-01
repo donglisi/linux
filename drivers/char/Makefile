@@ -1,4 +1,1 @@
-obj-y += mem.o
-obj-y += random.o
-obj-y += misc.o
-obj-y += virtio_console.o
+obj-y += mem.o random.o misc.o virtio_console.o
