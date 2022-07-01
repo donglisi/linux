@@ -53,25 +53,13 @@ _c_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 _a_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 _cpp_flags += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 
-part-of-module = $(if $(filter $(basename $@).o, $(real-obj-m)),y)
-quiet_modtag = $(if $(part-of-module),[M],   )
-
-modkern_cflags =                                          \
-	$(if $(part-of-module),                           \
-		$(KBUILD_CFLAGS_MODULE) $(CFLAGS_MODULE), \
-		$(KBUILD_CFLAGS_KERNEL) $(CFLAGS_KERNEL) $(modfile_flags))
-
-modkern_aflags = $(if $(part-of-module),				\
-			$(KBUILD_AFLAGS_MODULE) $(AFLAGS_MODULE),	\
-			$(KBUILD_AFLAGS_KERNEL) $(AFLAGS_KERNEL))
-
 c_flags        = -Wp,-MMD,$(depfile) $(NOSTDINC_FLAGS) $(LINUXINCLUDE)     \
 		 -include $(srctree)/include/linux/compiler_types.h       \
-		 $(_c_flags) $(modkern_cflags)                           \
+		 $(_c_flags) $(KBUILD_CFLAGS_KERNEL) $(CFLAGS_KERNEL) $(modfile_flags) \
 		 $(basename_flags) $(modname_flags)
 
 a_flags        = -Wp,-MMD,$(depfile) $(NOSTDINC_FLAGS) $(LINUXINCLUDE)     \
-		 $(_a_flags) $(modkern_aflags)
+		 $(_a_flags) $(KBUILD_AFLAGS_KERNEL) $(AFLAGS_KERNEL)
 
 cpp_flags      = -Wp,-MMD,$(depfile) $(NOSTDINC_FLAGS) $(LINUXINCLUDE)     \
 		 $(_cpp_flags)
