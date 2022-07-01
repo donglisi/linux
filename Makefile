@@ -80,8 +80,6 @@ HOSTCC	= gcc
 KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
 			 -O2 -fomit-frame-pointer -std=gnu11 \
 			 -Wdeclaration-after-statement -include /a/sources/linux/config.h
-KBUILD_USERCFLAGS  := $(KBUILD_USERHOSTCFLAGS) $(USERCFLAGS)
-KBUILD_USERLDFLAGS := $(USERLDFLAGS)
 
 KBUILD_HOSTCFLAGS   := $(KBUILD_USERHOSTCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
 KBUILD_HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS) $(HOSTLDFLAGS)
@@ -141,7 +139,6 @@ export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP READELF LEX YACC AWK INSTALLKERNEL
 export PERL PYTHON3 CHECK MAKE UTS_MACHINE KGZIP
 export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS
-export KBUILD_USERCFLAGS KBUILD_USERLDFLAGS
 export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE KBUILD_LDFLAGS
 export KBUILD_CFLAGS CFLAGS_KERNEL
 export KBUILD_AFLAGS
@@ -268,8 +265,8 @@ build-dirs	:= $(vmlinux-dirs)
 # Externally visible symbols (used by link-vmlinux.sh)
 KBUILD_VMLINUX_OBJS := $(head-y) $(patsubst %/,%/built-in.a, $(core-y))
 KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
-KBUILD_VMLINUX_LIBS := $(patsubst %/,%/lib.a, $(libs-y))
 KBUILD_VMLINUX_OBJS += $(patsubst %/,%/built-in.a, $(drivers-y))
+KBUILD_VMLINUX_LIBS := $(patsubst %/,%/lib.a, $(libs-y))
 
 export KBUILD_VMLINUX_OBJS KBUILD_VMLINUX_LIBS
 export KBUILD_LDS := arch/$(SRCARCH)/kernel/vmlinux.lds
@@ -280,8 +277,6 @@ vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
 	$(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)"; \
 	$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) $@, true)
-
-targets := vmlinux
 
 $(sort $(vmlinux-deps)): $(vmlinux-dirs)
 
