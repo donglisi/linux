@@ -1,5 +1,3 @@
-targets := vmlinux vmlinux.bin vmlinux.bin.gz
-
 KBUILD_CFLAGS := -m64 -O2
 KBUILD_CFLAGS += -fno-strict-aliasing -fPIE
 KBUILD_CFLAGS += -Wundef
@@ -29,8 +27,6 @@ hostprogs	:= mkpiggy
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include
 
-targets += ../voffset.h
-
 $(obj)/../voffset.h: vmlinux
 	$(Q) $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
 
@@ -44,15 +40,8 @@ $(obj)/vmlinux: $(vmlinux-objs-y)
 $(obj)/vmlinux.bin: vmlinux
 	$(Q) $(OBJCOPY) $(OBJCOPYFLAGS) -R .comment -S $< $@
 
-# targets += $(patsubst $(obj)/%,%,$(vmlinux-objs-y)) vmlinux.relocs
-
-CMD_RELOCS = arch/x86/tools/relocs
-$(obj)/vmlinux.relocs: vmlinux
-	$(Q) $(CMD_RELOCS) $< > $@;$(CMD_RELOCS) --abs-relocs $<
-
 $(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin
 	$(Q) cat $(real-prereqs) | gzip -n -f -9 > $@
 
-targets += piggy.S
 $(obj)/piggy.S: $(obj)/vmlinux.bin.gz $(obj)/mkpiggy
 	$(Q) $(obj)/mkpiggy $< > $@
