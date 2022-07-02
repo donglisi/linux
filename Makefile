@@ -84,7 +84,6 @@ NOSTDINC_FLAGS :=
 CFLAGS_KERNEL	=
 LDFLAGS_vmlinux =
 
-# Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
 		-I$(srctree)/arch/$(SRCARCH)/include/uapi \
 		-I$(objtree)/arch/$(SRCARCH)/include/generated/uapi \
@@ -101,11 +100,6 @@ LINUXINCLUDE    := \
 		$(USERINCLUDE)
 
 KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include /a/sources/linux/config.h
-KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
-		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
-		   -Werror=implicit-function-declaration -Werror=implicit-int \
-		   -Werror=return-type -Wno-format-security \
-		   -std=gnu11 -include /a/sources/linux/config.h 
 
 KBUILD_CPPFLAGS := -D__KERNEL__ -include /a/sources/linux/config.h
 KBUILD_LDFLAGS :=
@@ -143,11 +137,16 @@ REALMODE_CFLAGS += -fno-stack-protector
 REALMODE_CFLAGS += -Wno-address-of-packed-member
 export REALMODE_CFLAGS
 
-KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx
 
 export BITS := 64
 UTS_MACHINE := x86_64
 
+KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
+		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
+		   -Werror=implicit-function-declaration -Werror=implicit-int \
+		   -Werror=return-type -Wno-format-security \
+		   -std=gnu11 -include /a/sources/linux/config.h 
+KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx
 KBUILD_CFLAGS += -falign-jumps=1
 KBUILD_CFLAGS += -falign-loops=1
 KBUILD_CFLAGS += -mno-80387
@@ -157,6 +156,32 @@ KBUILD_CFLAGS += -mno-red-zone
 KBUILD_CFLAGS += -mcmodel=kernel
 KBUILD_CFLAGS += -Wno-sign-compare
 KBUILD_CFLAGS += -fno-asynchronous-unwind-tables
+KBUILD_CFLAGS += -fno-delete-null-pointer-checks
+KBUILD_CFLAGS += -Wno-frame-address
+KBUILD_CFLAGS += -Wno-format-truncation
+KBUILD_CFLAGS += -Wno-format-overflow
+KBUILD_CFLAGS += -Wno-address-of-packed-member
+KBUILD_CFLAGS += -O2
+KBUILD_CFLAGS += -fno-allow-store-data-races
+KBUILD_CFLAGS += -Wno-main
+KBUILD_CFLAGS += -fno-stack-protector
+KBUILD_CFLAGS += -Wimplicit-fallthrough=5
+KBUILD_CFLAGS += -Wno-declaration-after-statement
+KBUILD_CFLAGS += -Wno-vla
+KBUILD_CFLAGS += -Wno-pointer-sign
+KBUILD_CFLAGS += -Wno-cast-function-type
+KBUILD_CFLAGS += -Wno-unused-const-variable
+KBUILD_CFLAGS += -Wno-unused-but-set-variable
+KBUILD_CFLAGS += -Wno-stringop-truncation
+KBUILD_CFLAGS += -Wno-stringop-overflow
+KBUILD_CFLAGS += -Wno-restrict
+KBUILD_CFLAGS += -Wno-maybe-uninitialized
+KBUILD_CFLAGS += -fno-strict-overflow
+KBUILD_CFLAGS += -fno-stack-check
+KBUILD_CFLAGS += -fconserve-stack
+KBUILD_CFLAGS += -Wno-error=date-time
+KBUILD_CFLAGS += -Werror=incompatible-pointer-types
+KBUILD_CFLAGS += -Werror=designated-init
 
 KBUILD_LDFLAGS += -m elf_x86_64
 
@@ -190,33 +215,6 @@ bzImage: vmlinux
 
 NOSTDINC_FLAGS += -nostdinc
 KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
-
-KBUILD_CFLAGS += -fno-delete-null-pointer-checks
-KBUILD_CFLAGS += -Wno-frame-address
-KBUILD_CFLAGS += -Wno-format-truncation
-KBUILD_CFLAGS += -Wno-format-overflow
-KBUILD_CFLAGS += -Wno-address-of-packed-member
-KBUILD_CFLAGS += -O2
-KBUILD_CFLAGS += -fno-allow-store-data-races
-KBUILD_CFLAGS += -Wno-main
-KBUILD_CFLAGS += -fno-stack-protector
-KBUILD_CFLAGS += -Wimplicit-fallthrough=5
-KBUILD_CFLAGS += -Wno-declaration-after-statement
-KBUILD_CFLAGS += -Wno-vla
-KBUILD_CFLAGS += -Wno-pointer-sign
-KBUILD_CFLAGS += -Wno-cast-function-type
-KBUILD_CFLAGS += -Wno-unused-const-variable
-KBUILD_CFLAGS += -Wno-unused-but-set-variable
-KBUILD_CFLAGS += -Wno-stringop-truncation
-KBUILD_CFLAGS += -Wno-stringop-overflow
-KBUILD_CFLAGS += -Wno-restrict
-KBUILD_CFLAGS += -Wno-maybe-uninitialized
-KBUILD_CFLAGS += -fno-strict-overflow
-KBUILD_CFLAGS += -fno-stack-check
-KBUILD_CFLAGS += -fconserve-stack
-KBUILD_CFLAGS += -Wno-error=date-time
-KBUILD_CFLAGS += -Werror=incompatible-pointer-types
-KBUILD_CFLAGS += -Werror=designated-init
 
 core-y += kernel/ mm/ fs/ security/ crypto/ block/
 
