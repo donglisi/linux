@@ -1,9 +1,6 @@
 always-y := realmode.bin realmode.relocs
 
-realmode-y			+= header.o
-realmode-y			+= trampoline_64.o
-realmode-y			+= stack.o
-realmode-y			+= reboot.o
+realmode-y := header.o trampoline_64.o stack.o reboot.o
 
 REALMODE_OBJS = $(addprefix $(obj)/,$(realmode-y))
 
@@ -18,10 +15,8 @@ CPPFLAGS_realmode.lds += -P -C -I$(objtree)/$(obj)
 $(obj)/realmode.elf: $(obj)/realmode.lds $(REALMODE_OBJS)
 	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
 
-OBJCOPYFLAGS_realmode.bin := -O binary
-
 $(obj)/realmode.bin: $(obj)/realmode.elf $(obj)/realmode.relocs
-	$(Q) $(OBJCOPY) $(OBJCOPYFLAGS) $(OBJCOPYFLAGS_$(@F)) $< $@
+	$(Q) $(OBJCOPY) -O binary $(OBJCOPYFLAGS_$(@F)) $< $@
 
 $(obj)/realmode.relocs: $(obj)/realmode.elf
 	$(Q) arch/x86/tools/relocs --realmode $< > $@
