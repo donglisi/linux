@@ -1,5 +1,0 @@
-obj-y += entry/
-obj-y += events/
-obj-y += realmode/
-obj-y += kernel/
-obj-y += mm/
