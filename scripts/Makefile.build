@@ -73,13 +73,13 @@ ifneq ($(KBUILD_EXTRA_WARN),)
   cmd_checkdoc = $(srctree)/scripts/kernel-doc -none $<
 endif
 
-quiet_cmd_cc_s_c = CC $(quiet_modtag)  $@
+quiet_cmd_cc_s_c = CC      $@
       cmd_cc_s_c = $(CC) $(filter-out $(DEBUG_CFLAGS) $(CC_FLAGS_LTO), $(c_flags)) -fverbose-asm -S -o $@ $<
 
 $(obj)/%.s: $(src)/%.c FORCE
 	$(call if_changed_dep,cc_s_c)
 
-quiet_cmd_cpp_i_c = CPP $(quiet_modtag) $@
+quiet_cmd_cpp_i_c = CPP     $@
 cmd_cpp_i_c       = $(CPP) $(c_flags) -o $@ $<
 
 $(obj)/%.i: $(src)/%.c FORCE
@@ -92,7 +92,7 @@ genksyms = scripts/genksyms/genksyms		\
 
 cmd_gensymtypes_c = $(CPP) -D__GENKSYMS__ $(c_flags) $< | $(genksyms)
 
-quiet_cmd_cc_symtypes_c = SYM $(quiet_modtag) $@
+quiet_cmd_cc_symtypes_c = SYM     $@
       cmd_cc_symtypes_c = $(call cmd_gensymtypes_c,true,$@) >/dev/null
 
 $(obj)/%.symtypes : $(src)/%.c FORCE
@@ -101,7 +101,7 @@ $(obj)/%.symtypes : $(src)/%.c FORCE
 $(obj)/%.ll: $(src)/%.c FORCE
 	$(call if_changed_dep,cc_ll_c)
 
-quiet_cmd_cc_o_c = CC $(quiet_modtag)  $@
+quiet_cmd_cc_o_c = CC      $@
       cmd_cc_o_c = $(CC) $(c_flags) -c -o $@ $< \
 		$(cmd_ld_single_m) \
 		$(cmd_objtool)
@@ -152,7 +152,7 @@ cmd_gensymtypes_S =                                                         \
      sed 's/.*___EXPORT_SYMBOL[[:space:]]*\([a-zA-Z0-9_]*\)[[:space:]]*,.*/EXPORT_SYMBOL(\1);/' ; } | \
     $(CPP) -D__GENKSYMS__ $(c_flags) -xc - | $(genksyms)
 
-quiet_cmd_cc_symtypes_S = SYM $(quiet_modtag) $@
+quiet_cmd_cc_symtypes_S = SYM     $@
       cmd_cc_symtypes_S = $(call cmd_gensymtypes_S,true,$@) >/dev/null
 
 $(obj)/%.symtypes : $(src)/%.S FORCE
@@ -161,7 +161,7 @@ $(obj)/%.symtypes : $(src)/%.S FORCE
 
 $(obj)/%.s: $(src)/%.S
 
-quiet_cmd_as_o_S = AS $(quiet_modtag)  $@
+quiet_cmd_as_o_S = AS      $@
       cmd_as_o_S = $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
 
 $(obj)/%.o: $(src)/%.S FORCE

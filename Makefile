@@ -9,10 +9,9 @@ PHONY := __all
 ifneq ($(sub_make_done),1)
 
 MAKEFLAGS += -rR
-KBUILD_VERBOSE := 0
 quiet=quiet_
 Q = @
-export quiet Q KBUILD_VERBOSE
+export quiet Q
 
 KBUILD_OUTPUT := $(O)
 abs_objtree := $(realpath $(shell mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd))
@@ -190,9 +189,9 @@ all: bzImage
 export KBUILD_IMAGE := $(boot)/bzImage
 
 bzImage: vmlinux
-	$(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
-	mkdir -p $(objtree)/arch/x86_64/boot
-	ln -fsn ../../x86/boot/bzImage $(objtree)/arch/x86_64/boot/vmlinux
+	$(Q) $(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
+	$(Q) mkdir -p $(objtree)/arch/x86_64/boot
+	$(Q) ln -fsn ../../x86/boot/bzImage $(objtree)/arch/x86_64/boot/vmlinux
 
 NOSTDINC_FLAGS += -nostdinc
 KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
@@ -246,7 +245,7 @@ vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 
 .PHONY += vmlinux
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
-	$(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)"; \
+	$(Q) $(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)"; \
 	$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) $@, true)
 
 $(sort $(vmlinux-deps)): $(vmlinux-dirs)

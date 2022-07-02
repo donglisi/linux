@@ -6,7 +6,7 @@ hostprogs := gen_crc32table gen_crc64table
 
 $(obj)/crc32.o: $(obj)/crc32table.h
 $(obj)/crc32table.h: $(obj)/gen_crc32table
-	$< > $@
+	$(Q) $< > $@
 
 $(obj)/crc64.o: $(obj)/crc64table.h
 

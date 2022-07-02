@@ -32,7 +32,7 @@ HOST_EXTRACFLAGS += -I$(srctree)/tools/include
 targets += ../voffset.h
 
 $(obj)/../voffset.h: vmlinux
-	$(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
+	$(Q) $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
 
 $(obj)/misc.o: $(obj)/../voffset.h
 
@@ -48,20 +48,20 @@ vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) += $(obj)/kaslr.o
 	vmlinux-objs-y += $(obj)/pgtable_64.o
 
 $(obj)/vmlinux: $(vmlinux-objs-y) $(efi-obj-y)
-	$(LD) $(ld_flags) $(real-prereqs) -o $@
+	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
 
 $(obj)/vmlinux.bin: vmlinux
-	$(OBJCOPY) $(OBJCOPYFLAGS) -R .comment -S $< $@
+	$(Q) $(OBJCOPY) $(OBJCOPYFLAGS) -R .comment -S $< $@
 
 targets += $(patsubst $(obj)/%,%,$(vmlinux-objs-y)) vmlinux.relocs
 
 CMD_RELOCS = arch/x86/tools/relocs
 $(obj)/vmlinux.relocs: vmlinux
-	$(CMD_RELOCS) $< > $@;$(CMD_RELOCS) --abs-relocs $<
+	$(Q) $(CMD_RELOCS) $< > $@;$(CMD_RELOCS) --abs-relocs $<
 
 $(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin
-	cat $(real-prereqs) | gzip -n -f -9 > $@
+	$(Q) cat $(real-prereqs) | gzip -n -f -9 > $@
 
 targets += piggy.S
 $(obj)/piggy.S: $(obj)/vmlinux.bin.gz $(obj)/mkpiggy
-	$(obj)/mkpiggy $< > $@
+	$(Q) $(obj)/mkpiggy $< > $@

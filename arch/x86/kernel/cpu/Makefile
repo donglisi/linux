@@ -24,6 +24,6 @@ cpufeature = $(src)/../../include/asm/cpufeatures.h
 vmxfeature = $(src)/../../include/asm/vmxfeatures.h
 
 $(obj)/capflags.c: $(cpufeature) $(vmxfeature) $(src)/mkcapflags.sh
-	$(CONFIG_SHELL) $(srctree)/$(src)/mkcapflags.sh $@ $^
+	$(Q) $(CONFIG_SHELL) $(srctree)/$(src)/mkcapflags.sh $@ $^
 
 targets += capflags.c

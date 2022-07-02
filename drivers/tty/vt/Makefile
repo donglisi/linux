@@ -2,4 +2,4 @@ obj-y += vt_ioctl.o vc_screen.o selection.o keyboard.o consolemap.o consolemap_d
 
 hostprogs += conmakehash
 $(obj)/consolemap_deftbl.c: $(src)/cp437.uni $(obj)/conmakehash
-	$(obj)/conmakehash $< > $@
+	$(Q) $(obj)/conmakehash $< > $@

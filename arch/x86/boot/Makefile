@@ -34,7 +34,7 @@ KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
 KBUILD_CFLAGS	+= -include /a/sources/linux/config.h
 
 $(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build
-	$(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin \
+	$(Q) $(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin \
 			       $(obj)/zoffset.h $@ $($(quiet)redirect_image)
 
 OBJCOPYFLAGS_vmlinux.bin := -O binary -R .note -R .comment -S
