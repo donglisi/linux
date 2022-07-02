@@ -37,9 +37,8 @@ $(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build
 	$(Q) $(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin \
 			       $(obj)/zoffset.h $@ $($(quiet)redirect_image)
 
-OBJCOPYFLAGS_vmlinux.bin := -O binary -R .note -R .comment -S
 $(obj)/vmlinux.bin: $(obj)/compressed/vmlinux FORCE
-	$(call if_changed,objcopy)
+	$(OBJCOPY) $(OBJCOPYFLAGS) -O binary -R .note -R .comment -S $< $@
 
 SETUP_OBJS = $(addprefix $(obj)/,$(setup-y))
 
@@ -60,9 +59,8 @@ LDFLAGS_setup.elf	:= -m elf_i386 -T
 $(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS) FORCE
 	$(call if_changed,ld)
 
-OBJCOPYFLAGS_setup.bin	:= -O binary
 $(obj)/setup.bin: $(obj)/setup.elf FORCE
-	$(call if_changed,objcopy)
+	$(OBJCOPY) $(OBJCOPYFLAGS) -O binary $< $@
 
 $(obj)/compressed/vmlinux: FORCE
 	$(Q)$(MAKE) $(build)=$(obj)/compressed $@

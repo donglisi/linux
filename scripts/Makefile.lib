@@ -71,17 +71,8 @@ $(foreach m, $1, \
 	$(addprefix $(obj)/, $(call suffix-search, $(patsubst $(obj)/%,%,$m), $2, $3))))
 endef
 
-quiet_cmd_copy = COPY    $@
-      cmd_copy = cat $< > $@
-
-$(obj)/%: $(src)/%_shipped
-	$(call cmd,copy)
-
 quiet_cmd_ld = LD      $@
 	cmd_ld = $(LD) $(ld_flags) $(real-prereqs) -o $@
-
-quiet_cmd_objcopy = OBJCOPY $@
-	cmd_objcopy = $(OBJCOPY) $(OBJCOPYFLAGS) $(OBJCOPYFLAGS_$(@F)) $< $@
 
 define sed-offsets
 	's:^[[:space:]]*\.ascii[[:space:]]*"\(.*\)".*:\1:; \
