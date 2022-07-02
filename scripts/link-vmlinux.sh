@@ -5,7 +5,7 @@ LD="$1"
 KBUILD_LDFLAGS="$2"
 LDFLAGS_vmlinux="$3"
 
-${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init need-builtin=1
+${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init
 
 ${MAKE} -f "${srctree}/scripts/Makefile.vmlinux_o"
 

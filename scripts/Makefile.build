@@ -81,7 +81,7 @@ __build: $(targets-for-builtin) $(always-y)
 
 PHONY += $(subdir-ym)
 $(subdir-ym):
-	@ $(MAKE) $(build)=$@ $(if $(filter $@/, $(KBUILD_SINGLE_TARGETS)),single-build=) need-builtin=$(if $(filter $@/built-in.a, $(subdir-builtin)),1)
+	@ $(MAKE) $(build)=$@ $(if $(filter $@/, $(KBUILD_SINGLE_TARGETS)),single-build=)
 
 PHONY += FORCE
 

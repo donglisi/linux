@@ -122,7 +122,7 @@ endif
 
 all: vmlinux
 
-core-y := init/ arch/x86/
+core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/
 drivers-y := drivers/
 drivers-y += net/
 libs-y := lib/
@@ -216,21 +216,17 @@ bzImage: vmlinux
 NOSTDINC_FLAGS += -nostdinc
 KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
 
-core-y += kernel/ mm/ fs/ security/ crypto/ block/
-
-vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, \
-		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
-		     $(libs-y) $(libs-m)))
+vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(core-y) $(drivers-y) $(libs-y)))
 
 build-dirs	:= $(vmlinux-dirs)
 
-# Externally visible symbols (used by link-vmlinux.sh)
 KBUILD_VMLINUX_OBJS := $(head-y) $(patsubst %/,%/built-in.a, $(core-y))
 KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
 KBUILD_VMLINUX_OBJS += $(patsubst %/,%/built-in.a, $(drivers-y))
-KBUILD_VMLINUX_LIBS := $(patsubst %/,%/lib.a, $(libs-y))
+export KBUILD_VMLINUX_OBJS
 
-export KBUILD_VMLINUX_OBJS KBUILD_VMLINUX_LIBS
+export KBUILD_VMLINUX_LIBS := $(patsubst %/,%/lib.a, $(libs-y))
+
 export KBUILD_LDS := arch/$(SRCARCH)/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
@@ -302,7 +298,7 @@ include/generated/utsrelease.h: include/config/kernel.release FORCE
 
 PHONY += $(build-dirs)
 $(build-dirs): prepare0
-	$(Q) $(MAKE) $(build)=$@ need-builtin=1
+	$(Q) $(MAKE) $(build)=$@
 
 endif # need-sub-make
 
