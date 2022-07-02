@@ -1,6 +1,5 @@
 ARCH_REL_TYPE_ABS := R_X86_64_JUMP_SLOT|R_X86_64_GLOB_DAT|R_X86_64_RELATIVE|
 ARCH_REL_TYPE_ABS += R_386_GLOB_DAT|R_386_JMP_SLOT|R_386_RELATIVE
-include $(srctree)/lib/vdso/Makefile
 
 vobjs-y := vdso-note.o vclock_gettime.o vgetcpu.o
 
@@ -19,8 +18,8 @@ $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs)
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include -I$(srctree)/include/uapi -I$(srctree)/arch/$(SUBARCH)/include/uapi
 hostprogs += vdso2c
 
-$(obj)/vdso-image-%.c: $(obj)/vdso%.so.dbg $(obj)/vdso%.so $(obj)/vdso2c
-	$(Q) $(obj)/vdso2c $< $(<:%.dbg=%) $@
+$(obj)/vdso-image-64.c: $(obj)/vdso64.so.dbg $(obj)/vdso64.so $(obj)/vdso2c
+	$(Q) $(obj)/vdso2c $< $(<:64.dbg=64) $@
 
 CFL := $(PROFILING) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 \
        $(filter -g%,$(KBUILD_CFLAGS)) -fno-stack-protector \
