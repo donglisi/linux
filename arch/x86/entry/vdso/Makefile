@@ -4,17 +4,9 @@ include $(srctree)/lib/vdso/Makefile
 
 vobjs-y := vdso-note.o vclock_gettime.o vgetcpu.o
 
-obj-y				+= vma.o extable.o
-
-vdso_img-y		+= 64
+obj-y += vma.o extable.o vdso-image-64.o
 
 vobjs := $(foreach F,$(vobjs-y),$(obj)/$F)
-
-$(obj)/vdso.o: $(obj)/vdso.so
-
-vdso_img_objs := $(vdso_img-y:%=vdso-image-%.o)
-vdso_img_cfiles := $(vdso_img-y:%=vdso-image-%.c)
-obj-y += $(vdso_img_objs)
 
 CPPFLAGS_vdso.lds += -P -C
 
