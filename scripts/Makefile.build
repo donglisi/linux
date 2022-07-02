@@ -73,17 +73,11 @@ ifneq ($(KBUILD_EXTRA_WARN),)
   cmd_checkdoc = $(srctree)/scripts/kernel-doc -none $<
 endif
 
-quiet_cmd_cc_s_c = CC      $@
-      cmd_cc_s_c = $(CC) $(filter-out $(DEBUG_CFLAGS) $(CC_FLAGS_LTO), $(c_flags)) -fverbose-asm -S -o $@ $<
+$(obj)/%.s: $(src)/%.c
+	$(Q) $(CC) $(filter-out $(DEBUG_CFLAGS) $(CC_FLAGS_LTO), $(c_flags)) -fverbose-asm -S -o $@ $<
 
-$(obj)/%.s: $(src)/%.c FORCE
-	$(call if_changed_dep,cc_s_c)
-
-quiet_cmd_cpp_i_c = CPP     $@
-cmd_cpp_i_c       = $(CPP) $(c_flags) -o $@ $<
-
-$(obj)/%.i: $(src)/%.c FORCE
-	$(call if_changed_dep,cpp_i_c)
+$(obj)/%.i: $(src)/%.c
+	$(Q) $(CPP) $(c_flags) -o $@ $<
 
 genksyms = scripts/genksyms/genksyms		\
 	$(if $(1), -T $(2))			\
@@ -97,9 +91,6 @@ quiet_cmd_cc_symtypes_c = SYM     $@
 
 $(obj)/%.symtypes : $(src)/%.c FORCE
 	$(call cmd,cc_symtypes_c)
-
-$(obj)/%.ll: $(src)/%.c FORCE
-	$(call if_changed_dep,cc_ll_c)
 
 quiet_cmd_cc_o_c = CC      $@
       cmd_cc_o_c = $(CC) $(c_flags) -c -o $@ $< \
@@ -122,7 +113,9 @@ define rule_as_o_S
 endef
 
 $(obj)/%.o: $(src)/%.c $(recordmcount_source) FORCE
-	$(call if_changed_rule,cc_o_c)
+	$(Q) $(CC) $(c_flags) -c -o $@ $< \
+		$(cmd_ld_single_m) \
+		$(cmd_objtool)
 	$(call cmd,force_checksrc)
 
 cmd_mod = echo $(call real-search, $*.o, .o, -objs -y -m) | \
@@ -136,13 +129,10 @@ cmd_undefined_syms = $(NM) $< | sed -n 's/^  *U //p' > $@
 $(obj)/%.usyms: $(obj)/%.o FORCE
 	$(call if_changed,undefined_syms)
 
-quiet_cmd_cc_lst_c = MKLST   $@
-      cmd_cc_lst_c = $(CC) $(c_flags) -g -c -o $*.o $< && \
+$(obj)/%.lst: $(src)/%.c FORCE
+	$(Q) $(CC) $(c_flags) -g -c -o $*.o $< && \
 		     $(CONFIG_SHELL) $(srctree)/scripts/makelst $*.o \
 				     System.map $(OBJDUMP) > $@
-
-$(obj)/%.lst: $(src)/%.c FORCE
-	$(call if_changed_dep,cc_lst_c)
 
 cmd_gensymtypes_S =                                                         \
    { echo "\#include <linux/kernel.h>" ;                                    \
@@ -165,16 +155,15 @@ quiet_cmd_as_o_S = AS      $@
       cmd_as_o_S = $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
 
 $(obj)/%.o: $(src)/%.S FORCE
-	$(call if_changed_rule,as_o_S)
+	$(Q) $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
 
 targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y) $(always-y) $(MAKECMDGOALS)
 
 quiet_cmd_cpp_lds_S = LDS     $@
-      cmd_cpp_lds_S = $(CPP) $(cpp_flags) -P -U$(ARCH) \
-	                     -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
+      cmd_cpp_lds_S = 
 
 $(obj)/%.lds: $(src)/%.lds.S FORCE
-	$(call if_changed_dep,cpp_lds_S)
+	$(Q) $(CPP) $(cpp_flags) -P -U$(ARCH) -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 $(subdir-builtin): $(obj)/%/built-in.a: $(obj)/% ;
 
