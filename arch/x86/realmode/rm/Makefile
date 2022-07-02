@@ -1,5 +1,3 @@
-always-y := realmode.bin realmode.relocs
-
 realmode-y := header.o trampoline_64.o stack.o reboot.o
 
 REALMODE_OBJS = $(addprefix $(obj)/,$(realmode-y))
@@ -9,11 +7,10 @@ $(obj)/pasyms.h: $(REALMODE_OBJS)
 
 $(obj)/realmode.lds: $(obj)/pasyms.h
 
-LDFLAGS_realmode.elf := -m elf_i386 --emit-relocs -T
 CPPFLAGS_realmode.lds += -P -C -I$(objtree)/$(obj)
 
 $(obj)/realmode.elf: $(obj)/realmode.lds $(REALMODE_OBJS)
-	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
+	$(Q) $(LD) -m elf_i386 --emit-relocs -T $(real-prereqs) -o $@
 
 $(obj)/realmode.bin: $(obj)/realmode.elf $(obj)/realmode.relocs
 	$(Q) $(OBJCOPY) -O binary $< $@
