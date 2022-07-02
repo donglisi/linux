@@ -85,16 +85,16 @@ CFLAGS_KERNEL	=
 LDFLAGS_vmlinux =
 
 USERINCLUDE    := \
-		-I$(srctree)/arch/$(SRCARCH)/include/uapi \
-		-I$(objtree)/arch/$(SRCARCH)/include/generated/uapi \
+		-I$(srctree)/arch/x86/include/uapi \
+		-I$(objtree)/arch/x86/include/generated/uapi \
 		-I$(srctree)/include/uapi \
 		-I$(objtree)/include/generated/uapi \
                 -include $(srctree)/include/linux/compiler-version.h \
                 -include $(srctree)/include/linux/kconfig.h
 
 LINUXINCLUDE    := \
-		-I$(srctree)/arch/$(SRCARCH)/include \
-		-I$(objtree)/arch/$(SRCARCH)/include/generated \
+		-I$(srctree)/arch/x86/include \
+		-I$(objtree)/arch/x86/include/generated \
 		$(if $(building_out_of_srctree),-I$(srctree)/include) \
 		-I$(objtree)/include \
 		$(USERINCLUDE)
@@ -227,7 +227,7 @@ export KBUILD_VMLINUX_OBJS
 
 export KBUILD_VMLINUX_LIBS := $(patsubst %/,%/lib.a, $(libs-y))
 
-export KBUILD_LDS := arch/$(SRCARCH)/kernel/vmlinux.lds
+export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 
@@ -238,12 +238,8 @@ vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
 
 $(sort $(vmlinux-deps)): $(vmlinux-dirs)
 
-filechk_kernel.release = \
+include/config/kernel.release:
 	echo "$(KERNELVERSION)"
-
-# Store (new) KERNELRELEASE string in include/config/kernel.release
-include/config/kernel.release: FORCE
-	$(call filechk,kernel.release)
 
 PHONY += prepare0 archprepare
 
@@ -251,18 +247,16 @@ archprepare: archheaders archscripts scripts include/config/kernel.release \
 	asm-generic $(version_h) $(autoksyms_h) include/generated/utsrelease.h
 
 prepare0: archprepare
-	$(Q)$(MAKE) $(build)=.
+	$(Q) $(MAKE) $(build)=.
 
 asm-generic := -f $(srctree)/scripts/Makefile.asm-generic obj
 
 PHONY += asm-generic uapi-asm-generic
 asm-generic: uapi-asm-generic
-	@ $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
-	generic=include/asm-generic
+	@ $(MAKE) $(asm-generic)=arch/x86/include/generated/asm generic=include/asm-generic
 
 uapi-asm-generic:
-	@ $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
-	generic=include/uapi/asm-generic
+	@ $(MAKE) $(asm-generic)=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 
 uts_len := 64
 define filechk_utsrelease.h

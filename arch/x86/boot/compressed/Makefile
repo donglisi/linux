@@ -1,6 +1,6 @@
 targets := vmlinux vmlinux.bin vmlinux.bin.gz
 
-KBUILD_CFLAGS := -m$(BITS) -O2
+KBUILD_CFLAGS := -m64 -O2
 KBUILD_CFLAGS += -fno-strict-aliasing -fPIE
 KBUILD_CFLAGS += -Wundef
 KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
@@ -36,18 +36,9 @@ $(obj)/../voffset.h: vmlinux
 
 $(obj)/misc.o: $(obj)/../voffset.h
 
-vmlinux-objs-y := $(obj)/vmlinux.lds $(obj)/kernel_info.o $(obj)/head_$(BITS).o \
-	$(obj)/misc.o $(obj)/string.o $(obj)/cmdline.o $(obj)/error.o \
-	$(obj)/piggy.o $(obj)/cpuflags.o
+vmlinux-objs-y := $(obj)/vmlinux.lds $(obj)/kernel_info.o $(obj)/head_$(BITS).o $(obj)/misc.o $(obj)/string.o $(obj)/cmdline.o $(obj)/error.o $(obj)/piggy.o $(obj)/cpuflags.o $(obj)/early_serial_console.o $(obj)/ident_map_64.o $(obj)/idt_64.o $(obj)/idt_handlers_64.o $(obj)/mem_encrypt.o $(obj)/pgtable_64.o
 
-vmlinux-objs-y += $(obj)/early_serial_console.o
-vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) += $(obj)/kaslr.o
-	vmlinux-objs-y += $(obj)/ident_map_64.o
-	vmlinux-objs-y += $(obj)/idt_64.o $(obj)/idt_handlers_64.o
-	vmlinux-objs-y += $(obj)/mem_encrypt.o
-	vmlinux-objs-y += $(obj)/pgtable_64.o
-
-$(obj)/vmlinux: $(vmlinux-objs-y) $(efi-obj-y)
+$(obj)/vmlinux: $(vmlinux-objs-y)
 	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
 
 $(obj)/vmlinux.bin: vmlinux
