@@ -32,10 +32,9 @@ quiet_cmd_wrap = WRAP    $@
       cmd_wrap = echo "\#include <asm-generic/$*.h>" > $@
 
 quiet_cmd_remove = REMOVE  $(unwanted)
-      cmd_remove = rm -f $(unwanted)
+      cmd_remove = echo $(unwanted)
 
 all: $(generic-y)
-	$(if $(unwanted),$(call cmd,remove))
 	@:
 
 $(obj)/%.h:

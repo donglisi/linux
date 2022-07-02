@@ -179,7 +179,7 @@ $(obj)/%.lds: $(src)/%.lds.S FORCE
 $(subdir-builtin): $(obj)/%/built-in.a: $(obj)/% ;
 
 quiet_cmd_ar_builtin = AR      $@
-      cmd_ar_builtin = rm -f $@; \
+      cmd_ar_builtin =  \
 		echo $(patsubst $(obj)/%,%,$(real-prereqs)) | \
 		sed -E 's:([^ ]+):$(obj)/\1:g' | \
 		xargs $(AR) cDPrST $@
