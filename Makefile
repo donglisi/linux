@@ -69,7 +69,6 @@ KBUILD_HOSTCFLAGS   := $(KBUILD_USERHOSTCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
 KBUILD_HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS) $(HOSTLDFLAGS)
 KBUILD_HOSTLDLIBS   := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
 
-# Make variables (CC, etc...)
 CPP		= $(CC) -E
 CC		= gcc
 LD		= ld
@@ -78,10 +77,7 @@ NM		= nm
 OBJCOPY		= objcopy
 OBJDUMP		= objdump
 STRIP		= strip
-LEX		= flex
-YACC		= bison
 AWK		= awk
-CHECK		= sparse
 BASH		= bash
 
 NOSTDINC_FLAGS :=
@@ -140,7 +136,7 @@ libs-y := lib/
 REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS \
 		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
 		   -fno-strict-aliasing -fomit-frame-pointer -fno-pic \
-		   -mno-mmx -mno-sse $(call cc-option,-fcf-protection=none)
+		   -mno-mmx -mno-sse -fcf-protection=none
 REALMODE_CFLAGS += -include /a/sources/linux/config.h
 REALMODE_CFLAGS += -ffreestanding
 REALMODE_CFLAGS += -fno-stack-protector
@@ -167,10 +163,10 @@ KBUILD_LDFLAGS += -m elf_x86_64
 LDFLAGS_vmlinux := -z max-page-size=0x200000
 
 archscripts:
-	$(Q)$(MAKE) $(build)=arch/x86/tools relocs
+	@ $(MAKE) $(build)=arch/x86/tools relocs
 
 archheaders:
-	$(Q)$(MAKE) $(build)=arch/x86/entry/syscalls all
+	@ $(MAKE) $(build)=arch/x86/entry/syscalls all
 
 head-y := arch/x86/kernel/head_64.o
 head-y += arch/x86/kernel/head64.o
@@ -222,7 +218,6 @@ KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
-ifeq ($(KBUILD_EXTMOD),)
 core-y += kernel/ mm/ fs/ security/ crypto/ block/
 
 vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, \
@@ -264,15 +259,15 @@ archprepare: archheaders archscripts scripts include/config/kernel.release \
 prepare0: archprepare
 	$(Q)$(MAKE) $(build)=.
 
-# Support for using generic headers in asm-generic
 asm-generic := -f $(srctree)/scripts/Makefile.asm-generic obj
 
 PHONY += asm-generic uapi-asm-generic
 asm-generic: uapi-asm-generic
-	$(Q)$(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
+	@ $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
 	generic=include/asm-generic
+
 uapi-asm-generic:
-	$(Q)$(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
+	@ $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
 	generic=include/uapi/asm-generic
 
 uts_len := 64
@@ -306,9 +301,6 @@ $(version_h): FORCE
 
 include/generated/utsrelease.h: include/config/kernel.release FORCE
 	$(call filechk,utsrelease.h)
-
-else # KBUILD_EXTMOD
-endif # KBUILD_EXTMOD
 
 PHONY += $(build-dirs)
 $(build-dirs): prepare0
