@@ -77,9 +77,7 @@ $(obj)/built-in.a: $(real-obj-y)
 $(obj)/lib.a: $(lib-y)
 	$(Q) $(AR) cDPrsT $@ $(real-prereqs)
 
-targets := $(filter-out $(PHONY), $(targets))
-
-__build: $(targets-for-builtin) $(subdir-ym) $(always-y)
+__build: $(targets-for-builtin) $(always-y)
 
 PHONY += $(subdir-ym)
 $(subdir-ym):
