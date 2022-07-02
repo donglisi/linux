@@ -44,7 +44,7 @@ $(obj)/vmlinux: $(vmlinux-objs-y)
 $(obj)/vmlinux.bin: vmlinux
 	$(Q) $(OBJCOPY) $(OBJCOPYFLAGS) -R .comment -S $< $@
 
-targets += $(patsubst $(obj)/%,%,$(vmlinux-objs-y)) vmlinux.relocs
+# targets += $(patsubst $(obj)/%,%,$(vmlinux-objs-y)) vmlinux.relocs
 
 CMD_RELOCS = arch/x86/tools/relocs
 $(obj)/vmlinux.relocs: vmlinux
