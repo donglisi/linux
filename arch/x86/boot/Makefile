@@ -1,5 +1,4 @@
 targets		:= vmlinux.bin setup.bin setup.elf bzImage
-targets		+= fdimage fdimage144 fdimage288 image.iso hdimage
 subdir-		:= compressed
 
 setup-y		+= a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o
@@ -12,10 +11,9 @@ HOST_EXTRACFLAGS += -I$(srctree)/tools/include -D__EXPORTED_HEADERS__
 
 $(obj)/cpu.o: $(obj)/cpustr.h
 
-quiet_cmd_cpustr = CPUSTR  $@
-      cmd_cpustr = $(obj)/mkcpustr > $@
 $(obj)/cpustr.h: $(obj)/mkcpustr FORCE
-	$(call if_changed,cpustr)
+	@ $(obj)/mkcpustr > $@
+
 targets += cpustr.h
 
 KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_SETUP
@@ -39,12 +37,8 @@ $(obj)/zoffset.h: $(obj)/compressed/vmlinux
 AFLAGS_header.o += -I$(objtree)/$(obj)
 $(obj)/header.o: $(obj)/zoffset.h
 
-quiet_cmd_ld = LD      $@
-	cmd_ld = $(LD) $(ld_flags) $(real-prereqs) -o $@
-
-LDFLAGS_setup.elf	:= -m elf_i386 -T
-$(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS) FORCE
-	$(call if_changed,ld)
+$(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS)
+	@ $(LD) -m elf_i386 -T $(real-prereqs) -o $@
 
 $(obj)/setup.bin: $(obj)/setup.elf FORCE
 	$(OBJCOPY) $(OBJCOPYFLAGS) -O binary $< $@
