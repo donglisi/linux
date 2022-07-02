@@ -29,7 +29,7 @@ export sub_make_done := 1
 __all:
 	mkdir -p /b/build/linux/5.19-my/include/generated/
 	cp /a/sources/linux/compile.h /b/build/linux/5.19-my/include/generated/
-	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
+	@ $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
 
 endif # sub_make_done
 
@@ -97,8 +97,6 @@ USERINCLUDE    := \
                 -include $(srctree)/include/linux/compiler-version.h \
                 -include $(srctree)/include/linux/kconfig.h
 
-# Use LINUXINCLUDE when you must reference the include/ directory.
-# Needed to be compatible with the O= option
 LINUXINCLUDE    := \
 		-I$(srctree)/arch/$(SRCARCH)/include \
 		-I$(objtree)/arch/$(SRCARCH)/include/generated \
@@ -134,7 +132,7 @@ endif
 
 all: vmlinux
 
-core-y := init/ arch/$(SRCARCH)/
+core-y := init/ arch/x86/
 drivers-y := drivers/
 drivers-y += net/
 libs-y := lib/
@@ -185,7 +183,6 @@ boot := arch/x86/boot
 
 PHONY += bzImage
 
-# Default kernel to build
 all: bzImage
 
 export KBUILD_IMAGE := $(boot)/bzImage
@@ -321,6 +318,4 @@ endif # need-sub-make
 
 PHONY += FORCE
 
-# Declare the contents of the PHONY variable as phony.  We keep that
-# information in a variable so we can use it in if_changed and friends.
 .PHONY: $(PHONY)
