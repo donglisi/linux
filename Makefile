@@ -27,6 +27,8 @@ export abs_srctree abs_objtree
 export sub_make_done := 1
 
 __all:
+	mkdir -p /b/build/linux/5.19-my/include/generated/
+	cp /a/sources/linux/compile.h /b/build/linux/5.19-my/include/generated/
 	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
 
 endif # sub_make_done

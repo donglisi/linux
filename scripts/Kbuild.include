@@ -42,12 +42,7 @@ echo-cmd = $(if $($(quiet)cmd_$(1)),\
 
 cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
 
-ifneq ($(KBUILD_NOCMDDEP),1)
-cmd-check = $(filter-out $(subst $(space),$(space_escape),$(strip $(cmd_$@))), \
-                         $(subst $(space),$(space_escape),$(strip $(cmd_$1))))
-else
 cmd-check = $(if $(strip $(cmd_$@)),,1)
-endif
 
 make-cmd = $(call escsq,$(subst $(pound),$$(pound),$(subst $$,$$$$,$(cmd_$(1)))))
 
@@ -62,10 +57,3 @@ if_changed = $(if $(if-changed-cond),$(cmd_and_savecmd),@:)
 cmd_and_savecmd =                                                            \
 	$(cmd);                                                              \
 	printf '%s\n' 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd
-
-if_changed_dep = $(if $(if-changed-cond),$(cmd_and_fixdep),@:)
-
-cmd_and_fixdep =                                                             \
-	$(cmd);                                                              
-
-if_changed_rule = $(if $(if-changed-cond),$(rule_$(1)),@:)

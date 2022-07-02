@@ -8,10 +8,8 @@ obj-m :=
 lib-y :=
 lib-m :=
 always-y :=
-always-m :=
 targets :=
 subdir-y :=
-subdir-m :=
 EXTRA_AFLAGS   :=
 EXTRA_CFLAGS   :=
 EXTRA_CPPFLAGS :=
@@ -25,9 +23,6 @@ subdir-asflags-y :=
 subdir-ccflags-y :=
 
 include $(srctree)/scripts/Kbuild.include
-
-CONFIG_LD_VERSION=23700
-CONFIG_GCC_VERSION=120001
 
 kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
 include $(or $(wildcard $(kbuild-dir)/Kbuild),$(kbuild-dir)/Makefile)
@@ -56,7 +51,6 @@ $(obj)/%.s: $(src)/%.c
 $(obj)/%.i: $(src)/%.c
 	$(Q) $(CPP) $(c_flags) -o $@ $<
 
-
 is-standard-object = $(if $(filter-out y%, $(OBJECT_FILES_NON_STANDARD_$(basetarget).o)$(OBJECT_FILES_NON_STANDARD)n),y)
 
 $(obj)/%.o: objtool-enabled = $(if $(is-standard-object),$(if $(delay-objtool),$(is-single-obj-m),y))
@@ -79,8 +73,6 @@ $(obj)/%.lst: $(src)/%.c
 		     $(CONFIG_SHELL) $(srctree)/scripts/makelst $*.o \
 				     System.map $(OBJDUMP) > $@
 
-$(obj)/%.s: $(src)/%.S
-
 $(obj)/%.o: $(src)/%.S
 	$(Q) $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
 
@@ -89,7 +81,7 @@ targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y) $(always-y) $
 $(obj)/%.lds: $(src)/%.lds.S
 	$(Q) $(CPP) $(cpp_flags) -P -U$(ARCH) -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
-$(subdir-builtin): $(obj)/%/built-in.a: $(obj)/% ;
+$(subdir-builtin): $(obj)/%/built-in.a: $(obj)/%
 
 $(obj)/built-in.a: $(real-obj-y)
 	$(Q) echo $(patsubst $(obj)/%,%,$(real-prereqs)) | \
@@ -114,8 +106,6 @@ PHONY += FORCE
 FORCE:
 obj-dirs := $(sort $(patsubst %/,%, $(dir $(targets))))
 obj-dirs := $(strip $(filter-out $(existing-dirs), $(obj-dirs)))
-ifneq ($(obj-dirs),)
 $(shell mkdir -p $(obj-dirs))
-endif
 
 .PHONY: $(PHONY)
