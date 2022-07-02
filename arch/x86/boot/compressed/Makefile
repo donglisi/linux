@@ -30,9 +30,11 @@ $(obj)/../voffset.h: vmlinux
 
 $(obj)/misc.o: $(obj)/../voffset.h
 
-vmlinux-objs-y := $(obj)/vmlinux.lds $(obj)/kernel_info.o $(obj)/head_64.o $(obj)/misc.o $(obj)/string.o $(obj)/cmdline.o $(obj)/error.o $(obj)/piggy.o $(obj)/cpuflags.o $(obj)/early_serial_console.o $(obj)/ident_map_64.o $(obj)/idt_64.o $(obj)/idt_handlers_64.o $(obj)/mem_encrypt.o $(obj)/pgtable_64.o
+vmlinux-objs-y := vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o idt_handlers_64.o mem_encrypt.o pgtable_64.o
 
-$(obj)/vmlinux: $(vmlinux-objs-y)
+VMLINUX_OBJS = $(addprefix $(obj)/,$(vmlinux-objs-y))
+
+$(obj)/vmlinux: $(VMLINUX_OBJS)
 	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
 
 $(obj)/vmlinux.bin: vmlinux
