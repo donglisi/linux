@@ -38,7 +38,7 @@ $(obj)/vmlinux: $(VMLINUX_OBJS)
 	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
 
 $(obj)/vmlinux.bin: vmlinux
-	$(Q) $(OBJCOPY) $(OBJCOPYFLAGS) -R .comment -S $< $@
+	$(Q) $(OBJCOPY) -R .comment -S $< $@
 
 $(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin
 	$(Q) cat $(real-prereqs) | gzip -n -f -9 > $@

@@ -42,7 +42,7 @@ CFLAGS_REMOVE_vgetcpu.o = -pg
 CFLAGS_REMOVE_vsgx.o = -pg
 
 $(obj)/%.so: $(obj)/%.so.dbg
-	$(Q) $(OBJCOPY) -S --remove-section __ex_table $(OBJCOPYFLAGS_$(@F)) $< $@
+	$(Q) $(OBJCOPY) -S --remove-section __ex_table $< $@
 
 VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic
 

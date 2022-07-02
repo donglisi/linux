@@ -16,7 +16,7 @@ $(obj)/realmode.elf: $(obj)/realmode.lds $(REALMODE_OBJS)
 	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
 
 $(obj)/realmode.bin: $(obj)/realmode.elf $(obj)/realmode.relocs
-	$(Q) $(OBJCOPY) -O binary $(OBJCOPYFLAGS_$(@F)) $< $@
+	$(Q) $(OBJCOPY) -O binary $< $@
 
 $(obj)/realmode.relocs: $(obj)/realmode.elf
 	$(Q) arch/x86/tools/relocs --realmode $< > $@

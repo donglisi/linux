@@ -22,7 +22,7 @@ $(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build
 	$(Q) $(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/zoffset.h $@
 
 $(obj)/vmlinux.bin: $(obj)/compressed/vmlinux FORCE
-	$(OBJCOPY) $(OBJCOPYFLAGS) -O binary -R .note -R .comment -S $< $@
+	$(OBJCOPY) -O binary -R .note -R .comment -S $< $@
 
 SETUP_OBJS = $(addprefix $(obj)/,$(setup-y))
 
@@ -36,7 +36,7 @@ $(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS)
 	@ $(LD) -m elf_i386 -T $(real-prereqs) -o $@
 
 $(obj)/setup.bin: $(obj)/setup.elf
-	@ $(OBJCOPY) $(OBJCOPYFLAGS) -O binary $< $@
+	@ $(OBJCOPY) -O binary $< $@
 
 $(obj)/compressed/vmlinux:
 	$(Q) $(MAKE) $(build)=$(obj)/compressed $@
