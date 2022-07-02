@@ -29,22 +29,6 @@ include $(srctree)/scripts/Kbuild.include
 CONFIG_LD_VERSION=23700
 CONFIG_GCC_VERSION=120001
 
-cc-cross-prefix = $(firstword $(foreach c, $(1), \
-			$(if $(shell command -v -- $(c)gcc 2>/dev/null), $(c))))
-
-TMPOUT = $(if $(KBUILD_EXTMOD),$(firstword $(KBUILD_EXTMOD))/).tmp_$$$$
-
-try-run = $(shell set -e;		\
-	TMP=$(TMPOUT)/tmp;		\
-	mkdir -p $(TMPOUT);		\
-	trap "rm -rf $(TMPOUT)" EXIT;	\
-	if ($(1)) >/dev/null 2>&1;	\
-	then echo "$(2)";		\
-	else echo "$(3)";		\
-	fi)
-
-ld-option = $(call try-run, $(LD) $(KBUILD_LDFLAGS) $(1) -v,$(1),$(2),$(3))
-
 kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
 include $(or $(wildcard $(kbuild-dir)/Kbuild),$(kbuild-dir)/Makefile)
 
@@ -63,15 +47,8 @@ ifneq ($(strip $(lib-y) $(lib-m) $(lib-)),)
 targets-for-builtin += $(obj)/lib.a
 endif
 
-ifdef need-builtin
 targets-for-builtin += $(obj)/built-in.a
-endif
-
 targets += $(targets-for-builtin)
-
-ifneq ($(KBUILD_EXTRA_WARN),)
-  cmd_checkdoc = $(srctree)/scripts/kernel-doc -none $<
-endif
 
 $(obj)/%.s: $(src)/%.c
 	$(Q) $(CC) $(filter-out $(DEBUG_CFLAGS) $(CC_FLAGS_LTO), $(c_flags)) -fverbose-asm -S -o $@ $<
@@ -79,111 +56,50 @@ $(obj)/%.s: $(src)/%.c
 $(obj)/%.i: $(src)/%.c
 	$(Q) $(CPP) $(c_flags) -o $@ $<
 
-genksyms = scripts/genksyms/genksyms		\
-	$(if $(1), -T $(2))			\
-	$(if $(KBUILD_PRESERVE), -p)		\
-	-r $(or $(wildcard $(2:.symtypes=.symref)), /dev/null)
-
-cmd_gensymtypes_c = $(CPP) -D__GENKSYMS__ $(c_flags) $< | $(genksyms)
-
-quiet_cmd_cc_symtypes_c = SYM     $@
-      cmd_cc_symtypes_c = $(call cmd_gensymtypes_c,true,$@) >/dev/null
-
-$(obj)/%.symtypes : $(src)/%.c FORCE
-	$(call cmd,cc_symtypes_c)
-
-quiet_cmd_cc_o_c = CC      $@
-      cmd_cc_o_c = $(CC) $(c_flags) -c -o $@ $< \
-		$(cmd_ld_single_m) \
-		$(cmd_objtool)
 
 is-standard-object = $(if $(filter-out y%, $(OBJECT_FILES_NON_STANDARD_$(basetarget).o)$(OBJECT_FILES_NON_STANDARD)n),y)
 
 $(obj)/%.o: objtool-enabled = $(if $(is-standard-object),$(if $(delay-objtool),$(is-single-obj-m),y))
 
-
-cmd_check_local_export = $(srctree)/scripts/check-local-export $@
-
-define rule_cc_o_c
-	$(call cmd_and_fixdep,cc_o_c)
-endef
-
-define rule_as_o_S
-	$(call cmd_and_fixdep,as_o_S)
-endef
-
-$(obj)/%.o: $(src)/%.c $(recordmcount_source) FORCE
+$(obj)/%.o: $(src)/%.c $(recordmcount_source)
 	$(Q) $(CC) $(c_flags) -c -o $@ $< \
 		$(cmd_ld_single_m) \
 		$(cmd_objtool)
 	$(call cmd,force_checksrc)
 
-cmd_mod = echo $(call real-search, $*.o, .o, -objs -y -m) | \
+$(obj)/%.mod:
+	$(Q) echo $(call real-search, $*.o, .o, -objs -y -m) | \
 	$(AWK) -v RS='( |\n)' '!x[$$0]++ { print("$(obj)/"$$0) }' > $@
 
-$(obj)/%.mod: FORCE
-	$(call if_changed,mod)
+$(obj)/%.usyms: $(obj)/%.o
+	$(Q) $(NM) $< | sed -n 's/^  *U //p' > $@
 
-cmd_undefined_syms = $(NM) $< | sed -n 's/^  *U //p' > $@
-
-$(obj)/%.usyms: $(obj)/%.o FORCE
-	$(call if_changed,undefined_syms)
-
-$(obj)/%.lst: $(src)/%.c FORCE
+$(obj)/%.lst: $(src)/%.c
 	$(Q) $(CC) $(c_flags) -g -c -o $*.o $< && \
 		     $(CONFIG_SHELL) $(srctree)/scripts/makelst $*.o \
 				     System.map $(OBJDUMP) > $@
 
-cmd_gensymtypes_S =                                                         \
-   { echo "\#include <linux/kernel.h>" ;                                    \
-     echo "\#include <asm/asm-prototypes.h>" ;                              \
-    $(CPP) $(a_flags) $< |                                                  \
-     grep "\<___EXPORT_SYMBOL\>" |                                          \
-     sed 's/.*___EXPORT_SYMBOL[[:space:]]*\([a-zA-Z0-9_]*\)[[:space:]]*,.*/EXPORT_SYMBOL(\1);/' ; } | \
-    $(CPP) -D__GENKSYMS__ $(c_flags) -xc - | $(genksyms)
-
-quiet_cmd_cc_symtypes_S = SYM     $@
-      cmd_cc_symtypes_S = $(call cmd_gensymtypes_S,true,$@) >/dev/null
-
-$(obj)/%.symtypes : $(src)/%.S FORCE
-	$(call cmd,cc_symtypes_S)
-
-
 $(obj)/%.s: $(src)/%.S
 
-quiet_cmd_as_o_S = AS      $@
-      cmd_as_o_S = $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
-
-$(obj)/%.o: $(src)/%.S FORCE
+$(obj)/%.o: $(src)/%.S
 	$(Q) $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
 
 targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y) $(always-y) $(MAKECMDGOALS)
 
-quiet_cmd_cpp_lds_S = LDS     $@
-      cmd_cpp_lds_S = 
-
-$(obj)/%.lds: $(src)/%.lds.S FORCE
+$(obj)/%.lds: $(src)/%.lds.S
 	$(Q) $(CPP) $(cpp_flags) -P -U$(ARCH) -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 $(subdir-builtin): $(obj)/%/built-in.a: $(obj)/% ;
 
-quiet_cmd_ar_builtin = AR      $@
-      cmd_ar_builtin =  \
-		echo $(patsubst $(obj)/%,%,$(real-prereqs)) | \
+$(obj)/built-in.a: $(real-obj-y)
+	$(Q) echo $(patsubst $(obj)/%,%,$(real-prereqs)) | \
 		sed -E 's:([^ ]+):$(obj)/\1:g' | \
 		xargs $(AR) cDPrST $@
 
-$(obj)/built-in.a: $(real-obj-y) FORCE
-	$(call if_changed,ar_builtin)
-
-$(obj)/lib.a: $(lib-y) FORCE
-	$(call if_changed,ar)
+$(obj)/lib.a: $(lib-y)
+	$(Q) $(AR) cDPrsT $@ $(real-prereqs)
 
 targets := $(filter-out $(PHONY), $(targets))
-
-intermediate_targets = $(foreach sfx, $(2), \
-				$(patsubst %$(strip $(1)),%$(sfx), \
-					$(filter %$(strip $(1)), $(targets))))
 
 __build: $(targets-for-builtin) $(subdir-ym) $(always-y)
 

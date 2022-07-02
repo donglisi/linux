@@ -80,9 +80,6 @@ $(obj)/%: $(src)/%_shipped
 quiet_cmd_ld = LD      $@
 	cmd_ld = $(LD) $(ld_flags) $(real-prereqs) -o $@
 
-quiet_cmd_ar = AR      $@
-	cmd_ar = $(AR) cDPrsT $@ $(real-prereqs)
-
 quiet_cmd_objcopy = OBJCOPY $@
 	cmd_objcopy = $(OBJCOPY) $(OBJCOPYFLAGS) $(OBJCOPYFLAGS_$(@F)) $< $@
 

@@ -44,7 +44,7 @@ CFLAGS_REMOVE_vsgx.o = -pg
 $(obj)/%.so: $(obj)/%.so.dbg
 	$(Q) $(OBJCOPY) -S --remove-section __ex_table $(OBJCOPYFLAGS_$(@F)) $< $@
 
-VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 $(call ld-option, --eh-frame-hdr) -Bsymbolic
+VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic
 
 $(MODLIB)/vdso:
 	$(Q) @mkdir -p $(MODLIB)/vdso
