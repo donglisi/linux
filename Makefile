@@ -54,8 +54,8 @@ KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(S
 export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION
 
 ARCH := x86
-UTS_MACHINE := $(ARCH)
-SRCARCH := $(ARCH)
+UTS_MACHINE := x86_64
+SRCARCH := x86
 
 CONFIG_SHELL := sh
 
@@ -139,7 +139,6 @@ export REALMODE_CFLAGS
 
 
 export BITS := 64
-UTS_MACHINE := x86_64
 
 KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \

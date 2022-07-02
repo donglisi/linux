@@ -16,10 +16,8 @@ KBUILD_CFLAGS += -include /a/sources/linux/config.h
 KBUILD_CFLAGS += -include $(srctree)/include/linux/hidden.h
 
 KBUILD_AFLAGS  := $(KBUILD_CFLAGS) -D__ASSEMBLY__
-GCOV_PROFILE := n
-UBSAN_SANITIZE :=n
 
-KBUILD_LDFLAGS := -m elf_$(UTS_MACHINE) --no-ld-generated-unwind-info
+KBUILD_LDFLAGS := -m elf_x86_64 --no-ld-generated-unwind-info
 
 LDFLAGS_vmlinux := --no-dynamic-linker -T
 
@@ -32,7 +30,7 @@ $(obj)/../voffset.h: vmlinux
 
 $(obj)/misc.o: $(obj)/../voffset.h
 
-vmlinux-objs-y := $(obj)/vmlinux.lds $(obj)/kernel_info.o $(obj)/head_$(BITS).o $(obj)/misc.o $(obj)/string.o $(obj)/cmdline.o $(obj)/error.o $(obj)/piggy.o $(obj)/cpuflags.o $(obj)/early_serial_console.o $(obj)/ident_map_64.o $(obj)/idt_64.o $(obj)/idt_handlers_64.o $(obj)/mem_encrypt.o $(obj)/pgtable_64.o
+vmlinux-objs-y := $(obj)/vmlinux.lds $(obj)/kernel_info.o $(obj)/head_64.o $(obj)/misc.o $(obj)/string.o $(obj)/cmdline.o $(obj)/error.o $(obj)/piggy.o $(obj)/cpuflags.o $(obj)/early_serial_console.o $(obj)/ident_map_64.o $(obj)/idt_64.o $(obj)/idt_handlers_64.o $(obj)/mem_encrypt.o $(obj)/pgtable_64.o
 
 $(obj)/vmlinux: $(vmlinux-objs-y)
 	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
