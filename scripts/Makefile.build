@@ -55,23 +55,9 @@ is-standard-object = $(if $(filter-out y%, $(OBJECT_FILES_NON_STANDARD_$(basetar
 
 $(obj)/%.o: objtool-enabled = $(if $(is-standard-object),$(if $(delay-objtool),$(is-single-obj-m),y))
 
-$(obj)/%.o: $(src)/%.c $(recordmcount_source)
-	$(Q) $(CC) $(c_flags) -c -o $@ $< \
-		$(cmd_ld_single_m) \
-		$(cmd_objtool)
-	$(call cmd,force_checksrc)
-
-$(obj)/%.mod:
-	$(Q) echo $(call real-search, $*.o, .o, -objs -y -m) | \
-	$(AWK) -v RS='( |\n)' '!x[$$0]++ { print("$(obj)/"$$0) }' > $@
-
-$(obj)/%.usyms: $(obj)/%.o
-	$(Q) $(NM) $< | sed -n 's/^  *U //p' > $@
-
-$(obj)/%.lst: $(src)/%.c
-	$(Q) $(CC) $(c_flags) -g -c -o $*.o $< && \
-		     $(CONFIG_SHELL) $(srctree)/scripts/makelst $*.o \
-				     System.map $(OBJDUMP) > $@
+$(obj)/%.o: $(src)/%.c
+	@echo "  CC      " $@
+	@ $(CC) $(c_flags) -c -o $@ $<
 
 $(obj)/%.o: $(src)/%.S
 	$(Q) $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
@@ -97,9 +83,7 @@ __build: $(targets-for-builtin) $(subdir-ym) $(always-y)
 
 PHONY += $(subdir-ym)
 $(subdir-ym):
-	$(Q)$(MAKE) $(build)=$@ \
-	$(if $(filter $@/, $(KBUILD_SINGLE_TARGETS)),single-build=) \
-	need-builtin=$(if $(filter $@/built-in.a, $(subdir-builtin)),1) \
+	@ $(MAKE) $(build)=$@ $(if $(filter $@/, $(KBUILD_SINGLE_TARGETS)),single-build=) need-builtin=$(if $(filter $@/built-in.a, $(subdir-builtin)),1)
 
 PHONY += FORCE
 

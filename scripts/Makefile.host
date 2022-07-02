@@ -7,7 +7,7 @@ host-csingle	:= $(addprefix $(obj)/,$(host-csingle))
 host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
 host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
 
-hostc_flags    = -Wp,-MMD,$(depfile) $(KBUILD_HOSTCFLAGS)   $(HOST_EXTRACFLAGS) $(HOSTCFLAGS_$(target-stem).o) -I $(objtree)/$(obj)
+hostc_flags    = $(KBUILD_HOSTCFLAGS)   $(HOST_EXTRACFLAGS) $(HOSTCFLAGS_$(target-stem).o) -I $(objtree)/$(obj)
 
 $(host-csingle): $(obj)/%: $(src)/%.c
 	$(Q) $(HOSTCC) $(hostc_flags) $(KBUILD_HOSTLDFLAGS) -o $@ $< $(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
