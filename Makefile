@@ -18,8 +18,8 @@ export abs_srctree abs_objtree
 export sub_make_done := 1
 
 __all:
-	mkdir -p build/include/generated/
-	cp compile.h build/include/generated/
+	mkdir -p $(abs_objtree)/include/generated/
+	cp compile.h $(abs_objtree)/include/generated/
 	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
 
 endif # sub_make_done
