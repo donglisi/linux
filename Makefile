@@ -112,25 +112,14 @@ quiet_cmd_makefile = GEN     Makefile
 	echo "include $(srctree)/Makefile"; \
 	} > Makefile
 
-all: vmlinux bzImage
+all: bzImage
 
 core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/
 drivers-y := drivers/
 drivers-y += net/
 libs-y := lib/
 
-REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS \
-		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
-		   -fno-strict-aliasing -fomit-frame-pointer -fno-pic \
-		   -mno-mmx -mno-sse -fcf-protection=none
-REALMODE_CFLAGS += -include /a/sources/linux/config.h
-REALMODE_CFLAGS += -ffreestanding
-REALMODE_CFLAGS += -fno-stack-protector
-REALMODE_CFLAGS += -Wno-address-of-packed-member
-export REALMODE_CFLAGS
-
-
-export BITS := 64
+export REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -include /a/sources/linux/config.h -ffreestanding -fno-stack-protector -Wno-address-of-packed-member
 
 KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \

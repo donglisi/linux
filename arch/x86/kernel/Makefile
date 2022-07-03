@@ -7,8 +7,8 @@ extra-y	+= vmlinux.lds
 CPPFLAGS_vmlinux.lds += -U$(UTS_MACHINE)
 
 CFLAGS_irq.o := -I $(srctree)/$(src)/../include/asm/trace
-obj-y			:= process_$(BITS).o signal.o
-obj-y			+= traps.o idt.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
+obj-y			:= process_64.o signal.o
+obj-y			+= traps.o idt.o irq.o irq_64.o dumpstack_64.o
 obj-y			+= time.o ioport.o dumpstack.o nmi.o
 obj-y	+= ldt.o
 obj-y			+= setup.o x86_init.o i8259.o irqinit.o
