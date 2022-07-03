@@ -8,7 +8,7 @@ PHONY := __all
 
 ifneq ($(sub_make_done),1)
 
-MAKEFLAGS += -rR --include-dir=$(abs_srctree)
+MAKEFLAGS += -rR --include-dir=$(abs_srctree) --no-print-directory
 Q = @
 export Q
 
@@ -35,10 +35,7 @@ version_h := include/generated/uapi/linux/version.h
 
 kecho := :
 define filechk
-	$(check-FORCE)
-	$(Q)set -e;						\
 	mkdir -p $(dir $@);					\
-	trap "rm -f $(dot-target).tmp" EXIT;			\
 	{ $(filechk_$(1)); } > $(dot-target).tmp;		\
 	if [ ! -r $@ ] || ! cmp -s $@ $(dot-target).tmp; then	\
 		$(kecho) '  UPD     $@';			\
@@ -115,7 +112,7 @@ quiet_cmd_makefile = GEN     Makefile
 	echo "include $(srctree)/Makefile"; \
 	} > Makefile
 
-all: vmlinux
+all: vmlinux bzImage
 
 core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/
 drivers-y := drivers/
@@ -194,8 +191,6 @@ boot := arch/x86/boot
 
 PHONY += bzImage
 
-all: bzImage
-
 export KBUILD_IMAGE := $(boot)/bzImage
 
 bzImage: vmlinux
@@ -266,16 +261,14 @@ endef
 
 $(version_h): PATCHLEVEL := $(or $(PATCHLEVEL), 0)
 $(version_h): SUBLEVEL := $(or $(SUBLEVEL), 0)
-$(version_h): FORCE
+$(version_h):
 	$(call filechk,version.h)
 
-include/generated/utsrelease.h: include/config/kernel.release FORCE
+include/generated/utsrelease.h: include/config/kernel.release
 	$(call filechk,utsrelease.h)
 
 PHONY += $(build-dirs)
 $(build-dirs): prepare0
 	$(Q) $(MAKE) $(build)=$@
-
-PHONY += FORCE
 
 .PHONY: $(PHONY)
