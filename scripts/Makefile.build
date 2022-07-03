@@ -80,6 +80,22 @@ _c_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 _a_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 _cpp_flags += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 
+KBUILD_HOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
+			 -O2 -fomit-frame-pointer -std=gnu11 \
+			 -Wdeclaration-after-statement -include $(srctree)/config.h
+
+LINUXINCLUDE	:= \
+		-I$(srctree)/arch/x86/include \
+		-I$(objtree)/arch/x86/include/generated \
+		-I$(srctree)/include \
+		-I$(objtree)/include \
+		-I$(srctree)/arch/x86/include/uapi \
+		-I$(objtree)/arch/x86/include/generated/uapi \
+		-I$(srctree)/include/uapi \
+		-I$(objtree)/include/generated/uapi \
+                -include $(srctree)/include/linux/compiler-version.h \
+                -include $(srctree)/include/linux/kconfig.h
+
 c_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) -include $(srctree)/include/linux/compiler_types.h \
 		 $(_c_flags) $(modfile_flags) $(basename_flags) $(modname_flags)
 

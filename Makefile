@@ -53,12 +53,6 @@ CONFIG_SHELL := sh
 
 HOSTCC	= gcc
 
-KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
-			 -O2 -fomit-frame-pointer -std=gnu11 \
-			 -Wdeclaration-after-statement -include $(srctree)/config.h
-
-KBUILD_HOSTCFLAGS   := $(KBUILD_USERHOSTCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
-
 CPP		= $(CC) -E
 CC		= gcc
 LD		= ld
@@ -71,32 +65,16 @@ AWK		= awk
 BASH		= bash
 
 NOSTDINC_FLAGS :=
-CFLAGS_KERNEL	=
-
-USERINCLUDE    := \
-		-I$(srctree)/arch/x86/include/uapi \
-		-I$(objtree)/arch/x86/include/generated/uapi \
-		-I$(srctree)/include/uapi \
-		-I$(objtree)/include/generated/uapi \
-                -include $(srctree)/include/linux/compiler-version.h \
-                -include $(srctree)/include/linux/kconfig.h
-
-export LINUXINCLUDE    := \
-		-I$(srctree)/arch/x86/include \
-		-I$(objtree)/arch/x86/include/generated \
-		-I$(srctree)/include \
-		-I$(objtree)/include \
-		$(USERINCLUDE)
 
 KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include $(srctree)/config.h
 
 export KBUILD_CPPFLAGS := -D__KERNEL__ -include $(srctree)/config.h -fmacro-prefix-map=$(srctree)/=
 
-export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS LD CC
+export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
 export CHECK MAKE UTS_MACHINE
 export NOSTDINC_FLAGS
-export KBUILD_CFLAGS CFLAGS_KERNEL
+export KBUILD_CFLAGS
 export KBUILD_AFLAGS
 
 quiet_cmd_makefile = GEN     Makefile
