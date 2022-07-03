@@ -1,5 +1,26 @@
+newer-prereqs = $(filter-out $(PHONY),$?)
+
+check-FORCE = $(if $(filter FORCE, $^),,$(warning FORCE prerequisite is missing))
+
+if-changed-cond = $(newer-prereqs)$(cmd-check)$(check-FORCE)
+
+if_changed = $(if $(if-changed-cond),$(cmd_and_savecmd),@:)
+
 out := arch/$(SRCARCH)/include/generated/asm
 uapi := arch/$(SRCARCH)/include/generated/uapi/asm
+
+echo-cmd = $(if $($(quiet)cmd_$(1)),\
+	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
+
+cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
+
+cmd-check = $(if $(strip $(cmd_$@)),,1)
+
+make-cmd = $(call escsq,$(subst $(pound),$$(pound),$(subst $$,$$$$,$(cmd_$(1)))))
+
+cmd_and_savecmd =                                                            \
+	$(cmd);                                                              \
+	printf '%s\n' 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd
 
 # Create output directory if not already present
 $(shell mkdir -p $(out) $(uapi))

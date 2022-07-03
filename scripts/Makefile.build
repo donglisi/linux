@@ -32,27 +32,6 @@ define filechk
 	fi
 endef
 
-echo-cmd = $(if $($(quiet)cmd_$(1)),\
-	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
-
-cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
-
-cmd-check = $(if $(strip $(cmd_$@)),,1)
-
-make-cmd = $(call escsq,$(subst $(pound),$$(pound),$(subst $$,$$$$,$(cmd_$(1)))))
-
-newer-prereqs = $(filter-out $(PHONY),$?)
-
-check-FORCE = $(if $(filter FORCE, $^),,$(warning FORCE prerequisite is missing))
-
-if-changed-cond = $(newer-prereqs)$(cmd-check)$(check-FORCE)
-
-if_changed = $(if $(if-changed-cond),$(cmd_and_savecmd),@:)
-
-cmd_and_savecmd =                                                            \
-	$(cmd);                                                              \
-	printf '%s\n' 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd
-
 kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
 include $(or $(wildcard $(kbuild-dir)/Kbuild), $(kbuild-dir)/Makefile)
 
@@ -109,9 +88,7 @@ a_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_a_flags)
 cpp_flags      = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_cpp_flags)
 
 define multi_depend
-$(foreach m, $1, \
-	$(eval $m: \
-	$(addprefix $(obj)/, $(call suffix-search, $(patsubst $(obj)/%,%,$m), $2, $3))))
+$(foreach m, $1, $(eval $m: $(addprefix $(obj)/, $(call suffix-search, $(patsubst $(obj)/%, %, $m), $2, $3))))
 endef
 
 define filechk_offsets
