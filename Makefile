@@ -227,12 +227,10 @@ export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 
-.PHONY += vmlinux
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
 	$(Q) $(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)"; \
-	$(if $(ARCH_POSTLINK), $(MAKE) -f $(ARCH_POSTLINK) $@, true)
 
-$(sort $(vmlinux-deps)): $(vmlinux-dirs)
+$(vmlinux-deps): $(vmlinux-dirs)
 
 include/config/kernel.release:
 
