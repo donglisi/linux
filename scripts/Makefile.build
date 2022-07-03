@@ -131,11 +131,9 @@ define filechk_offsets
 	 echo "#endif"
 endef
 
-host-cmulti	:= $(foreach m,$(hostprogs), $(if $($(m)-cxxobjs),,$(if $($(m)-objs),$(m))))
-host-cobjs	:= $(sort $(foreach m,$(hostprogs),$($(m)-objs)))
 host-csingle	:= $(addprefix $(obj)/,$(hostprogs))
-host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
-host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
+host-cmulti	:= $(addprefix $(obj)/,$(foreach m,$(hostprogs), $(if $($(m)-objs),$(m))))
+host-cobjs	:= $(addprefix $(obj)/,$(sort $(foreach m,$(hostprogs),$($(m)-objs))))
 
 hostc_flags = $(KBUILD_HOSTCFLAGS) $(HOST_EXTRACFLAGS) $(HOSTCFLAGS_$(target-stem).o) -I $(objtree)/$(obj)
 
