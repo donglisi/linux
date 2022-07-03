@@ -5,11 +5,6 @@ __build:
 
 obj-y :=
 lib-y :=
-subdir-y :=
-
-
-
-
 comma   := ,
 quote   := "
 squote  := '
@@ -63,7 +58,7 @@ include $(or $(wildcard $(kbuild-dir)/Kbuild), $(kbuild-dir)/Makefile)
 
 lib-y := $(filter-out $(obj-y), $(sort $(lib-y)))
 
-subdir-ym := $(sort $(subdir-y) $(patsubst %/,%, $(filter %/, $(obj-y))))
+subdir-ym := $(sort $(patsubst %/,%, $(filter %/, $(obj-y))))
 
 obj-y := $(patsubst %/, %/built-in.a, $(obj-y))
 
