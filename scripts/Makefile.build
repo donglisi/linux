@@ -117,22 +117,22 @@ targets-for-builtin := $(extra-y) $(obj)/lib.a $(obj)/built-in.a
 targets += $(targets-for-builtin)
 
 $(obj)/%.s: $(src)/%.c
-	$(Q) $(CC) $(filter-out $(DEBUG_CFLAGS) $(CC_FLAGS_LTO), $(c_flags)) -fverbose-asm -S -o $@ $<
-
-$(obj)/%.i: $(src)/%.c
-	$(Q) $(CPP) $(c_flags) -o $@ $<
+	@echo "  CC     " $@
+	@ $(CC) $(filter-out $(DEBUG_CFLAGS) $(CC_FLAGS_LTO), $(c_flags)) -fverbose-asm -S -o $@ $<
 
 $(obj)/%.o: $(src)/%.c
-	@echo "  CC      " $@
+	@echo "  CC     " $@
 	@ $(CC) $(c_flags) -c -o $@ $<
 
 $(obj)/%.o: $(src)/%.S
-	$(Q) $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
+	@echo "  CC     " $@
+	@ $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
 
 targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y)
 
 $(obj)/%.lds: $(src)/%.lds.S
-	$(Q) $(CPP) $(cpp_flags) -P -U$(ARCH) -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
+	@echo "  LDS    " $@
+	@ $(CPP) $(cpp_flags) -P -U$(ARCH) -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 $(subdir-builtin): $(obj)/%/built-in.a: $(obj)/%
 

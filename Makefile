@@ -10,7 +10,7 @@ ifneq ($(sub_make_done),1)
 
 MAKEFLAGS += -rR
 quiet=quiet_
-Q = 
+Q = @
 export quiet Q
 
 KBUILD_OUTPUT := $(O)
