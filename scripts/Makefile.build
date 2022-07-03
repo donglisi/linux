@@ -4,36 +4,13 @@ PHONY := __build
 __build:
 
 obj-y :=
-obj-m :=
 lib-y :=
-lib-m :=
-always-y :=
-targets :=
 subdir-y :=
-EXTRA_AFLAGS   :=
-EXTRA_CFLAGS   :=
-EXTRA_CPPFLAGS :=
-EXTRA_LDFLAGS  :=
-asflags-y  :=
-ccflags-y  :=
-cppflags-y :=
-ldflags-y  :=
-
-subdir-asflags-y :=
-subdir-ccflags-y :=
 
 include $(srctree)/scripts/Kbuild.include
 
 kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
 include $(or $(wildcard $(kbuild-dir)/Kbuild), $(kbuild-dir)/Makefile)
-
-asflags-y  += $(EXTRA_AFLAGS)
-ccflags-y  += $(EXTRA_CFLAGS)
-cppflags-y += $(EXTRA_CPPFLAGS)
-ldflags-y  += $(EXTRA_LDFLAGS)
-
-KBUILD_AFLAGS += $(subdir-asflags-y)
-KBUILD_CFLAGS += $(subdir-ccflags-y)
 
 lib-y := $(filter-out $(obj-y), $(sort $(lib-y)))
 
@@ -48,7 +25,6 @@ real-search = $(foreach m, $1, $(if $(call suffix-search, $m, $2, $3 -), $(call 
 real-obj-y := $(call real-search, $(obj-y), .o, -objs -y)
 
 extra-y		:= $(addprefix $(obj)/, $(extra-y))
-targets		:= $(addprefix $(obj)/, $(targets))
 lib-y		:= $(addprefix $(obj)/, $(lib-y))
 real-obj-y	:= $(addprefix $(obj)/, $(real-obj-y))
 subdir-ym	:= $(addprefix $(obj)/, $(subdir-ym))
@@ -196,8 +172,6 @@ $(obj)/%.i: $(src)/%.c
 
 is-standard-object = $(if $(filter-out y%, $(OBJECT_FILES_NON_STANDARD_$(basetarget).o)$(OBJECT_FILES_NON_STANDARD)n),y)
 
-$(obj)/%.o: objtool-enabled = $(if $(is-standard-object),$(if $(delay-objtool),$(is-single-obj-m),y))
-
 $(obj)/%.o: $(src)/%.c
 	@echo "  CC      " $@
 	@ $(CC) $(c_flags) -c -o $@ $<
@@ -205,7 +179,7 @@ $(obj)/%.o: $(src)/%.c
 $(obj)/%.o: $(src)/%.S
 	$(Q) $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
 
-targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y) $(always-y) $(MAKECMDGOALS)
+targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y) $(MAKECMDGOALS)
 
 $(obj)/%.lds: $(src)/%.lds.S
 	$(Q) $(CPP) $(cpp_flags) -P -U$(ARCH) -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
