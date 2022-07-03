@@ -138,10 +138,10 @@ host-cobjs	:= $(addprefix $(obj)/,$(sort $(foreach m,$(hostprogs),$($(m)-objs)))
 hostc_flags = $(KBUILD_HOSTCFLAGS) $(HOST_EXTRACFLAGS) $(HOSTCFLAGS_$(target-stem).o) -I $(objtree)/$(obj)
 
 $(host-csingle): $(obj)/%: $(src)/%.c
-	$(Q) $(HOSTCC) $(hostc_flags) $(KBUILD_HOSTLDFLAGS) -o $@ $<
+	$(Q) $(HOSTCC) $(hostc_flags) -o $@ $<
 
 $(host-cmulti):
-	$(Q) $(HOSTCC) $(KBUILD_HOSTLDFLAGS) -o $@ $(addprefix $(obj)/, $($(target-stem)-objs))
+	$(Q) $(HOSTCC) -o $@ $(addprefix $(obj)/, $($(target-stem)-objs))
 
 $(call multi_depend, $(host-cmulti), , -objs)
 

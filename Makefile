@@ -58,7 +58,6 @@ KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
 			 -Wdeclaration-after-statement -include $(srctree)/config.h
 
 KBUILD_HOSTCFLAGS   := $(KBUILD_USERHOSTCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
-KBUILD_HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS) $(HOSTLDFLAGS)
 
 CPP		= $(CC) -E
 CC		= gcc
@@ -96,7 +95,6 @@ export KBUILD_CPPFLAGS := -D__KERNEL__ -include $(srctree)/config.h -fmacro-pref
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
 export CHECK MAKE UTS_MACHINE
-export KBUILD_HOSTLDFLAGS
 export NOSTDINC_FLAGS
 export KBUILD_CFLAGS CFLAGS_KERNEL
 export KBUILD_AFLAGS
