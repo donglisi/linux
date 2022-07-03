@@ -1,6 +1,4 @@
-subdir-		:= compressed
-
-setup-y		+= a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o
+setup-y += a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o
 
 hostprogs	:= tools/build
 hostprogs	+= mkcpustr
@@ -21,7 +19,7 @@ KBUILD_CFLAGS	+= -include /a/sources/linux/config.h
 $(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build
 	$(Q) $(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/zoffset.h $@
 
-$(obj)/vmlinux.bin: $(obj)/compressed/vmlinux FORCE
+$(obj)/vmlinux.bin: $(obj)/compressed/vmlinux
 	$(Q) $(OBJCOPY) -O binary -R .note -R .comment -S $< $@
 
 SETUP_OBJS = $(addprefix $(obj)/,$(setup-y))

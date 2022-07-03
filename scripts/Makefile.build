@@ -29,10 +29,7 @@ stringify = $(squote)$(quote)$1$(quote)$(squote)
 
 kecho := :
 define filechk
-	$(check-FORCE)
-	$(Q)set -e;						\
 	mkdir -p $(dir $@);					\
-	trap "rm -f $(dot-target).tmp" EXIT;			\
 	{ $(filechk_$(1)); } > $(dot-target).tmp;		\
 	if [ ! -r $@ ] || ! cmp -s $@ $(dot-target).tmp; then	\
 		$(kecho) '  UPD     $@';			\
