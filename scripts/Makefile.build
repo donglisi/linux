@@ -109,12 +109,14 @@ $(call multi_depend, $(host-cmulti), , -objs)
 $(host-cobjs): $(obj)/%.o: $(src)/%.c
 	$(Q) $(HOSTCC) $(hostc_flags) -c -o $@ $<
 
-targets += $(host-csingle)
 
 subdir-builtin := $(sort $(filter %/built-in.a, $(real-obj-y)))
 
 targets-for-builtin := $(extra-y) $(obj)/lib.a $(obj)/built-in.a
+
+targets += $(host-csingle)
 targets += $(targets-for-builtin)
+targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y)
 
 $(obj)/%.s: $(src)/%.c
 	@echo "  CC     " $@
@@ -127,8 +129,6 @@ $(obj)/%.o: $(src)/%.c
 $(obj)/%.o: $(src)/%.S
 	@echo "  CC     " $@
 	@ $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
-
-targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y)
 
 $(obj)/%.lds: $(src)/%.lds.S
 	@echo "  LDS    " $@
@@ -146,13 +146,12 @@ __build: $(targets-for-builtin) $(always-y)
 
 PHONY += $(subdir-ym)
 $(subdir-ym):
-	$(Q) $(MAKE) $(build)=$@ $(if $(filter $@/, $(KBUILD_SINGLE_TARGETS)),single-build=)
+	$(Q) $(MAKE) $(build)=$@
 
 PHONY += FORCE
 
 FORCE:
 obj-dirs := $(sort $(patsubst %/,%, $(dir $(targets))))
-obj-dirs := $(strip $(filter-out $(existing-dirs), $(obj-dirs)))
 $(shell mkdir -p $(obj-dirs))
 
 .PHONY: $(PHONY)
