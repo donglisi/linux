@@ -138,20 +138,19 @@ define filechk_offsets
 	 echo "#endif"
 endef
 
-host-csingle	:= $(foreach m,$(hostprogs), $(if $($(m)-objs)$($(m)-cxxobjs),,$(m)))
 host-cmulti	:= $(foreach m,$(hostprogs), $(if $($(m)-cxxobjs),,$(if $($(m)-objs),$(m))))
 host-cobjs	:= $(sort $(foreach m,$(hostprogs),$($(m)-objs)))
-host-csingle	:= $(addprefix $(obj)/,$(host-csingle))
+host-csingle	:= $(addprefix $(obj)/,$(hostprogs))
 host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
 host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
 
 hostc_flags = $(KBUILD_HOSTCFLAGS) $(HOST_EXTRACFLAGS) $(HOSTCFLAGS_$(target-stem).o) -I $(objtree)/$(obj)
 
 $(host-csingle): $(obj)/%: $(src)/%.c
-	$(Q) $(HOSTCC) $(hostc_flags) $(KBUILD_HOSTLDFLAGS) -o $@ $< $(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
+	$(Q) $(HOSTCC) $(hostc_flags) $(KBUILD_HOSTLDFLAGS) -o $@ $<
 
 $(host-cmulti):
-	$(Q) $(HOSTCC) $(KBUILD_HOSTLDFLAGS) -o $@ $(addprefix $(obj)/, $($(target-stem)-objs)) $(KBUILD_HOSTLDLIBS) $(HOSTLDLIBS_$(target-stem))
+	$(Q) $(HOSTCC) $(KBUILD_HOSTLDFLAGS) -o $@ $(addprefix $(obj)/, $($(target-stem)-objs))
 
 $(call multi_depend, $(host-cmulti), , -objs)
 
@@ -200,7 +199,6 @@ PHONY += FORCE
 
 FORCE:
 obj-dirs := $(sort $(patsubst %/,%, $(dir $(targets))))
-# $(info $(obj-dirs))
 $(shell mkdir -p $(obj-dirs))
 
 .PHONY: $(PHONY)
