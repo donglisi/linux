@@ -7,7 +7,63 @@ obj-y :=
 lib-y :=
 subdir-y :=
 
-include $(srctree)/scripts/Kbuild.include
+
+
+
+comma   := ,
+quote   := "
+squote  := '
+empty   :=
+space   := $(empty) $(empty)
+pound := \#
+
+dot-target = $(dir $@).$(notdir $@)
+
+basetarget = $(basename $(notdir $@))
+
+real-prereqs = $(filter-out $(PHONY), $^)
+
+escsq = $(subst $(squote),'\$(squote)',$1)
+
+stringify = $(squote)$(quote)$1$(quote)$(squote)
+
+kecho := :
+define filechk
+	$(check-FORCE)
+	$(Q)set -e;						\
+	mkdir -p $(dir $@);					\
+	trap "rm -f $(dot-target).tmp" EXIT;			\
+	{ $(filechk_$(1)); } > $(dot-target).tmp;		\
+	if [ ! -r $@ ] || ! cmp -s $@ $(dot-target).tmp; then	\
+		$(kecho) '  UPD     $@';			\
+		mv -f $(dot-target).tmp $@;			\
+	fi
+endef
+
+build := -f $(srctree)/scripts/Makefile.build obj
+
+echo-cmd = $(if $($(quiet)cmd_$(1)),\
+	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
+
+cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
+
+cmd-check = $(if $(strip $(cmd_$@)),,1)
+
+make-cmd = $(call escsq,$(subst $(pound),$$(pound),$(subst $$,$$$$,$(cmd_$(1)))))
+
+newer-prereqs = $(filter-out $(PHONY),$?)
+
+check-FORCE = $(if $(filter FORCE, $^),,$(warning FORCE prerequisite is missing))
+
+if-changed-cond = $(newer-prereqs)$(cmd-check)$(check-FORCE)
+
+if_changed = $(if $(if-changed-cond),$(cmd_and_savecmd),@:)
+
+cmd_and_savecmd =                                                            \
+	$(cmd);                                                              \
+	printf '%s\n' 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd
+
+
 
 kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
 include $(or $(wildcard $(kbuild-dir)/Kbuild), $(kbuild-dir)/Makefile)
@@ -109,7 +165,6 @@ $(call multi_depend, $(host-cmulti), , -objs)
 $(host-cobjs): $(obj)/%.o: $(src)/%.c
 	$(Q) $(HOSTCC) $(hostc_flags) -c -o $@ $<
 
-
 subdir-builtin := $(sort $(filter %/built-in.a, $(real-obj-y)))
 
 targets-for-builtin := $(extra-y) $(obj)/lib.a $(obj)/built-in.a
@@ -152,6 +207,7 @@ PHONY += FORCE
 
 FORCE:
 obj-dirs := $(sort $(patsubst %/,%, $(dir $(targets))))
+# $(info $(obj-dirs))
 $(shell mkdir -p $(obj-dirs))
 
 .PHONY: $(PHONY)

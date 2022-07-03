@@ -7,7 +7,15 @@ src := $(subst /generated,,$(obj))
 
 include $(srctree)/$(generic)/Kbuild
 
-include $(srctree)/scripts/Kbuild.include
+squote  := '
+
+escsq = $(subst $(squote),'\$(squote)',$1)
+
+build := -f $(srctree)/scripts/Makefile.build obj
+
+echo-cmd = $(if $($(quiet)cmd_$(1)), echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
+
+cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
 
 mandatory-y := $(filter-out $(generated-y), $(mandatory-y))
 generic-y   += $(foreach f, $(mandatory-y), $(if $(wildcard $(srctree)/$(src)/$(f)),,$(f)))
