@@ -16,10 +16,6 @@ KBUILD_CFLAGS += -include $(srctree)/include/linux/hidden.h
 
 KBUILD_AFLAGS  := $(KBUILD_CFLAGS) -D__ASSEMBLY__
 
-KBUILD_LDFLAGS := -m elf_x86_64 --no-ld-generated-unwind-info
-
-LDFLAGS_vmlinux := --no-dynamic-linker -T
-
 hostprogs	:= mkpiggy
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include
@@ -34,7 +30,7 @@ vmlinux-objs-y := vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o 
 VMLINUX_OBJS = $(addprefix $(obj)/,$(vmlinux-objs-y))
 
 $(obj)/vmlinux: $(VMLINUX_OBJS)
-	$(Q) $(LD) $(ld_flags) $(real-prereqs) -o $@
+	$(Q) $(LD) -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(real-prereqs) -o $@
 
 $(obj)/vmlinux.bin: vmlinux
 	$(Q) $(OBJCOPY) -R .comment -S $< $@

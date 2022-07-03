@@ -120,8 +120,6 @@ a_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_a_flags)
 
 cpp_flags      = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_cpp_flags)
 
-ld_flags       = $(KBUILD_LDFLAGS) $(ldflags-y) $(LDFLAGS_$(@F))
-
 define multi_depend
 $(foreach m, $1, \
 	$(eval $m: \

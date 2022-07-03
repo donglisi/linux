@@ -81,7 +81,6 @@ BASH		= bash
 
 NOSTDINC_FLAGS :=
 CFLAGS_KERNEL	=
-LDFLAGS_vmlinux =
 
 USERINCLUDE    := \
 		-I$(srctree)/arch/x86/include/uapi \
@@ -101,13 +100,12 @@ LINUXINCLUDE    := \
 KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include /a/sources/linux/config.h
 
 KBUILD_CPPFLAGS := -D__KERNEL__ -include /a/sources/linux/config.h
-KBUILD_LDFLAGS :=
 
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
 export CHECK MAKE UTS_MACHINE
 export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS
-export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE KBUILD_LDFLAGS
+export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE
 export KBUILD_CFLAGS CFLAGS_KERNEL
 export KBUILD_AFLAGS
 
@@ -179,10 +177,6 @@ KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
-KBUILD_LDFLAGS += -m elf_x86_64
-
-LDFLAGS_vmlinux := -z max-page-size=0x200000
-
 archscripts:
 	$(Q) $(MAKE) $(build)=arch/x86/tools relocs
 
@@ -226,11 +220,10 @@ export KBUILD_VMLINUX_LIBS := $(patsubst %/,%/lib.a, $(libs-y))
 export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
+$(vmlinux-deps): $(vmlinux-dirs)
 
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
-	$(Q) $(CONFIG_SHELL) $< "$(LD)" "$(KBUILD_LDFLAGS)" "$(LDFLAGS_vmlinux)"; \
-
-$(vmlinux-deps): $(vmlinux-dirs)
+	$(Q) $(CONFIG_SHELL) $< "$(LD)"
 
 include/config/kernel.release:
 
