@@ -72,4 +72,4 @@ targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(syshdr-y))
 
 PHONY += all
 all: $(uapisyshdr-y) $(syshdr-y)
-	@:
+	$(Q)

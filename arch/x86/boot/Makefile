@@ -10,7 +10,7 @@ HOST_EXTRACFLAGS += -I$(srctree)/tools/include -D__EXPORTED_HEADERS__
 $(obj)/cpu.o: $(obj)/cpustr.h
 
 $(obj)/cpustr.h: $(obj)/mkcpustr
-	@ $(obj)/mkcpustr > $@
+	$(Q) $(obj)/mkcpustr > $@
 
 KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_SETUP
 KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
@@ -22,21 +22,21 @@ $(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build
 	$(Q) $(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/zoffset.h $@
 
 $(obj)/vmlinux.bin: $(obj)/compressed/vmlinux FORCE
-	$(OBJCOPY) -O binary -R .note -R .comment -S $< $@
+	$(Q) $(OBJCOPY) -O binary -R .note -R .comment -S $< $@
 
 SETUP_OBJS = $(addprefix $(obj)/,$(setup-y))
 
 $(obj)/zoffset.h: $(obj)/compressed/vmlinux
-	@ $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
+	$(Q) $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
 
 AFLAGS_header.o += -I$(objtree)/$(obj)
 $(obj)/header.o: $(obj)/zoffset.h
 
 $(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS)
-	@ $(LD) -m elf_i386 -T $(real-prereqs) -o $@
+	$(Q) $(LD) -m elf_i386 -T $(real-prereqs) -o $@
 
 $(obj)/setup.bin: $(obj)/setup.elf
-	@ $(OBJCOPY) -O binary $< $@
+	$(Q) $(OBJCOPY) -O binary $< $@
 
 $(obj)/compressed/vmlinux:
 	$(Q) $(MAKE) $(build)=$(obj)/compressed $@

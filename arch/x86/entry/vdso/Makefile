@@ -28,10 +28,6 @@ CFL := $(PROFILING) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 \
 
 $(vobjs): KBUILD_CFLAGS := $(filter-out $(CC_FLAGS_LTO) $(RANDSTRUCT_CFLAGS) $(GCC_PLUGINS_CFLAGS), $(KBUILD_CFLAGS)) $(CFL)
 
-CFLAGS_REMOVE_vclock_gettime.o = -pg
-CFLAGS_REMOVE_vgetcpu.o = -pg
-CFLAGS_REMOVE_vsgx.o = -pg
-
 $(obj)/%.so: $(obj)/%.so.dbg
 	$(Q) $(OBJCOPY) -S --remove-section __ex_table $< $@
 

@@ -10,7 +10,7 @@ ifneq ($(sub_make_done),1)
 
 MAKEFLAGS += -rR
 quiet=quiet_
-Q = @
+Q = 
 export quiet Q
 
 KBUILD_OUTPUT := $(O)
@@ -29,7 +29,7 @@ export sub_make_done := 1
 __all:
 	mkdir -p /b/build/linux/5.19-my/include/generated/
 	cp /a/sources/linux/compile.h /b/build/linux/5.19-my/include/generated/
-	@ $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
+	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
 
 endif # sub_make_done
 
@@ -187,10 +187,10 @@ KBUILD_LDFLAGS += -m elf_x86_64
 LDFLAGS_vmlinux := -z max-page-size=0x200000
 
 archscripts:
-	@ $(MAKE) $(build)=arch/x86/tools relocs
+	$(Q) $(MAKE) $(build)=arch/x86/tools relocs
 
 archheaders:
-	@ $(MAKE) $(build)=arch/x86/entry/syscalls all
+	$(Q) $(MAKE) $(build)=arch/x86/entry/syscalls all
 
 head-y := arch/x86/kernel/head_64.o
 head-y += arch/x86/kernel/head64.o
@@ -252,10 +252,10 @@ asm-generic := -f $(srctree)/scripts/Makefile.asm-generic obj
 
 PHONY += asm-generic uapi-asm-generic
 asm-generic: uapi-asm-generic
-	@ $(MAKE) $(asm-generic)=arch/x86/include/generated/asm generic=include/asm-generic
+	$(Q) $(MAKE) $(asm-generic)=arch/x86/include/generated/asm generic=include/asm-generic
 
 uapi-asm-generic:
-	@ $(MAKE) $(asm-generic)=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
+	$(Q) $(MAKE) $(asm-generic)=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 
 uts_len := 64
 define filechk_utsrelease.h
