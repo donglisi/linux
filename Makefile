@@ -43,8 +43,6 @@ define filechk
 	fi
 endef
 
-build := -f $(srctree)/scripts/Makefile.build obj
-
 KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
 KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
 export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION
@@ -164,10 +162,10 @@ KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
 archscripts:
-	$(Q) $(MAKE) $(build)=arch/x86/tools relocs
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/tools relocs
 
 archheaders:
-	$(Q) $(MAKE) $(build)=arch/x86/entry/syscalls all
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/entry/syscalls all
 
 head-y := arch/x86/kernel/head_64.o
 head-y += arch/x86/kernel/head64.o
@@ -177,7 +175,7 @@ libs-y  += arch/x86/lib/
 drivers-y += arch/x86/pci/
 
 bzImage: vmlinux
-	$(Q) $(MAKE) $(build)=arch/x86/boot arch/x86/boot/bzImage
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/boot arch/x86/boot/bzImage
 
 NOSTDINC_FLAGS += -nostdinc
 
@@ -208,7 +206,7 @@ archprepare: archheaders archscripts scripts include/config/kernel.release \
 	asm-generic $(version_h) include/generated/utsrelease.h
 
 prepare0: archprepare
-	$(Q) $(MAKE) $(build)=.
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=.
 
 asm-generic := -f $(srctree)/scripts/Makefile.asm-generic obj
 
@@ -247,6 +245,6 @@ include/generated/utsrelease.h: include/config/kernel.release
 
 PHONY += $(build-dirs)
 $(build-dirs): prepare0
-	$(Q) $(MAKE) $(build)=$@
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
 
 .PHONY: $(PHONY)
