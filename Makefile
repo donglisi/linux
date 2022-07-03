@@ -8,7 +8,7 @@ PHONY := __all
 ifneq ($(sub_make_done),1)
 
 MAKEFLAGS += -rR --include-dir=$(abs_srctree) --no-print-directory
-export Q = 
+export Q = @
 
 KBUILD_OUTPUT := $(O)
 abs_objtree := $(realpath $(shell mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd))

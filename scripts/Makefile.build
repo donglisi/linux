@@ -58,8 +58,6 @@ cmd_and_savecmd =                                                            \
 	$(cmd);                                                              \
 	printf '%s\n' 'cmd_$@ := $(make-cmd)' > $(dot-target).cmd
 
-
-
 kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
 include $(or $(wildcard $(kbuild-dir)/Kbuild), $(kbuild-dir)/Makefile)
 
