@@ -1,4 +1,3 @@
-# SPDX-License-Identifier: GPL-2.0
 VERSION = 5
 PATCHLEVEL = 19
 SUBLEVEL = 0
@@ -9,8 +8,7 @@ PHONY := __all
 ifneq ($(sub_make_done),1)
 
 MAKEFLAGS += -rR --include-dir=$(abs_srctree) --no-print-directory
-Q = @
-export Q
+export Q = 
 
 KBUILD_OUTPUT := $(O)
 abs_objtree := $(realpath $(shell mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd))
