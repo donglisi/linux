@@ -189,8 +189,6 @@ drivers-y += arch/x86/pci/
 
 boot := arch/x86/boot
 
-PHONY += bzImage
-
 export KBUILD_IMAGE := $(boot)/bzImage
 
 bzImage: vmlinux
@@ -225,7 +223,7 @@ include/config/kernel.release:
 PHONY += prepare0 archprepare
 
 archprepare: archheaders archscripts scripts include/config/kernel.release \
-	asm-generic $(version_h) $(autoksyms_h) include/generated/utsrelease.h
+	asm-generic $(version_h) include/generated/utsrelease.h
 
 prepare0: archprepare
 	$(Q) $(MAKE) $(build)=.
@@ -259,8 +257,6 @@ define filechk_version.h
 	echo \#define LINUX_VERSION_SUBLEVEL $(SUBLEVEL)
 endef
 
-$(version_h): PATCHLEVEL := $(or $(PATCHLEVEL), 0)
-$(version_h): SUBLEVEL := $(or $(SUBLEVEL), 0)
 $(version_h):
 	$(call filechk,version.h)
 
