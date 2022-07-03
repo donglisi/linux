@@ -57,10 +57,10 @@ _c_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 _a_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 _cpp_flags += -I $(srctree)/$(src) -I $(objtree)/$(obj)
 
-c_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) -include $(srctree)/include/linux/compiler_types.h       \
-		 $(_c_flags) $(KBUILD_CFLAGS_KERNEL) $(CFLAGS_KERNEL) $(modfile_flags) $(basename_flags) $(modname_flags)
+c_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) -include $(srctree)/include/linux/compiler_types.h \
+		 $(_c_flags) $(modfile_flags) $(basename_flags) $(modname_flags)
 
-a_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_a_flags) $(KBUILD_AFLAGS_KERNEL) $(AFLAGS_KERNEL)
+a_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_a_flags)
 
 cpp_flags      = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_cpp_flags)
 
