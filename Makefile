@@ -57,7 +57,7 @@ HOSTCC	= gcc
 
 KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
 			 -O2 -fomit-frame-pointer -std=gnu11 \
-			 -Wdeclaration-after-statement -include /a/sources/linux/config.h
+			 -Wdeclaration-after-statement -include $(srctree)/config.h
 
 KBUILD_HOSTCFLAGS   := $(KBUILD_USERHOSTCFLAGS) $(HOST_LFS_CFLAGS) $(HOSTCFLAGS)
 KBUILD_HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS) $(HOSTLDFLAGS)
@@ -92,9 +92,9 @@ export LINUXINCLUDE    := \
 		-I$(objtree)/include \
 		$(USERINCLUDE)
 
-KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include /a/sources/linux/config.h
+KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include $(srctree)/config.h
 
-export KBUILD_CPPFLAGS := -D__KERNEL__ -include /a/sources/linux/config.h -fmacro-prefix-map=$(srctree)/=
+export KBUILD_CPPFLAGS := -D__KERNEL__ -include $(srctree)/config.h -fmacro-prefix-map=$(srctree)/=
 
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
@@ -117,13 +117,13 @@ drivers-y := drivers/
 drivers-y += net/
 libs-y := lib/
 
-export REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -include /a/sources/linux/config.h -ffreestanding -fno-stack-protector -Wno-address-of-packed-member
+export REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -include $(srctree)/config.h -ffreestanding -fno-stack-protector -Wno-address-of-packed-member
 
 KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
 		   -Werror=implicit-function-declaration -Werror=implicit-int \
 		   -Werror=return-type -Wno-format-security \
-		   -std=gnu11 -include /a/sources/linux/config.h 
+		   -std=gnu11 -include $(srctree)/config.h 
 KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx
 KBUILD_CFLAGS += -falign-jumps=1
 KBUILD_CFLAGS += -falign-loops=1
