@@ -7,27 +7,17 @@ src := $(subst /generated,,$(obj))
 
 include $(srctree)/$(generic)/Kbuild
 
-squote  := '
-
-escsq = $(subst $(squote),'\$(squote)',$1)
-
-echo-cmd = $(if $($(quiet)cmd_$(1)), echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
-
-cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
-
 mandatory-y := $(filter-out $(generated-y), $(mandatory-y))
+# $(info --------- $(mandatory-y))
 generic-y   += $(foreach f, $(mandatory-y), $(if $(wildcard $(srctree)/$(src)/$(f)),,$(f)))
 
 generic-y   := $(addprefix $(obj)/, $(generic-y))
-generated-y := $(addprefix $(obj)/, $(generated-y))
 
-quiet_cmd_wrap = WRAP    $@
-      cmd_wrap = echo "\#include <asm-generic/$*.h>" > $@
+cmd_wrap = echo "\#include <asm-generic/$*.h>" > $@
 
 all: $(generic-y)
-	$(Q)
 
 $(obj)/%.h:
-	$(call cmd,wrap)
+	$(cmd_wrap)
 
 .PHONY: $(PHONY)
