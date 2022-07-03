@@ -87,7 +87,7 @@ USERINCLUDE    := \
                 -include $(srctree)/include/linux/compiler-version.h \
                 -include $(srctree)/include/linux/kconfig.h
 
-LINUXINCLUDE    := \
+export LINUXINCLUDE    := \
 		-I$(srctree)/arch/x86/include \
 		-I$(objtree)/arch/x86/include/generated \
 		-I$(srctree)/include \
@@ -96,13 +96,13 @@ LINUXINCLUDE    := \
 
 KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include /a/sources/linux/config.h
 
-KBUILD_CPPFLAGS := -D__KERNEL__ -include /a/sources/linux/config.h
+export KBUILD_CPPFLAGS := -D__KERNEL__ -include /a/sources/linux/config.h -fmacro-prefix-map=$(srctree)/=
 
 export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
 export CHECK MAKE UTS_MACHINE
 export KBUILD_HOSTLDFLAGS KBUILD_HOSTLDLIBS
-export KBUILD_CPPFLAGS NOSTDINC_FLAGS LINUXINCLUDE
+export NOSTDINC_FLAGS
 export KBUILD_CFLAGS CFLAGS_KERNEL
 export KBUILD_AFLAGS
 
@@ -176,17 +176,10 @@ head-y += arch/x86/kernel/platform-quirks.o
 libs-y  += arch/x86/lib/
 drivers-y += arch/x86/pci/
 
-boot := arch/x86/boot
-
-export KBUILD_IMAGE := $(boot)/bzImage
-
 bzImage: vmlinux
-	$(Q) $(MAKE) $(build)=$(boot) $(KBUILD_IMAGE)
-	$(Q) mkdir -p $(objtree)/arch/x86_64/boot
-	$(Q) ln -fsn ../../x86/boot/bzImage $(objtree)/arch/x86_64/boot/vmlinux
+	$(Q) $(MAKE) $(build)=arch/x86/boot arch/x86/boot/bzImage
 
 NOSTDINC_FLAGS += -nostdinc
-KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srctree)/=
 
 vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(core-y) $(drivers-y) $(libs-y)))
 
