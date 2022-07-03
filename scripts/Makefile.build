@@ -40,8 +40,6 @@ define filechk
 	fi
 endef
 
-build := -f $(srctree)/scripts/Makefile.build obj
-
 echo-cmd = $(if $($(quiet)cmd_$(1)),\
 	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
 
@@ -199,7 +197,7 @@ __build: $(targets-for-builtin) $(always-y)
 
 PHONY += $(subdir-ym)
 $(subdir-ym):
-	$(Q) $(MAKE) $(build)=$@
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
 
 PHONY += FORCE
 

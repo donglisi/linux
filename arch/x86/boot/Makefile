@@ -39,4 +39,4 @@ $(obj)/setup.bin: $(obj)/setup.elf
 	$(Q) $(OBJCOPY) -O binary $< $@
 
 $(obj)/compressed/vmlinux:
-	$(Q) $(MAKE) $(build)=$(obj)/compressed $@
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$(obj)/compressed $@

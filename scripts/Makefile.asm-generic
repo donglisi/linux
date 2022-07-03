@@ -11,8 +11,6 @@ squote  := '
 
 escsq = $(subst $(squote),'\$(squote)',$1)
 
-build := -f $(srctree)/scripts/Makefile.build obj
-
 echo-cmd = $(if $($(quiet)cmd_$(1)), echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
 
 cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
