@@ -99,26 +99,26 @@ KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
+head-y := arch/x86/kernel/head_64.o arch/x86/kernel/head64.o arch/x86/kernel/ebda.o arch/x86/kernel/platform-quirks.o
 core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/
 drivers-y := arch/x86/pci/ drivers/ net/
 libs-y := arch/x86/lib/ lib/
-head-y := arch/x86/kernel/head_64.o arch/x86/kernel/head64.o arch/x86/kernel/ebda.o arch/x86/kernel/platform-quirks.o
 
 bzImage: vmlinux
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/boot arch/x86/boot/bzImage
 
 NOSTDINC_FLAGS += -nostdinc
 
-vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(core-y) $(drivers-y) $(libs-y)))
+vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(drivers-y) $(libs-y)))
 
 build-dirs	:= $(vmlinux-dirs)
 
-KBUILD_VMLINUX_OBJS := $(head-y) $(patsubst %/,%/built-in.a, $(core-y))
+KBUILD_VMLINUX_OBJS := $(head-y) $(patsubst %/, %/built-in.a, $(core-y))
 KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
-KBUILD_VMLINUX_OBJS += $(patsubst %/,%/built-in.a, $(drivers-y))
+KBUILD_VMLINUX_OBJS += $(patsubst %/, %/built-in.a, $(drivers-y))
 export KBUILD_VMLINUX_OBJS
 
-export KBUILD_VMLINUX_LIBS := $(patsubst %/,%/lib.a, $(libs-y))
+export KBUILD_VMLINUX_LIBS := $(patsubst %/, %/lib.a, $(libs-y))
 
 export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
