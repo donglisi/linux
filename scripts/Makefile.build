@@ -173,7 +173,11 @@ $(host-cobjs): $(obj)/%.o: $(src)/%.c
 
 subdir-builtin := $(sort $(filter %/built-in.a, $(real-obj-y)))
 
-targets-for-builtin := $(extra-y) $(obj)/lib.a $(obj)/built-in.a
+targets-for-builtin := $(extra-y) $(obj)/built-in.a
+
+ifneq ($(strip $(lib-y)),)
+targets-for-builtin += $(obj)/lib.a
+endif
 
 targets += $(host-csingle)
 targets += $(targets-for-builtin)
