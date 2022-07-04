@@ -132,7 +132,7 @@ prepare0:
 
 PHONY += $(build-dirs)
 $(build-dirs): prepare0
-	$(info -------------22222222 )
+#	$(shell mkdir -p $(dir $@))
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
 
 .PHONY: $(PHONY)

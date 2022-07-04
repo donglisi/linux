@@ -1,6 +1,5 @@
 src := $(obj)
 
-PHONY := __build
 __build:
 
 obj-y :=
@@ -203,14 +202,10 @@ $(obj)/lib.a: $(lib-y)
 
 __build: $(targets-for-builtin) $(always-y)
 
-PHONY += $(subdir-ym)
 $(subdir-ym):
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
 
-PHONY += FORCE
-
-FORCE:
-obj-dirs := $(sort $(patsubst %/,%, $(dir $(targets))))
+obj-dirs := $(sort $(dir $(targets)))
 $(shell mkdir -p $(obj-dirs))
 
-.PHONY: $(PHONY)
+.PHONY: $(subdir-ym) FORCE
