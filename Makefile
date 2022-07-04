@@ -48,26 +48,20 @@ BASH		= bash
 
 NOSTDINC_FLAGS :=
 
-KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include $(srctree)/config.h
+export KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include $(srctree)/config.h
 
 export KBUILD_CPPFLAGS := -D__KERNEL__ -include $(srctree)/config.h -fmacro-prefix-map=$(srctree)/=
 
 export CONFIG_SHELL BASH HOSTCC LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
-export CHECK MAKE
+export MAKE
 export NOSTDINC_FLAGS
-export KBUILD_CFLAGS
-export KBUILD_AFLAGS
 
 all: bzImage
 
-core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/
-drivers-y := drivers/ net/
-libs-y := lib/
-
 export REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -include $(srctree)/config.h -ffreestanding -fno-stack-protector -Wno-address-of-packed-member
 
-KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
+export KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
 		   -Werror=implicit-function-declaration -Werror=implicit-int \
 		   -Werror=return-type -Wno-format-security \
@@ -109,12 +103,10 @@ KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
-head-y := arch/x86/kernel/head_64.o
-head-y += arch/x86/kernel/head64.o
-head-y += arch/x86/kernel/ebda.o
-head-y += arch/x86/kernel/platform-quirks.o
-libs-y  += arch/x86/lib/
-drivers-y += arch/x86/pci/
+core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/
+drivers-y := arch/x86/pci/ drivers/ net/
+libs-y := arch/x86/lib/ lib/
+head-y := arch/x86/kernel/head_64.o arch/x86/kernel/head64.o arch/x86/kernel/ebda.o arch/x86/kernel/platform-quirks.o
 
 bzImage: vmlinux
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/boot arch/x86/boot/bzImage
@@ -140,28 +132,12 @@ $(vmlinux-deps): $(vmlinux-dirs)
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
 	$(Q) $(CONFIG_SHELL) $< "$(LD)"
 
-include/config/kernel.release:
-
-archheaders:
+prepare0:
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/entry/syscalls all
-
-archscripts:
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/tools relocs
-
-PHONY += prepare0 archprepare
-
-archprepare: archheaders archscripts asm-generic
-
-prepare0: archprepare
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=.
-
-asm-generic := -f $(srctree)/scripts/Makefile.asm-generic obj
-
-asm-generic: uapi-asm-generic
-	$(Q) $(MAKE) $(asm-generic)=arch/x86/include/generated/asm generic=include/asm-generic
-
-uapi-asm-generic:
-	$(Q) $(MAKE) $(asm-generic)=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 
 PHONY += $(build-dirs)
 $(build-dirs): prepare0
