@@ -1,26 +1,18 @@
-VERSION = 5
-PATCHLEVEL = 19
-SUBLEVEL = 0
-EXTRAVERSION = -rc1
-
-PHONY := __all
-
-ifneq ($(sub_make_done),1)
-
 MAKEFLAGS += -rR --include-dir=$(abs_srctree) --no-print-directory
 export Q = @
+
+ifneq ($(sub_make_done),1)
+export sub_make_done := 1
 
 KBUILD_OUTPUT := $(O)
 abs_objtree := $(realpath $(shell mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd))
 abs_srctree := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 export abs_srctree abs_objtree
 
-export sub_make_done := 1
-
-__all:
+a:
 	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
 
-endif # sub_make_done
+endif
 
 srctree := $(abs_srctree)
 objtree		:= .
@@ -48,9 +40,7 @@ export KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include $(srctree)/config.h
 
 export KBUILD_CPPFLAGS := -D__KERNEL__ -include $(srctree)/config.h -fmacro-prefix-map=$(srctree)/=
 
-export CONFIG_SHELL BASH HOSTCC LD CC
-export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
-export MAKE
+export CONFIG_SHELL BASH HOSTCC LD CC CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK MAKE
 export NOSTDINC_FLAGS
 
 all: bzImage
@@ -123,6 +113,7 @@ export KBUILD_VMLINUX_LIBS := $(patsubst %/, %/lib.a, $(libs-y))
 export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
+# $(error $(vmlinux-deps))
 $(vmlinux-deps): $(vmlinux-dirs)
 
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
@@ -141,7 +132,7 @@ prepare0:
 
 PHONY += $(build-dirs)
 $(build-dirs): prepare0
-	$(info ------------- $(build-dirs))
+	$(info -------------22222222 )
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
 
 .PHONY: $(PHONY)
