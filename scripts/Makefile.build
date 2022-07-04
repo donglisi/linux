@@ -130,10 +130,6 @@ a_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_a_flags)
 
 cpp_flags      = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_cpp_flags)
 
-define multi_depend
-$(foreach m, $1, $(eval $m: $(addprefix $(obj)/, $(call suffix-search, $(patsubst $(obj)/%, %, $m), $2, $3))))
-endef
-
 define filechk_offsets
 	 echo "#ifndef $2"; \
 	 echo "#define $2"; \
@@ -151,14 +147,21 @@ define filechk_offsets
 	 echo "#endif"
 endef
 
-host-csingle	:= $(addprefix $(obj)/,$(hostprogs))
-host-cmulti	:= $(addprefix $(obj)/,$(foreach m,$(hostprogs), $(if $($(m)-objs),$(m))))
-host-cobjs	:= $(addprefix $(obj)/,$(sort $(foreach m,$(hostprogs),$($(m)-objs))))
+host-csingle	:= $(foreach m,$(hostprogs), $(if $($(m)-objs),,$(m)))
+host-cmulti	:= $(foreach m,$(hostprogs), $(if $($(m)-objs),$(m)))
+host-cobjs	:= $(sort $(foreach m,$(hostprogs),$($(m)-objs)))
+host-csingle	:= $(addprefix $(obj)/,$(host-csingle))
+host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
+host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
 
 hostc_flags = $(KBUILD_HOSTCFLAGS) $(HOST_EXTRACFLAGS) -I $(objtree)/$(obj)
 
 $(host-csingle): $(obj)/%: $(src)/%.c
 	$(Q) $(HOSTCC) $(hostc_flags) -o $@ $<
+
+define multi_depend
+$(foreach m, $1, $(eval $m: $(addprefix $(obj)/, $(call suffix-search, $(patsubst $(obj)/%, %, $m), $2, $3))))
+endef
 
 $(host-cmulti):
 	$(Q) $(HOSTCC) -o $@ $(addprefix $(obj)/, $($(target-stem)-objs))
