@@ -1,7 +1,4 @@
-subdir- := rm
-
-obj-y += init.o
-obj-y += rmpiggy.o
+obj-y += init.o rmpiggy.o
 
 $(obj)/rmpiggy.o: $(obj)/rm/realmode.bin
 
