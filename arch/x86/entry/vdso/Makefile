@@ -12,10 +12,10 @@ CPPFLAGS_vdso.lds += -P -C
 VDSO_LDFLAGS_vdso.lds = -m elf_x86_64 -soname linux-vdso.so.1 --no-undefined -z max-page-size=4096
 
 $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs)
-	$(Q) $(LD) -o $@ $(VDSO_LDFLAGS) $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) -T $(filter %.lds,$^) \
+	$(Q) $(LD) -o $@ -shared --hash-style=both --build-id=sha1 -Bsymbolic $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) -T $(filter %.lds,$^) \
 		$(filter %.o,$^) && sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
 
-HOST_EXTRACFLAGS += -I$(srctree)/tools/include -I$(srctree)/include/uapi -I$(srctree)/arch/$(SUBARCH)/include/uapi
+HOST_EXTRACFLAGS += -I$(srctree)/tools/include 
 hostprogs += vdso2c
 
 $(obj)/vdso-image-64.c: $(obj)/vdso64.so.dbg $(obj)/vdso64.so $(obj)/vdso2c
@@ -26,12 +26,7 @@ CFL := $(PROFILING) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 \
        -fno-omit-frame-pointer -foptimize-sibling-calls \
        -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
 
-$(vobjs): KBUILD_CFLAGS := $(filter-out $(CC_FLAGS_LTO) $(RANDSTRUCT_CFLAGS) $(GCC_PLUGINS_CFLAGS), $(KBUILD_CFLAGS)) $(CFL)
+$(vobjs): KBUILD_CFLAGS := $(KBUILD_CFLAGS) $(CFL)
 
 $(obj)/%.so: $(obj)/%.so.dbg
 	$(Q) $(OBJCOPY) -S --remove-section __ex_table $< $@
-
-VDSO_LDFLAGS = -shared --hash-style=both --build-id=sha1 -Bsymbolic
-
-$(MODLIB)/vdso:
-	$(Q) @mkdir -p $(MODLIB)/vdso

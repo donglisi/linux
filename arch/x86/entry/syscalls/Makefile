@@ -6,8 +6,8 @@ if-changed-cond = $(newer-prereqs)$(cmd-check)$(check-FORCE)
 
 if_changed = $(if $(if-changed-cond),$(cmd_and_savecmd),@:)
 
-out := arch/$(SRCARCH)/include/generated/asm
-uapi := arch/$(SRCARCH)/include/generated/uapi/asm
+out := arch/x86/include/generated/asm
+uapi := arch/x86/include/generated/uapi/asm
 
 echo-cmd = $(if $($(quiet)cmd_$(1)),\
 	echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)

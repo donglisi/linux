@@ -20,5 +20,5 @@ targets += arch/x86/kernel/asm-offsets.s
 
 arch/x86/kernel/asm-offsets.s: $(timeconst-file) $(bounds-file)
 
-$(offsets-file): arch/$(SRCARCH)/kernel/asm-offsets.s
+$(offsets-file): arch/x86/kernel/asm-offsets.s
 	$(call filechk,offsets,__ASM_OFFSETS_H__)

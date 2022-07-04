@@ -151,7 +151,7 @@ targets += $(filter-out $(subdir-builtin), $(real-obj-y)) $(lib-y)
 
 $(obj)/%.s: $(src)/%.c
 	@echo "  CC     " $@
-	@ $(CC) $(filter-out $(DEBUG_CFLAGS) $(CC_FLAGS_LTO), $(c_flags)) -fverbose-asm -S -o $@ $<
+	@ $(CC) $(c_flags) -fverbose-asm -S -o $@ $<
 
 $(obj)/%.o: $(src)/%.c
 	@echo "  CC     " $@
@@ -163,7 +163,7 @@ $(obj)/%.o: $(src)/%.S
 
 $(obj)/%.lds: $(src)/%.lds.S
 	@echo "  LDS    " $@
-	@ $(CPP) $(cpp_flags) -P -U$(ARCH) -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
+	@ $(CPP) $(cpp_flags) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 $(subdir-builtin): $(obj)/%/built-in.a: $(obj)/%
 

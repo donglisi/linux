@@ -31,14 +31,6 @@ objtree		:= .
 VPATH		:= $(srctree)
 export srctree objtree VPATH
 
-KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
-KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
-export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION
-
-ARCH := x86
-UTS_MACHINE := x86_64
-SRCARCH := x86
-
 CONFIG_SHELL := sh
 
 HOSTCC	= gcc
@@ -60,9 +52,9 @@ KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include $(srctree)/config.h
 
 export KBUILD_CPPFLAGS := -D__KERNEL__ -include $(srctree)/config.h -fmacro-prefix-map=$(srctree)/=
 
-export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC LD CC
+export CONFIG_SHELL BASH HOSTCC LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK
-export CHECK MAKE UTS_MACHINE
+export CHECK MAKE
 export NOSTDINC_FLAGS
 export KBUILD_CFLAGS
 export KBUILD_AFLAGS
@@ -73,7 +65,7 @@ core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/
 drivers-y := drivers/ net/
 libs-y := lib/
 
-export REALMODE_CFLAGS	:= -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -include $(srctree)/config.h -ffreestanding -fno-stack-protector -Wno-address-of-packed-member
+export REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -include $(srctree)/config.h -ffreestanding -fno-stack-protector -Wno-address-of-packed-member
 
 KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \

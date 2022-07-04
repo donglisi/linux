@@ -1,6 +1,6 @@
 extra-y	:= head_64.o head64.o ebda.o platform-quirks.o vmlinux.lds
 
-CPPFLAGS_vmlinux.lds += -U$(UTS_MACHINE)
+CPPFLAGS_vmlinux.lds += -Ux86_64
 
 CFLAGS_irq.o := -I $(srctree)/$(src)/../include/asm/trace
 
