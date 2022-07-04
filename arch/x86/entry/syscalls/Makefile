@@ -89,7 +89,6 @@ syshdr-y	+= syscalls_64.h
 
 uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
 syshdr-y	:= $(addprefix $(out)/, $(syshdr-y))
-targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(syshdr-y))
 
 PHONY += all
 all: $(uapisyshdr-y) $(syshdr-y)

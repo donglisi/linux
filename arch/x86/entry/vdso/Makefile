@@ -9,7 +9,7 @@ $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs)
 		$(filter %.o,$^) && sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include 
-hostprogs += vdso2c
+hostprogs := vdso2c
 
 $(obj)/vdso-image-64.c: $(obj)/vdso64.so.dbg $(obj)/vdso64.so $(obj)/vdso2c
 	$(Q) $(obj)/vdso2c $< $(<:64.dbg=64) $@

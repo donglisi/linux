@@ -1,8 +1,7 @@
 setup-y += a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o
 SETUP_OBJS = $(addprefix $(obj)/,$(setup-y))
 
-hostprogs	:= tools/build
-hostprogs	+= mkcpustr
+hostprogs	:= tools/build mkcpustr
 
 HOST_EXTRACFLAGS += -I$(srctree)/tools/include -D__EXPORTED_HEADERS__
 
