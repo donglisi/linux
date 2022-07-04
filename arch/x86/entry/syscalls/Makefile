@@ -33,6 +33,8 @@ systbl := $(srctree)/scripts/syscalltbl.sh
 offset :=
 prefix :=
 
+quiet=quiet_
+
 quiet_cmd_syshdr = SYSHDR  $@
       cmd_syshdr = $(CONFIG_SHELL) $(syshdr) --abis $(abis) --emit-nr \
 		$(if $(offset),--offset $(offset)) \
