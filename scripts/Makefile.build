@@ -33,7 +33,14 @@ define filechk
 endef
 
 kbuild-dir := $(if $(filter /%,$(src)),$(src),$(srctree)/$(src))
-include $(or $(wildcard $(kbuild-dir)/Kbuild), $(kbuild-dir)/Makefile)
+
+ifeq ($(abs_srctree)/.,$(kbuild-dir))
+  include $(kbuild-dir)/Kbuild
+else
+  include $(kbuild-dir)/Makefile
+endif
+
+# include $(or $(wildcard $(kbuild-dir)/Kbuild), $(kbuild-dir)/Makefile)
 
 lib-y := $(filter-out $(obj-y), $(sort $(lib-y)))
 

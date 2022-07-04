@@ -8,7 +8,6 @@ src := $(subst /generated,,$(obj))
 include $(srctree)/$(generic)/Kbuild
 
 mandatory-y := $(filter-out $(generated-y), $(mandatory-y))
-# $(info --------- $(mandatory-y))
 generic-y   += $(foreach f, $(mandatory-y), $(if $(wildcard $(srctree)/$(src)/$(f)),,$(f)))
 
 generic-y   := $(addprefix $(obj)/, $(generic-y))

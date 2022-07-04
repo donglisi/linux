@@ -18,10 +18,6 @@ export abs_srctree abs_objtree
 export sub_make_done := 1
 
 __all:
-	mkdir -p $(abs_objtree)/include/generated/uapi/linux/
-	echo '#define UTS_RELEASE "5.19.0-rc1"' > $(abs_objtree)/include/generated/utsrelease.h
-	cp compile.h $(abs_objtree)/include/generated/
-	cp version.h $(abs_objtree)/include/generated/uapi/linux/
 	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
 
 endif # sub_make_done
@@ -133,6 +129,10 @@ vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
 	$(Q) $(CONFIG_SHELL) $< "$(LD)"
 
 prepare0:
+	mkdir -p $(abs_objtree)/include/generated/uapi/linux/
+	echo '#define UTS_RELEASE "5.19.0-rc1"' > $(abs_objtree)/include/generated/utsrelease.h
+	cp $(srctree)/compile.h $(abs_objtree)/include/generated/
+	cp $(srctree)/version.h $(abs_objtree)/include/generated/uapi/linux/
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/entry/syscalls all
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/tools relocs
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
