@@ -16,8 +16,6 @@ dot-target = $(dir $@).$(notdir $@)
 
 basetarget = $(basename $(notdir $@))
 
-real-prereqs = $(filter-out $(PHONY), $^)
-
 escsq = $(subst $(squote),'\$(squote)',$1)
 
 stringify = $(squote)$(quote)$1$(quote)$(squote)
@@ -198,10 +196,10 @@ $(obj)/%.lds: $(src)/%.lds.S
 $(subdir-builtin): $(obj)/%/built-in.a: $(obj)/%
 
 $(obj)/built-in.a: $(real-obj-y)
-	$(Q) echo $(patsubst $(obj)/%,%,$(real-prereqs)) | sed -E 's:([^ ]+):$(obj)/\1:g' | xargs $(AR) cDPrST $@
+	$(Q) echo $(patsubst $(obj)/%, %, $^) | sed -E 's:([^ ]+):$(obj)/\1:g' | xargs $(AR) cDPrST $@
 
 $(obj)/lib.a: $(lib-y)
-	$(Q) $(AR) cDPrsT $@ $(real-prereqs)
+	$(Q) $(AR) cDPrsT $@ $^
 
 __build: $(targets-for-builtin) $(always-y)
 

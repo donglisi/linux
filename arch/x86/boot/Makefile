@@ -30,7 +30,7 @@ $(obj)/zoffset.h: $(obj)/compressed/vmlinux
 $(obj)/header.o: $(obj)/zoffset.h
 
 $(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS)
-	$(Q) $(LD) -m elf_i386 -T $(real-prereqs) -o $@
+	$(Q) $(LD) -m elf_i386 -T $^ -o $@
 
 $(obj)/setup.bin: $(obj)/setup.elf
 	$(Q) $(OBJCOPY) -O binary $< $@

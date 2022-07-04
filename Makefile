@@ -141,6 +141,7 @@ prepare0:
 
 PHONY += $(build-dirs)
 $(build-dirs): prepare0
+	$(info ------------- $(build-dirs))
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
 
 .PHONY: $(PHONY)
