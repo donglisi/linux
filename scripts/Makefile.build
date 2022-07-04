@@ -185,8 +185,8 @@ $(obj)/%.o: $(src)/%.c
 	@ $(CC) $(c_flags) -c -o $@ $<
 
 $(obj)/%.o: $(src)/%.S
-	@echo "  CC     " $@
-	@ $(CC) $(a_flags) -c -o $@ $< $(cmd_objtool)
+	@echo "  AS     " $@
+	@ $(CC) $(a_flags) -c -o $@ $<
 
 $(obj)/%.lds: $(src)/%.lds.S
 	@echo "  LDS    " $@
