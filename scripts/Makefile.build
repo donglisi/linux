@@ -62,6 +62,9 @@ arch/x86/kernel/asm-offsets.s: $(timeconst-file) $(bounds-file)
 $(offsets-file): arch/x86/kernel/asm-offsets.s
 	@ $(call filechk,offsets,__ASM_OFFSETS_H__)
 
+$(obj)/%.s: $(obj)/%.c
+	@echo "  CC     " $@
+	@ $(CC) $(c_flags) -S -o $@ $<
 else
   include $(kbuild-dir)/Makefile
 endif
@@ -119,19 +122,13 @@ KBUILD_CFLAGS += -D__KERNEL__
 
 c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(target-stem).o) $(modfile_flags) $(basename_flags) $(modname_flags)
 
-a_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__
-
-$(obj)/%.s: $(obj)/%.c
-	@echo "  CC     " $@
-	@ $(CC) $(c_flags) -fverbose-asm -S -o $@ $<
-
 $(obj)/%.o: $(obj)/%.c
 	@echo "  CC     " $@
 	@ $(CC) $(c_flags) -c -o $@ $<
 
 $(obj)/%.o: $(obj)/%.S
 	@echo "  AS     " $@
-	@ $(CC) $(a_flags) -c -o $@ $<
+	@ $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
 
 $(obj)/%.lds: $(obj)/%.lds.S
 	@echo "  LDS    " $@
