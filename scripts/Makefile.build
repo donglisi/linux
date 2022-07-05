@@ -1,3 +1,5 @@
+KBUILD_CPPFLAGS := -D__KERNEL__ -include $(srctree)/config.h -fmacro-prefix-map=$(srctree)/=
+
 src := $(obj)
 
 __build:
@@ -91,26 +93,6 @@ basename_flags = -DKBUILD_BASENAME=$(call name-fix,$(basetarget))
 modname_flags  = -DKBUILD_MODNAME=$(call name-fix,$(modname)) -D__KBUILD_MODNAME=kmod_$(call name-fix-token,$(modname))
 modfile_flags  = -DKBUILD_MODFILE=$(call stringify,$(modfile))
 
-_c_flags       = $(filter-out $(CFLAGS_REMOVE_$(target-stem).o), \
-                     $(filter-out $(ccflags-remove-y), \
-                         $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(ccflags-y)) \
-                     $(CFLAGS_$(target-stem).o))
-
-_a_flags       = $(filter-out $(AFLAGS_REMOVE_$(target-stem).o), \
-                     $(filter-out $(asflags-remove-y), \
-                         $(KBUILD_CPPFLAGS) $(KBUILD_AFLAGS) $(asflags-y)) \
-                     $(AFLAGS_$(target-stem).o))
-
-_cpp_flags     = $(KBUILD_CPPFLAGS) $(cppflags-y) $(CPPFLAGS_$(target-stem).lds)
-
-_c_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
-_a_flags   += -I $(srctree)/$(src) -I $(objtree)/$(obj)
-_cpp_flags += -I $(srctree)/$(src) -I $(objtree)/$(obj)
-
-KBUILD_HOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
-			 -O2 -fomit-frame-pointer -std=gnu11 \
-			 -Wdeclaration-after-statement -include $(srctree)/config.h
-
 LINUXINCLUDE	:= \
 		-I$(srctree)/arch/x86/include \
 		-I$(objtree)/arch/x86/include/generated \
@@ -123,12 +105,14 @@ LINUXINCLUDE	:= \
                 -include $(srctree)/include/linux/compiler-version.h \
                 -include $(srctree)/include/linux/kconfig.h
 
-c_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) -include $(srctree)/include/linux/compiler_types.h \
-		 $(_c_flags) $(modfile_flags) $(basename_flags) $(modname_flags)
+c_flags        = -nostdinc $(LINUXINCLUDE) -include $(srctree)/include/linux/compiler_types.h \
+		 $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) $(ccflags-y) $(CFLAGS_$(target-stem).o) \
+		 -I $(srctree)/$(src) -I $(objtree)/$(obj) \
+		 $(modfile_flags) $(basename_flags) $(modname_flags)
 
-a_flags        = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_a_flags)
+a_flags        = -nostdinc $(LINUXINCLUDE) $(KBUILD_CPPFLAGS) $(KBUILD_AFLAGS) $(asflags-y) -I $(srctree)/$(src) -I $(objtree)/$(obj)
 
-cpp_flags      = $(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(_cpp_flags)
+cpp_flags      = -nostdinc $(LINUXINCLUDE) $(KBUILD_CPPFLAGS) -I $(srctree)/$(src) -I $(objtree)/$(obj)
 
 define filechk_offsets
 	 echo "#ifndef $2"; \
@@ -154,7 +138,7 @@ host-csingle	:= $(addprefix $(obj)/,$(host-csingle))
 host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
 host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
 
-hostc_flags = $(KBUILD_HOSTCFLAGS) $(HOST_EXTRACFLAGS) -I $(objtree)/$(obj)
+hostc_flags = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu11 -Wdeclaration-after-statement -include $(srctree)/config.h $(HOST_EXTRACFLAGS) -I $(objtree)/$(obj)
 
 $(host-csingle): $(obj)/%: $(src)/%.c
 	$(Q) $(HOSTCC) $(hostc_flags) -o $@ $<

@@ -34,14 +34,9 @@ STRIP		= strip
 AWK		= awk
 BASH		= bash
 
-NOSTDINC_FLAGS :=
-
 export KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include $(srctree)/config.h
 
-export KBUILD_CPPFLAGS := -D__KERNEL__ -include $(srctree)/config.h -fmacro-prefix-map=$(srctree)/=
-
 export CONFIG_SHELL BASH HOSTCC LD CC CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK MAKE
-export NOSTDINC_FLAGS
 
 all: bzImage
 
@@ -97,8 +92,6 @@ libs-y := arch/x86/lib/ lib/
 bzImage: vmlinux
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/boot arch/x86/boot/bzImage
 
-NOSTDINC_FLAGS += -nostdinc
-
 vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(drivers-y) $(libs-y)))
 
 build-dirs	:= $(vmlinux-dirs)
@@ -113,7 +106,6 @@ export KBUILD_VMLINUX_LIBS := $(patsubst %/, %/lib.a, $(libs-y))
 export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
-# $(error $(vmlinux-deps))
 $(vmlinux-deps): $(vmlinux-dirs)
 
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
