@@ -1,13 +1,7 @@
-if_changed = $(if $(filter-out $(PHONY),$?) $(if $(strip $(cmd_$@)),,1), $(cmd_and_savecmd),@:)
+if_changed = $(if $(if $(strip $(cmd_$@)),,1), $(cmd_$(1)),@:)
 
 out := arch/x86/include/generated/asm
 uapi := arch/x86/include/generated/uapi/asm
-
-echo-cmd = $(if $($(quiet)cmd_$(1)), echo '  $(call escsq,$($(quiet)cmd_$(1)))$(echo-why)';)
-
-cmd = @set -e; $(echo-cmd) $($(quiet)redirect) $(cmd_$(1))
-
-cmd_and_savecmd = $(cmd); printf '%s\n' 'cmd_$@ := $(call escsq,$(subst $(pound),$$(pound),$(subst $$,$$$$,$(cmd_$(1)))))' > $(dot-target).cmd
 
 $(shell mkdir -p $(out) $(uapi))
 
@@ -19,13 +13,12 @@ systbl := $(srctree)/scripts/syscalltbl.sh
 offset :=
 prefix :=
 
-quiet_cmd_syshdr = SYSHDR  $@
-      cmd_syshdr = $(CONFIG_SHELL) $(syshdr) --abis $(abis) --emit-nr \
+cmd_syshdr = $(CONFIG_SHELL) $(syshdr) --abis $(abis) --emit-nr \
 		$(if $(offset),--offset $(offset)) \
 		$(if $(prefix),--prefix $(prefix)) \
 		$< $@
-quiet_cmd_systbl = SYSTBL  $@
-      cmd_systbl = $(CONFIG_SHELL) $(systbl) --abis $(abis) $< $@
+
+cmd_systbl = $(CONFIG_SHELL) $(systbl) --abis $(abis) $< $@
 
 $(uapi)/unistd_32.h: abis := i386
 $(uapi)/unistd_32.h: $(syscall32) $(syshdr)
@@ -53,6 +46,7 @@ $(out)/unistd_64_x32.h: $(syscall64) $(syshdr)
 $(out)/syscalls_32.h: abis := i386
 $(out)/syscalls_32.h: $(syscall32) $(systbl)
 	$(call if_changed,systbl)
+
 $(out)/syscalls_64.h: abis := common,64
 $(out)/syscalls_64.h: $(syscall64) $(systbl)
 	$(call if_changed,systbl)
