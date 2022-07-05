@@ -8,7 +8,7 @@ $(obj)/cpu.o: $(obj)/cpustr.h
 $(obj)/cpustr.h: $(obj)/mkcpustr
 	$(Q) $(obj)/mkcpustr > $@
 
-KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_SETUP
+KBUILD_CFLAGS	:= $(REALMODE_CFLAGS)
 KBUILD_CFLAGS	+= -fmacro-prefix-map=$(srctree)/=
 KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
 KBUILD_CFLAGS	+= -include $(srctree)/config.h

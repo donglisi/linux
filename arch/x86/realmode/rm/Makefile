@@ -16,4 +16,4 @@ $(obj)/realmode.bin: $(obj)/realmode.elf $(obj)/realmode.relocs
 $(obj)/realmode.relocs: $(obj)/realmode.elf
 	$(Q) arch/x86/tools/relocs --realmode $< > $@
 
-KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_SETUP -D_WAKEUP -I$(srctree)/arch/x86/boot
+KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_WAKEUP -I$(srctree)/arch/x86/boot

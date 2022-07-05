@@ -40,8 +40,6 @@ export CONFIG_SHELL BASH HOSTCC LD CC CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC A
 
 all: bzImage
 
-export REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -include $(srctree)/config.h -ffreestanding -fno-stack-protector -Wno-address-of-packed-member
-
 export KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
 		   -Werror=implicit-function-declaration -Werror=implicit-int \
