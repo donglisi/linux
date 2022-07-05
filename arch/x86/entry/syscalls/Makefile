@@ -1,4 +1,4 @@
-if_changed = $(if $(if $(strip $(cmd_$@)),,1), $(cmd_$(1)),@:)
+if_changed = @ $(if $(if $(strip $(cmd_$@)),,1), $(cmd_$(1)),@:)
 
 out := arch/x86/include/generated/asm
 uapi := arch/x86/include/generated/uapi/asm
