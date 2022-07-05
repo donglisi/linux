@@ -18,8 +18,6 @@ KBUILD_AFLAGS  := $(KBUILD_CFLAGS) -D__ASSEMBLY__
 
 hostprogs	:= mkpiggy
 
-HOST_EXTRACFLAGS += -I$(srctree)/tools/include
-
 $(obj)/../voffset.h: vmlinux
 	$(Q) $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
 

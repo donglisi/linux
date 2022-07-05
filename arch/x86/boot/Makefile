@@ -3,8 +3,6 @@ SETUP_OBJS = $(addprefix $(obj)/,$(setup-y))
 
 hostprogs	:= tools/build mkcpustr
 
-HOST_EXTRACFLAGS += -I$(srctree)/tools/include -D__EXPORTED_HEADERS__
-
 $(obj)/cpu.o: $(obj)/cpustr.h
 
 $(obj)/cpustr.h: $(obj)/mkcpustr
