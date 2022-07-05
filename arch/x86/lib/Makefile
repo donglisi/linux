@@ -1,5 +1,5 @@
 $(obj)/inat-tables.c:
-	$(Q) $(AWK) -f $(srctree)/arch/x86/tools/gen-insn-attr-x86.awk $(srctree)/arch/x86/lib/x86-opcode-map.txt > $@
+	$(Q) awk -f $(srctree)/arch/x86/tools/gen-insn-attr-x86.awk $(srctree)/arch/x86/lib/x86-opcode-map.txt > $@
 
 $(obj)/inat.o: $(obj)/inat-tables.c
 

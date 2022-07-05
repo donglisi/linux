@@ -19,24 +19,7 @@ objtree		:= .
 VPATH		:= $(srctree)
 export srctree objtree VPATH
 
-CONFIG_SHELL := sh
-
-HOSTCC	= gcc
-
-CPP		= $(CC) -E
-CC		= gcc
-LD		= ld
-AR		= ar
-NM		= nm
-OBJCOPY		= objcopy
-OBJDUMP		= objdump
-STRIP		= strip
-AWK		= awk
-BASH		= bash
-
-export KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE -include $(srctree)/config.h
-
-export CONFIG_SHELL BASH HOSTCC LD CC CPP AR NM STRIP OBJCOPY OBJDUMP LEX YACC AWK MAKE
+export CONFIG_SHELL := sh
 
 all: bzImage
 

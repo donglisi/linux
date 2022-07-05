@@ -1,4 +1,11 @@
 src := $(obj)
+HOSTCC	= gcc
+CPP	= $(CC) -E
+CC	= gcc
+LD	= ld
+AR	= ar
+NM	= nm
+OBJCOPY	= objcopy
 REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member  -D_SETUP
 
 __build:
