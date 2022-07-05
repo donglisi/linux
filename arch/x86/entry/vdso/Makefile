@@ -5,7 +5,8 @@ obj-y += vma.o extable.o vdso-image-64.o
 vobjs := $(foreach F,$(vobjs-y),$(obj)/$F)
 
 $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs)
-	$(Q) $(LD) -o $@ -shared --hash-style=both -Bsymbolic -m elf_x86_64 -soname linux-vdso.so.1 --no-undefined -z max-page-size=4096 -T $(filter %.lds,$^) \
+	$(Q) $(LD) -o $@ -shared --hash-style=both -Bsymbolic -m elf_x86_64 -soname linux-vdso.so.1 \
+		--no-undefined -z max-page-size=4096 -T $(filter %.lds,$^) \
 		$(filter %.o,$^) && sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
 
 hostprogs := vdso2c
