@@ -15,8 +15,8 @@ a:
 endif
 
 srctree := $(abs_srctree)
-objtree		:= .
-VPATH		:= $(srctree)
+objtree	:= .
+VPATH	:= $(srctree)
 export srctree objtree VPATH
 
 export CONFIG_SHELL := sh
@@ -66,20 +66,16 @@ KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
 head-y := arch/x86/kernel/head_64.o arch/x86/kernel/head64.o arch/x86/kernel/ebda.o arch/x86/kernel/platform-quirks.o
-core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/
-drivers-y := arch/x86/pci/ drivers/ net/
+core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/ arch/x86/pci/ drivers/ net/
 libs-y := arch/x86/lib/ lib/
 
 bzImage: vmlinux
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/boot arch/x86/boot/bzImage
 
-vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(drivers-y) $(libs-y)))
-
-build-dirs	:= $(vmlinux-dirs)
+vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(libs-y)))
 
 KBUILD_VMLINUX_OBJS := $(head-y) $(patsubst %/, %/built-in.a, $(core-y))
 KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
-KBUILD_VMLINUX_OBJS += $(patsubst %/, %/built-in.a, $(drivers-y))
 export KBUILD_VMLINUX_OBJS
 
 export KBUILD_VMLINUX_LIBS := $(patsubst %/, %/lib.a, $(libs-y))
@@ -103,8 +99,9 @@ prepare0:
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=.
 
-PHONY += $(build-dirs)
+build-dirs := $(vmlinux-dirs)
 $(build-dirs): prepare0
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
 
+PHONY += $(build-dirs)
 .PHONY: $(PHONY)
