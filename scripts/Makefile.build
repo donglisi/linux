@@ -106,13 +106,14 @@ LINUXINCLUDE	:= -nostdinc \
 		-I $(objtree)/include/generated/uapi \
 		-include $(srctree)/config.h \
                 -include $(srctree)/include/linux/kconfig.h \
+		-include $(srctree)/include/linux/compiler_types.h \
                 -include $(srctree)/include/linux/compiler-version.h
 
-c_flags        = $(LINUXINCLUDE) -D__KERNEL__ -include $(srctree)/include/linux/compiler_types.h \
-		  $(KBUILD_CFLAGS) $(ccflags-y) $(CFLAGS_$(target-stem).o) \
-		 $(modfile_flags) $(basename_flags) $(modname_flags)
+KBUILD_CFLAGS += -D__KERNEL__
 
-a_flags        = $(LINUXINCLUDE) -D__KERNEL__ $(KBUILD_AFLAGS) $(asflags-y)
+c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(target-stem).o) $(modfile_flags) $(basename_flags) $(modname_flags)
+
+a_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__
 
 $(obj)/%.s: $(obj)/%.c
 	@echo "  CC     " $@
