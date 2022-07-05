@@ -1,6 +1,4 @@
-extra-y	:=  vmlinux.lds
-
-CPPFLAGS_vmlinux.lds += -Ux86_64
+extra-y	:= vmlinux.lds
 
 CFLAGS_irq.o := -I $(srctree)/$(src)/../include/asm/trace
 
