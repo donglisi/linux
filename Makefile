@@ -65,7 +65,6 @@ KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
-head-y := arch/x86/kernel/head_64.o arch/x86/kernel/head64.o arch/x86/kernel/ebda.o arch/x86/kernel/platform-quirks.o
 core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/ arch/x86/pci/ drivers/ net/
 libs-y := arch/x86/lib/ lib/
 
@@ -74,7 +73,7 @@ bzImage: vmlinux
 
 vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(libs-y)))
 
-KBUILD_VMLINUX_OBJS := $(head-y) $(patsubst %/, %/built-in.a, $(core-y))
+KBUILD_VMLINUX_OBJS := $(patsubst %/, %/built-in.a, $(core-y))
 KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
 export KBUILD_VMLINUX_OBJS
 
