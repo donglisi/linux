@@ -135,9 +135,11 @@ $(obj)/%.lds: $(obj)/%.lds.S
 	@ $(CPP) $(LINUXINCLUDE) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 $(obj)/built-in.a: $(real-obj-y)
+	@echo "  AR     " $@
 	$(Q) echo $(patsubst $(obj)/%, %, $^) | sed -E 's:([^ ]+):$(obj)/\1:g' | xargs $(AR) cDPrST $@
 
 $(obj)/lib.a: $(lib-y)
+	@echo "  AR     " $@
 	$(Q) $(AR) cDPrsT $@ $^
 
 $(sort $(filter %/built-in.a, $(real-obj-y))): $(obj)/%/built-in.a: $(obj)/%
