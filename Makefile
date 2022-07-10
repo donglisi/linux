@@ -68,7 +68,7 @@ KBUILD_CFLAGS += -Werror=designated-init
 core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ crypto/ block/ arch/x86/pci/ drivers/ net/
 libs-y := arch/x86/lib/ lib/
 
-bzImage: vmlinux
+bzImage: vmlinux FORCE
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/boot arch/x86/boot/bzImage
 
 vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(libs-y)))
@@ -84,7 +84,7 @@ export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 $(vmlinux-deps): $(vmlinux-dirs)
 
-vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
+vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps) FORCE
 	$(Q) $(CONFIG_SHELL) $< "$(LD)"
 
 prepare0:
@@ -102,6 +102,9 @@ prepare0:
 build-dirs := $(vmlinux-dirs)
 $(build-dirs): prepare0
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
+
+PHONY += FORCE
+FORCE:
 
 PHONY += $(build-dirs)
 .PHONY: $(PHONY)

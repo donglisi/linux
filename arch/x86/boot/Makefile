@@ -13,13 +13,13 @@ KBUILD_CFLAGS	+= -fmacro-prefix-map=$(srctree)/=
 KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
 KBUILD_CFLAGS	+= -include $(srctree)/config.h
 
-$(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build
+$(obj)/bzImage: $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/tools/build FORCE
 	$(Q) $(obj)/tools/build $(obj)/setup.bin $(obj)/vmlinux.bin $(obj)/zoffset.h $@
 
-$(obj)/vmlinux.bin: $(obj)/compressed/vmlinux
+$(obj)/vmlinux.bin: $(obj)/compressed/vmlinux FORCE
 	$(Q) $(OBJCOPY) -O binary -R .note -R .comment -S $< $@
 
-$(obj)/zoffset.h: $(obj)/compressed/vmlinux
+$(obj)/zoffset.h: $(obj)/compressed/vmlinux FORCE
 	$(Q) $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
 
 $(obj)/header.o: $(obj)/zoffset.h
@@ -30,5 +30,5 @@ $(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS)
 $(obj)/setup.bin: $(obj)/setup.elf
 	$(Q) $(OBJCOPY) -O binary $< $@
 
-$(obj)/compressed/vmlinux:
+$(obj)/compressed/vmlinux: FORCE
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$(obj)/compressed $@
