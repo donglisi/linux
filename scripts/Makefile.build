@@ -113,7 +113,7 @@ LINUXINCLUDE	:= -nostdinc \
 		-I $(objtree)/arch/x86/include/generated \
 		-I $(objtree)/arch/x86/include/generated/uapi \
 		-I $(objtree)/include/generated/uapi \
-		-include $(srctree)/config.h \
+		-include $(srctree)/scripts/config.h \
                 -include $(srctree)/include/linux/kconfig.h \
 		-include $(srctree)/include/linux/compiler_types.h \
                 -include $(srctree)/include/linux/compiler-version.h
@@ -151,7 +151,7 @@ host-csingle	:= $(addprefix $(obj)/,$(host-csingle))
 host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
 host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
 
-hostc_flags = -Wall -std=gnu11 -include $(srctree)/config.h -I $(objtree)/$(obj) -I$(srctree)/tools/include
+hostc_flags = -Wall -std=gnu11 -include $(srctree)/scripts/config.h -I $(objtree)/$(obj) -I$(srctree)/tools/include
 
 $(host-csingle): $(obj)/%: $(obj)/%.c
 	$(Q) $(HOSTCC) $(hostc_flags) -o $@ $<
