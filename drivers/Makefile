@@ -1,1 +1,1 @@
-obj-y := pci/ rtc/ input/ virtio/ tty/ char/ base/ block/ net/ clocksource/
+obj-y := pci/ rtc/ virtio/ tty/ char/ base/ block/ net/ clocksource/
