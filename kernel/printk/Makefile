@@ -1,1 +1,1 @@
-obj-y := printk.o printk_safe.o printk_ringbuffer.o sysctl.o
+obj-y := printk.o printk_safe.o printk_ringbuffer.o
