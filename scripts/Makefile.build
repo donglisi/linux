@@ -64,7 +64,7 @@ $(offsets-file): arch/x86/kernel/asm-offsets.s
 
 $(obj)/%.s: $(obj)/%.c
 	@echo "  CC     " $@
-	@ $(CC) $(c_flags) -S -o $@ $<
+	$(Q) $(CC) $(c_flags) -S -o $@ $<
 else
   include $(kbuild-dir)/Makefile
 endif
@@ -124,15 +124,15 @@ c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(target-stem).o) $(m
 
 $(obj)/%.o: $(obj)/%.c
 	@echo "  CC     " $@
-	@ $(CC) $(c_flags) -c -o $@ $<
+	$(Q) $(CC) $(c_flags) -c -o $@ $<
 
 $(obj)/%.o: $(obj)/%.S
 	@echo "  AS     " $@
-	@ $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
 
 $(obj)/%.lds: $(obj)/%.lds.S
 	@echo "  LDS    " $@
-	@ $(CPP) $(LINUXINCLUDE) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
+	$(Q) $(CPP) $(LINUXINCLUDE) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 $(obj)/built-in.a: $(real-obj-y)
 	@echo "  AR     " $@
