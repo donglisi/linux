@@ -65,7 +65,7 @@ KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
 
-core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ block/ arch/x86/pci/ drivers/ net/
+core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ block/ drivers/ net/
 libs-y := arch/x86/lib/ lib/
 
 bzImage: vmlinux FORCE

@@ -1,1 +1,1 @@
-obj-y += entry/ events/ realmode/ kernel/ mm/
+obj-y += entry/ events/ realmode/ kernel/ mm/ pci/
