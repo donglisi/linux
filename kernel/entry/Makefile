@@ -1,1 +1,1 @@
-obj-y += common.o syscall_user_dispatch.o
+obj-y += common.o syscall_user_dispatch.o kvm.o
