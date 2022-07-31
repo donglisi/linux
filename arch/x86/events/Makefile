@@ -1,1 +1,1 @@
-obj-y := core.o probe.o msr.o intel/ amd/
+obj-y := core.o probe.o amd/ msr.o
