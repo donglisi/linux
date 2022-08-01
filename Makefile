@@ -89,7 +89,7 @@ vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps) FORCE
 
 prepare0:
 	@ mkdir -p $(abs_objtree)/include/generated/uapi/linux/ $(abs_objtree)/scripts
-	@ echo '#define UTS_RELEASE "5.19.0-rc1"' > $(abs_objtree)/include/generated/utsrelease.h
+	@ echo '#define UTS_RELEASE "5.19.0"' > $(abs_objtree)/include/generated/utsrelease.h
 	@ cp $(srctree)/scripts/compile.h $(abs_objtree)/include/generated/
 	@ cp $(srctree)/scripts/version.h $(abs_objtree)/include/generated/uapi/linux/
 	@ cp $(srctree)/scripts/kallsyms $(abs_objtree)/scripts
