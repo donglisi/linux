@@ -20,7 +20,7 @@ $(obj)/../voffset.h: vmlinux
 
 $(obj)/misc.o: $(obj)/../voffset.h
 
-vmlinux-objs-y := vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o
+vmlinux-objs-y := vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o
 
 VMLINUX_OBJS = $(addprefix $(obj)/,$(vmlinux-objs-y))
 
