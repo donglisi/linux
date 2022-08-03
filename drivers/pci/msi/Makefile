@@ -1,1 +1,1 @@
-obj-y			+= pcidev_msi.o
+obj-y += pcidev_msi.o msi.o irqdomain.o
