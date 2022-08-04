@@ -1,1 +1,1 @@
-obj-y := devres.o socket.o core/ ethernet/ sched/ netlink/ ethtool/ ipv4/ unix/ ipv6/
+obj-y := devres.o socket.o core/ ethernet/ sched/ netlink/ ethtool/ unix/ ipv6/
