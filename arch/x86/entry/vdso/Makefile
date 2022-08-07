@@ -13,8 +13,7 @@ hostprogs := vdso2c
 $(obj)/vdso-image-64.c: $(obj)/vdso64.so.dbg $(obj)/vdso64.so $(obj)/vdso2c
 	$(Q) $(obj)/vdso2c $< $(<:64.dbg=64) $@
 
-$(vobjs): KBUILD_CFLAGS := $(KBUILD_CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 $(filter -g%,$(KBUILD_CFLAGS)) \
-	-fno-stack-protector -fno-omit-frame-pointer -foptimize-sibling-calls -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
+$(vobjs): KBUILD_CFLAGS := $(KBUILD_CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector -fno-omit-frame-pointer -foptimize-sibling-calls -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
 
 $(obj)/%.so: $(obj)/%.so.dbg
 	$(Q) $(OBJCOPY) -S --remove-section __ex_table $< $@
