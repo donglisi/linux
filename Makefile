@@ -88,11 +88,16 @@ vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps) FORCE
 	$(Q) $(CONFIG_SHELL) $< "$(LD)"
 
 prepare0:
-	@ mkdir -p $(abs_objtree)/include/generated/uapi/linux/ $(abs_objtree)/scripts
+	@ mkdir -p $(abs_objtree)/include/generated/uapi/linux/ $(abs_objtree)/scripts $(abs_objtree)/lib $(abs_objtree)/arch/x86/boot/compressed $(abs_objtree)/arch/x86/entry/vdso $(abs_objtree)/arch/x86/tools $(abs_objtree)/arch/x86/boot/tools
 	@ echo '#define UTS_RELEASE "5.19.0"' > $(abs_objtree)/include/generated/utsrelease.h
 	@ cp $(srctree)/scripts/compile.h $(abs_objtree)/include/generated/
 	@ cp $(srctree)/scripts/version.h $(abs_objtree)/include/generated/uapi/linux/
-	@ cp $(srctree)/scripts/kallsyms $(abs_objtree)/scripts
+	@ cp $(srctree)/lib/gen_crc32table $(abs_objtree)/lib/
+	@ cp $(srctree)/arch/x86/tools/relocs $(abs_objtree)/arch/x86/tools/
+	@ cp $(srctree)/arch/x86/boot/compressed/mkpiggy $(abs_objtree)/arch/x86/boot/compressed/
+	@ cp $(srctree)/arch/x86/boot/mkcpustr $(abs_objtree)/arch/x86/boot/
+	@ cp $(srctree)/arch/x86/boot/tools/build $(abs_objtree)/arch/x86/boot/tools
+	@ cp $(srctree)/arch/x86/entry/vdso/vdso2c $(abs_objtree)/arch/x86/entry/vdso/
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/entry/syscalls all
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/tools relocs
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
