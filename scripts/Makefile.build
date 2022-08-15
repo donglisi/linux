@@ -15,9 +15,11 @@ subdir-ym := $(sort $(patsubst %/,%, $(filter %/, $(obj-y))))
 
 obj-y := $(patsubst %/, %/built-in.a, $(obj-y))
 
+$(info ---------------- $(obj-y))
+
 extra-y		:= $(addprefix $(obj)/, $(extra-y))
 lib-y		:= $(addprefix $(obj)/, $(lib-y))
-obj-y	:= $(addprefix $(obj)/, $(obj-y))
+obj-y		:= $(addprefix $(obj)/, $(obj-y))
 subdir-ym	:= $(addprefix $(obj)/, $(subdir-ym))
 
 
