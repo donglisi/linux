@@ -85,12 +85,6 @@ lib-y		:= $(addprefix $(obj)/, $(lib-y))
 real-obj-y	:= $(addprefix $(obj)/, $(real-obj-y))
 subdir-ym	:= $(addprefix $(obj)/, $(subdir-ym))
 
-basetarget = $(basename $(notdir $@))
-modname = $(subst $(space),:,$(basetarget))
-modfile = $(addprefix $(obj)/,$(basetarget))
-
-target-stem = $(basename $(patsubst $(obj)/%,%,$@))
-
 LINUXINCLUDE	:= -nostdinc \
 		-I $(srctree)/$(obj) \
 		-I $(srctree)/include \
@@ -109,11 +103,12 @@ LINUXINCLUDE	:= -nostdinc \
 
 KBUILD_CFLAGS += -D__KERNEL__
 
-c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(target-stem).o) \
+basetarget = $(basename $(notdir $@))
+c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basetarget).o) \
 		-DKBUILD_MODFILE='"$(addprefix $(obj)/,$(basetarget))"' \
 		-DKBUILD_BASENAME='"$(subst -,_,$(basetarget))"' \
-		-DKBUILD_MODNAME='"$(subst -,_,$(modname))"' \
-		-D__KBUILD_MODNAME=kmod_$(subst -,_,$(modname))
+		-DKBUILD_MODNAME='"$(subst -,_,$(basetarget))"' \
+		-D__KBUILD_MODNAME=kmod_$(subst -,_,$(basetarget))
 
 $(obj)/%.o: $(obj)/%.c
 	@echo "  CC     " $@
@@ -154,7 +149,7 @@ $(foreach m, $1, $(eval $m: $(addprefix $(obj)/, $(call suffix-search, $(patsubs
 endef
 
 $(host-cmulti):
-	$(Q) $(HOSTCC) -o $@ $(addprefix $(obj)/, $($(target-stem)-objs))
+	$(Q) $(HOSTCC) -o $@ $(addprefix $(obj)/, $($(basetarget)-objs))
 
 $(call multi_depend, $(host-cmulti), , -objs)
 
