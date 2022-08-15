@@ -17,3 +17,4 @@ $(obj)/realmode.relocs: $(obj)/realmode.elf
 	$(Q) arch/x86/tools/relocs --realmode $< > $@
 
 KBUILD_CFLAGS	:= $(REALMODE_CFLAGS) -D_WAKEUP -I$(srctree)/arch/x86/boot
+KBUILD_CFLAGS += -D__KERNEL__

@@ -22,6 +22,19 @@ export srctree objtree VPATH
 export CONFIG_SHELL := sh
 
 all: bzImage
+export LINUXINCLUDE	:= -nostdinc \
+		-I $(srctree)/include \
+		-I $(srctree)/include/uapi \
+		-I $(srctree)/arch/x86/include \
+		-I $(srctree)/arch/x86/include/uapi \
+		-I $(objtree)/include \
+		-I $(objtree)/arch/x86/include/generated \
+		-I $(objtree)/arch/x86/include/generated/uapi \
+		-I $(objtree)/include/generated/uapi \
+		-include $(srctree)/scripts/config.h \
+                -include $(srctree)/include/linux/kconfig.h \
+		-include $(srctree)/include/linux/compiler_types.h \
+                -include $(srctree)/include/linux/compiler-version.h
 
 export KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
@@ -64,6 +77,15 @@ KBUILD_CFLAGS += -fconserve-stack
 KBUILD_CFLAGS += -Wno-error=date-time
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types
 KBUILD_CFLAGS += -Werror=designated-init
+KBUILD_CFLAGS += -D__KERNEL__
+
+export CPP	= $(CC) -E
+export CC	= gcc
+export LD	= ld
+export AR	= ar
+export NM	= nm
+export OBJCOPY	= objcopy
+export REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member  -D_SETUP
 
 core-y := init/ arch/x86/ kernel/ mm/ fs/ security/ block/ drivers/ net/
 libs-y := arch/x86/lib/ lib/
@@ -99,10 +121,9 @@ prepare0:
 	@ cp $(srctree)/arch/x86/boot/tools/build $(abs_objtree)/arch/x86/boot/tools
 	@ cp $(srctree)/arch/x86/entry/vdso/vdso2c $(abs_objtree)/arch/x86/entry/vdso/
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/entry/syscalls all
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/tools relocs
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=.
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build_ obj=.
 
 build-dirs := $(vmlinux-dirs)
 $(build-dirs): prepare0

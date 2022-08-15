@@ -12,6 +12,7 @@ KBUILD_CFLAGS += -fmacro-prefix-map=$(srctree)/=
 KBUILD_CFLAGS += -fno-asynchronous-unwind-tables
 KBUILD_CFLAGS += -D__DISABLE_EXPORTS
 KBUILD_CFLAGS += -include $(srctree)/include/linux/hidden.h
+KBUILD_CFLAGS += -D__KERNEL__
 
 hostprogs	:= mkpiggy
 
