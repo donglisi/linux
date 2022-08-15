@@ -11,20 +11,13 @@ c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basetarget).o) \
 		-DKBUILD_MODNAME='"$(subst -,_,$(basetarget))"' \
 		-D__KBUILD_MODNAME=kmod_$(subst -,_,$(basetarget))
 
-lib-y := $(filter-out $(obj-y), $(sort $(lib-y)))
-
 subdir-ym := $(sort $(patsubst %/,%, $(filter %/, $(obj-y))))
 
 obj-y := $(patsubst %/, %/built-in.a, $(obj-y))
 
-suffix-search = $(strip $(foreach s, $3, $($(1:%$(strip $2)=%$s))))
-real-search = $(foreach m, $1, $(if $(call suffix-search, $m, $2, $3 -), $(call suffix-search, $m, $2, $3), $m))
-
-real-obj-y := $(call real-search, $(obj-y), .o, -objs -y)
-
 extra-y		:= $(addprefix $(obj)/, $(extra-y))
 lib-y		:= $(addprefix $(obj)/, $(lib-y))
-real-obj-y	:= $(addprefix $(obj)/, $(real-obj-y))
+obj-y	:= $(addprefix $(obj)/, $(obj-y))
 subdir-ym	:= $(addprefix $(obj)/, $(subdir-ym))
 
 
@@ -40,7 +33,7 @@ $(obj)/%.lds: $(obj)/%.lds.S
 	@echo "  LDS    " $@
 	$(Q) $(CPP) $(LINUXINCLUDE) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
-$(obj)/built-in.a: $(real-obj-y)
+$(obj)/built-in.a: $(obj-y)
 	@echo "  AR     " $@
 	$(Q) echo $(patsubst $(obj)/%, %, $^) | sed -E 's:([^ ]+):$(obj)/\1:g' | xargs $(AR) cDPrST $@
 
@@ -48,13 +41,13 @@ $(obj)/lib.a: $(lib-y)
 	@echo "  AR     " $@
 	$(Q) $(AR) cDPrsT $@ $^
 
-$(sort $(filter %/built-in.a, $(real-obj-y))): $(obj)/%/built-in.a: $(obj)/%
+$(sort $(filter %/built-in.a, $(obj-y))): $(obj)/%/built-in.a: $(obj)/%
 
 targets-for-builtin := $(extra-y) $(obj)/built-in.a
 ifneq ($(strip $(lib-y)),)
 targets-for-builtin += $(obj)/lib.a
 endif
-targets += $(targets-for-builtin) $(real-obj-y) $(lib-y)
+targets += $(targets-for-builtin) $(obj-y) $(lib-y)
 
 __build: $(targets-for-builtin)
 
