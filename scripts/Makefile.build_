@@ -45,11 +45,10 @@ arch/x86/kernel/asm-offsets.s: $(timeconst-file) $(bounds-file)
 $(offsets-file): arch/x86/kernel/asm-offsets.s
 	@ $(call filechk,offsets,__ASM_OFFSETS_H__)
 
-$(obj)/%.s: $(obj)/%.c
+%.s: %.c
 	@echo "  CC     " $@
 	$(Q) $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -S -o $@ $<
 
 __build: $(always-y)
 
-obj-dirs := $(sort $(dir $(targets)))
-$(shell mkdir -p $(obj-dirs))
+$(shell mkdir -p kernel arch/x86/kernel)

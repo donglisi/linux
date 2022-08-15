@@ -123,7 +123,7 @@ prepare0:
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/entry/syscalls all
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build_ obj=.
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build_
 
 build-dirs := $(vmlinux-dirs)
 $(build-dirs): prepare0
