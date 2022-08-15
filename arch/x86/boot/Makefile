@@ -24,7 +24,7 @@ $(obj)/zoffset.h: $(obj)/compressed/vmlinux FORCE
 
 $(obj)/header.o: $(obj)/zoffset.h
 
-$(obj)/setup.elf: $(src)/setup.ld $(SETUP_OBJS)
+$(obj)/setup.elf: $(obj)/setup.ld $(SETUP_OBJS)
 	$(Q) $(LD) -m elf_i386 -T $^ -o $@
 
 $(obj)/setup.bin: $(obj)/setup.elf

@@ -1,4 +1,3 @@
-src := $(obj)
 HOSTCC	= gcc
 CPP	= $(CC) -E
 CC	= gcc

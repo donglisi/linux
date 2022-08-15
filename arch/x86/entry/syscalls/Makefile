@@ -5,8 +5,8 @@ uapi := arch/x86/include/generated/uapi/asm
 
 $(shell mkdir -p $(out) $(uapi))
 
-syscall32 := $(src)/syscall_32.tbl
-syscall64 := $(src)/syscall_64.tbl
+syscall32 := $(obj)/syscall_32.tbl
+syscall64 := $(obj)/syscall_64.tbl
 
 syshdr := $(srctree)/scripts/syscallhdr.sh
 systbl := $(srctree)/scripts/syscalltbl.sh
