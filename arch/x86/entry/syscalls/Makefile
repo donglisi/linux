@@ -1,7 +1,7 @@
 if_changed = @ $(if $(if $(strip $(cmd_$@)),,1), $(cmd_$(1)),@:)
 
-out := arch/x86/include/generated/asm
-uapi := arch/x86/include/generated/uapi/asm
+out := build/arch/x86/include/generated/asm
+uapi := build/arch/x86/include/generated/uapi/asm
 
 $(shell mkdir -p $(out) $(uapi))
 

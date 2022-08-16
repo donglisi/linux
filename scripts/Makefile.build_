@@ -16,7 +16,7 @@ export LINUXINCLUDE = \
 dot-target = $(dir $@).$(notdir $@)
 kecho := :
 define filechk
-	mkdir -p $(dir $@);					\
+	mkdir -p build/$(dir $@);					\
 	{ $(filechk_$(1)); } > $(dot-target).tmp;		\
 	if [ ! -r $@ ] || ! cmp -s $@ $(dot-target).tmp; then	\
 		$(kecho) '  UPD     $@';			\
@@ -43,25 +43,25 @@ endef
 
 filechk_gentimeconst = echo 1000 | bc -q $<
 
-bounds-file := include/generated/bounds.h
+bounds-file := build/include/generated/bounds.h
 always-y := $(bounds-file)
-targets := kernel/bounds.s
-$(bounds-file): kernel/bounds.s
+targets := build/kernel/bounds.s
+$(bounds-file): build/kernel/bounds.s
 	@ $(call filechk,offsets,__LINUX_BOUNDS_H__)
-timeconst-file := include/generated/timeconst.h
+timeconst-file := build/include/generated/timeconst.h
 $(timeconst-file): kernel/time/timeconst.bc
 	@ $(call filechk,gentimeconst)
-offsets-file := include/generated/asm-offsets.h
+offsets-file := build/include/generated/asm-offsets.h
 always-y += $(offsets-file)
-targets += arch/x86/kernel/asm-offsets.s
-arch/x86/kernel/asm-offsets.s: $(timeconst-file) $(bounds-file)
-$(offsets-file): arch/x86/kernel/asm-offsets.s
+targets += build/arch/x86/kernel/asm-offsets.s
+build/arch/x86/kernel/asm-offsets.s: $(timeconst-file) $(bounds-file)
+$(offsets-file): build/arch/x86/kernel/asm-offsets.s
 	@ $(call filechk,offsets,__ASM_OFFSETS_H__)
 
-%.s: %.c
+build/%.s: %.c
 	@echo "  CC     " $@
 	$(Q) $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -S -o $@ $<
 
 __build: $(always-y)
 
-$(shell mkdir -p kernel arch/x86/kernel)
+$(shell mkdir -p build/kernel build/arch/x86/kernel)

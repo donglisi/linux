@@ -1,23 +1,11 @@
-MAKEFLAGS += -rR --include-dir=$(abs_srctree) --no-print-directory
 export Q = @
 
-ifneq ($(sub_make_done),1)
-export sub_make_done := 1
-
-KBUILD_OUTPUT := $(O)
-abs_objtree := $(realpath $(shell mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd))
-abs_srctree := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-export abs_srctree abs_objtree
-
-a:
-	$(Q) $(MAKE) -C $(abs_objtree) -f $(abs_srctree)/Makefile
-
-endif
+abs_objtree := build
+abs_srctree := /home/d/linux
 
 srctree := $(abs_srctree)
-objtree	:= .
-VPATH	:= $(srctree)
-export srctree objtree VPATH
+objtree	:= $(abs_objtree)
+export srctree objtree
 
 export CONFIG_SHELL := sh
 
@@ -103,7 +91,7 @@ c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basename $@).o) \
 		-DKBUILD_MODNAME='"$(basetarget_fix_name)"' \
 		-D__KBUILD_MODNAME=kmod_$(basetarget_fix_name)
 
-%.o: %.c
+$(abs_objtree)/%.o: %.c
 	@echo "  CC     " $@
 	$(Q) $(CC) $(c_flags) -c -o $@ $<
 
@@ -155,6 +143,9 @@ export KBUILD_VMLINUX_LIBS := $(patsubst %/, %/lib.a, $(libs-y))
 export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
+
+objs: $(KBUILD_VMLINUX_OBJS)
+
 $(vmlinux-deps): $(vmlinux-dirs)
 
 vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
