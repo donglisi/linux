@@ -60,7 +60,7 @@ export LD	= ld
 export AR	= ar
 export NM	= nm
 export OBJCOPY	= objcopy
-export REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member  -D_SETUP
+REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member  -D_SETUP
 
 
 
@@ -178,9 +178,6 @@ build/lib/crc32.o: build/lib/crc32table.h
 build/lib/crc32table.h: build/lib/gen_crc32table
 	$(Q) $< > $@
 
-
-# x86 := $(addprefix arch/x86/, $(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o)
-
 x86 := $(addprefix arch/x86/, $(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
 	$(addprefix events/, core.o probe.o msr.o) \
 	$(addprefix realmode/, init.o rmpiggy.o) \
@@ -190,8 +187,22 @@ x86 := $(addprefix arch/x86/, $(addprefix entry/, entry_64.o thunk_64.o syscall_
 
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
-build/arch/x86/realmode/rm/realmode.bin:
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/realmode/rm arch/x86/realmode/rm/realmode.bin
+REALMODE_OBJS = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
+$(REALMODE_OBJS): KBUILD_CFLAGS := $(REALMODE_CFLAGS) -D_WAKEUP -I$(srctree)/arch/x86/boot -D__KERNEL__
+
+build/arch/x86/realmode/rm/pasyms.h: $(REALMODE_OBJS)
+	$(Q) $(NM) $^ | sed -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p' | sort | uniq > $@
+
+build/arch/x86/realmode/rm/realmode.lds: build/arch/x86/realmode/rm/pasyms.h
+
+build/arch/x86/realmode/rm/realmode.elf: build/arch/x86/realmode/rm/realmode.lds $(REALMODE_OBJS)
+	$(Q) $(LD) -m elf_i386 --emit-relocs -T $^ -o $@
+
+build/arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf build/arch/x86/realmode/rm/realmode.relocs
+	$(Q) $(OBJCOPY) -O binary $< $@
+
+build/arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.elf
+	$(Q) arch/x86/tools/relocs --realmode $< > $@
 
 extra-y	:= kernel/vmlinux.lds
 
