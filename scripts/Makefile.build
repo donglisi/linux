@@ -2,7 +2,7 @@ __build:
 
 include $(obj)/Makefile
 
-export LINUXINCLUDE = \
+LINUXINCLUDE = \
 		-nostdinc \
 		-I $(srctree)/include \
 		-I $(srctree)/include/uapi \
@@ -27,14 +27,12 @@ c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basename $@).o) \
 		-DKBUILD_MODNAME='"$(basetarget_fix_name)"' \
 		-D__KBUILD_MODNAME=kmod_$(basetarget_fix_name)
 
-subdir-ym := $(patsubst %/, %, $(filter %/, $(obj-y)))
 
 obj-y := $(patsubst %/, %/built-in.a, $(obj-y))
 
 extra-y		:= $(addprefix $(obj)/, $(extra-y))
 lib-y		:= $(addprefix $(obj)/, $(lib-y))
 obj-y		:= $(addprefix $(obj)/, $(obj-y))
-subdir-ym	:= $(addprefix $(obj)/, $(subdir-ym))
 
 
 $(obj)/%.o: $(obj)/%.c
@@ -67,10 +65,5 @@ targets += $(targets-for-builtin) $(obj-y) $(lib-y)
 
 __build: $(targets-for-builtin)
 
-$(subdir-ym):
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
-
 obj-dirs := $(sort $(dir $(targets)))
 $(shell mkdir -p $(obj-dirs))
-
-.PHONY: $(subdir-ym) FORCE

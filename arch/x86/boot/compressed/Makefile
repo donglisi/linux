@@ -25,13 +25,13 @@ vmlinux-objs-y := vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o 
 
 VMLINUX_OBJS = $(addprefix $(obj)/,$(vmlinux-objs-y))
 
-$(obj)/vmlinux: $(VMLINUX_OBJS) FORCE
+$(obj)/vmlinux: $(VMLINUX_OBJS)
 	$(Q) $(LD) -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(VMLINUX_OBJS) -o $@
 
-$(obj)/vmlinux.bin: vmlinux FORCE
+$(obj)/vmlinux.bin: vmlinux
 	$(Q) $(OBJCOPY) -R .comment -S $< $@
 
-$(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin FORCE
+$(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin
 	$(Q) cat $< | gzip -n -f -9 > $@
 
 $(obj)/piggy.S: $(obj)/vmlinux.bin.gz $(obj)/mkpiggy
