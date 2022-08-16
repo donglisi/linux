@@ -72,12 +72,12 @@ LINUXINCLUDE = \
 		-I $(srctree)/include/uapi \
 		-I $(srctree)/arch/x86/include \
 		-I $(srctree)/arch/x86/include/uapi \
-		-I $(srctree)/$(dir $@) \
+		-I $(srctree)/$(subst $(objtree)/,,$(dir $@)) \
 		-I $(objtree)/include \
 		-I $(objtree)/arch/x86/include/generated \
 		-I $(objtree)/arch/x86/include/generated/uapi \
 		-I $(objtree)/include/generated/uapi \
-		-I $(objtree)/$(dir $@) \
+		-I $(dir $@) \
 		-include $(srctree)/scripts/config.h \
 		-include $(srctree)/include/linux/kconfig.h \
 		-include $(srctree)/include/linux/compiler_types.h \
@@ -136,6 +136,7 @@ vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(libs-y)))
 
 KBUILD_VMLINUX_OBJS := $(addprefix $(abs_objtree)/, $(patsubst %/, %/built-in.a, $(core-y)) $(init) $(block) $(net) $(drivers) $(fs) $(mm))
 KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
+
 export KBUILD_VMLINUX_OBJS
 
 export KBUILD_VMLINUX_LIBS := $(patsubst %/, %/lib.a, $(libs-y))
@@ -144,7 +145,7 @@ export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 
-objs: $(KBUILD_VMLINUX_OBJS)
+objs: $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm))
 
 $(vmlinux-deps): $(vmlinux-dirs)
 
@@ -201,10 +202,6 @@ prepare0:
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build_
-
-build-dirs := $(vmlinux-dirs)
-$(build-dirs): prepare0
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
 
 PHONY += $(build-dirs)
 .PHONY: $(PHONY)
