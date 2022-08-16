@@ -28,12 +28,9 @@ c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basename $@).o) \
 		-D__KBUILD_MODNAME=kmod_$(basetarget_fix_name)
 
 
-obj-y := $(patsubst %/, %/built-in.a, $(obj-y))
-
 extra-y		:= $(addprefix $(obj)/, $(extra-y))
 lib-y		:= $(addprefix $(obj)/, $(lib-y))
 obj-y		:= $(addprefix $(obj)/, $(obj-y))
-
 
 $(obj)/%.o: $(obj)/%.c
 	@echo "  CC     " $@
