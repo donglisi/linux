@@ -22,19 +22,6 @@ export srctree objtree VPATH
 export CONFIG_SHELL := sh
 
 all: bzImage
-export LINUXINCLUDE	:= -nostdinc \
-		-I $(srctree)/include \
-		-I $(srctree)/include/uapi \
-		-I $(srctree)/arch/x86/include \
-		-I $(srctree)/arch/x86/include/uapi \
-		-I $(objtree)/include \
-		-I $(objtree)/arch/x86/include/generated \
-		-I $(objtree)/arch/x86/include/generated/uapi \
-		-I $(objtree)/include/generated/uapi \
-		-include $(srctree)/scripts/config.h \
-                -include $(srctree)/include/linux/kconfig.h \
-		-include $(srctree)/include/linux/compiler_types.h \
-                -include $(srctree)/include/linux/compiler-version.h
 
 export KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \

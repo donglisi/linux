@@ -1,5 +1,22 @@
 __build:
 
+export LINUXINCLUDE = \
+		-nostdinc \
+		-I $(srctree)/include \
+		-I $(srctree)/include/uapi \
+		-I $(srctree)/arch/x86/include \
+		-I $(srctree)/arch/x86/include/uapi \
+		-I $(srctree)/$(dir $@) \
+		-I $(objtree)/include \
+		-I $(objtree)/arch/x86/include/generated \
+		-I $(objtree)/arch/x86/include/generated/uapi \
+		-I $(objtree)/include/generated/uapi \
+		-I $(objtree)/$(dir $@) \
+		-include $(srctree)/scripts/config.h \
+		-include $(srctree)/include/linux/kconfig.h \
+		-include $(srctree)/include/linux/compiler_types.h \
+		-include $(srctree)/include/linux/compiler-version.h \
+
 dot-target = $(dir $@).$(notdir $@)
 kecho := :
 define filechk
