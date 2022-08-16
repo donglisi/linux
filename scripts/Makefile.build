@@ -21,7 +21,7 @@ export LINUXINCLUDE = \
 
 basetarget = $(basename $(notdir $@))
 basetarget_fix_name = $(subst -,_,$(basetarget))
-c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basetarget).o) \
+c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basename $@).o) \
 		-DKBUILD_MODFILE='"$(basename $@)"' \
 		-DKBUILD_BASENAME='"$(basetarget_fix_name)"' \
 		-DKBUILD_MODNAME='"$(basetarget_fix_name)"' \

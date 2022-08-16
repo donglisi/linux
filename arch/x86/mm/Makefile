@@ -1,2 +1,0 @@
-obj-y :=  init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o maccess.o pgprot.o pat/
-CFLAGS_fault.o := -I $(srctree)/$(obj)/../include/asm/trace
