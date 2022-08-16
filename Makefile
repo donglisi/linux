@@ -128,15 +128,25 @@ net := $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 	$(addprefix netlink/, af_netlink.o genetlink.o policy.o) \
 	$(addprefix core/, sock.o request_sock.o skbuff.o datagram.o stream.o scm.o gen_stats.o gen_estimator.o net_namespace.o secure_seq.o flow_dissector.o dev.o dev_addr_lists.o dst.o netevent.o neighbour.o rtnetlink.o utils.o link_watch.o filter.o sock_diag.o dev_ioctl.o tso.o sock_reuseport.o fib_notifier.o xdp.o flow_offload.o gro.o net-sysfs.o net-procfs.o))
 
-core-y := init/ arch/x86/ kernel/ mm/ fs/ security/
+fs := $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.o exec.o pipe.o namei.o fcntl.o ioctl.o readdir.o select.o dcache.o inode.o attr.o bad_inode.o file.o filesystems.o namespace.o seq_file.o xattr.o libfs.o fs-writeback.o pnode.o splice.o sync.o utimes.o d_path.o stack.o fs_struct.o statfs.o fs_pin.o nsfs.o fs_types.o fs_context.o fs_parser.o fsopen.o init.o kernel_read_file.o remap_range.o buffer.o direct-io.o mpage.o proc_namespace.o anon_inodes.o locks.o binfmt_script.o binfmt_elf.o mbcache.o fhandle.o exportfs/expfs.o devpts/inode.o \
+	$(addprefix ramfs/, inode.o file-mmu.o) \
+	$(addprefix iomap/, trace.o iter.o buffered-io.o direct-io.o fiemap.o seek.o) \
+	$(addprefix ext2/, balloc.o dir.o file.o ialloc.o inode.o ioctl.o namei.o super.o symlink.o) \
+	$(addprefix proc/, task_mmu.o inode.o root.o base.o generic.o array.o fd.o proc_tty.o cmdline.o consoles.o cpuinfo.o devices.o interrupts.o loadavg.o meminfo.o stat.o uptime.o util.o version.o softirqs.o namespaces.o self.o thread_self.o proc_net.o))
+
+mm := $(addprefix mm/, highmem.o memory.o mincore.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o vmalloc.o filemap.o mempool.o oom_kill.o fadvise.o maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o shmem.o util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o compaction.o vmacache.o interval_tree.o list_lru.o workingset.o debug.o gup.o mmap_lock.o page_alloc.o init-mm.o memblock.o madvise.o dmapool.o sparse.o slub.o early_ioremap.o secretmem.o)
+
+init := $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
+
+core-y := arch/x86/ kernel/ security/
 libs-y := arch/x86/lib/ lib/
 
-bzImage: vmlinux FORCE
+bzImage: vmlinux
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/boot arch/x86/boot/bzImage
 
 vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(libs-y)))
 
-KBUILD_VMLINUX_OBJS := $(patsubst %/, %/built-in.a, $(core-y)) $(block) $(net) $(drivers)
+KBUILD_VMLINUX_OBJS := $(patsubst %/, %/built-in.a, $(core-y)) $(init) $(block) $(net) $(drivers) $(fs) $(mm)
 KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
 export KBUILD_VMLINUX_OBJS
 
@@ -147,7 +157,7 @@ export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 $(vmlinux-deps): $(vmlinux-dirs)
 
-vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps) FORCE
+vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
 	$(Q) $(CONFIG_SHELL) $< "$(LD)"
 
 prepare0:
@@ -177,7 +187,16 @@ prepare0:
 		$(abs_objtree)/net/sched \
 		$(abs_objtree)/net/unix \
 		$(abs_objtree)/net/netlink \
-		$(abs_objtree)/net/core
+		$(abs_objtree)/net/core \
+		$(abs_objtree)/fs/iomap \
+		$(abs_objtree)/fs/nls \
+		$(abs_objtree)/fs/proc \
+		$(abs_objtree)/fs/devpts \
+		$(abs_objtree)/fs/ext2 \
+		$(abs_objtree)/fs/ramfs \
+		$(abs_objtree)/fs/exportfs \
+		$(abs_objtree)/init \
+		$(abs_objtree)/mm
 	@ echo '#define UTS_RELEASE "5.19.0"' > $(abs_objtree)/include/generated/utsrelease.h
 	@ cp $(srctree)/scripts/compile.h $(abs_objtree)/include/generated/
 	@ cp $(srctree)/scripts/version.h $(abs_objtree)/include/generated/uapi/linux/
@@ -195,9 +214,6 @@ prepare0:
 build-dirs := $(vmlinux-dirs)
 $(build-dirs): prepare0
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=$@
-
-PHONY += FORCE
-FORCE:
 
 PHONY += $(build-dirs)
 .PHONY: $(PHONY)
