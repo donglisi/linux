@@ -11,11 +11,9 @@ c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basetarget).o) \
 		-DKBUILD_MODNAME='"$(subst -,_,$(basetarget))"' \
 		-D__KBUILD_MODNAME=kmod_$(subst -,_,$(basetarget))
 
-subdir-ym := $(sort $(patsubst %/,%, $(filter %/, $(obj-y))))
+subdir-ym := $(patsubst %/, %, $(filter %/, $(obj-y)))
 
 obj-y := $(patsubst %/, %/built-in.a, $(obj-y))
-
-$(info ---------------- $(obj-y))
 
 extra-y		:= $(addprefix $(obj)/, $(extra-y))
 lib-y		:= $(addprefix $(obj)/, $(lib-y))
@@ -43,7 +41,7 @@ $(obj)/lib.a: $(lib-y)
 	@echo "  AR     " $@
 	$(Q) $(AR) cDPrsT $@ $^
 
-$(sort $(filter %/built-in.a, $(obj-y))): $(obj)/%/built-in.a: $(obj)/%
+$(filter %/built-in.a, $(obj-y)): $(obj)/%/built-in.a: $(obj)/%
 
 targets-for-builtin := $(extra-y) $(obj)/built-in.a
 ifneq ($(strip $(lib-y)),)
