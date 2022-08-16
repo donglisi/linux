@@ -134,7 +134,7 @@ bzImage: vmlinux
 
 vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(libs-y)))
 
-KBUILD_VMLINUX_OBJS := $(patsubst %/, %/built-in.a, $(core-y)) $(init) $(block) $(net) $(drivers) $(fs) $(mm)
+KBUILD_VMLINUX_OBJS := $(addprefix $(abs_objtree)/, $(patsubst %/, %/built-in.a, $(core-y)) $(init) $(block) $(net) $(drivers) $(fs) $(mm))
 KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
 export KBUILD_VMLINUX_OBJS
 
