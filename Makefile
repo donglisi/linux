@@ -1,4 +1,4 @@
-export Q = @
+export Q =
 
 abs_objtree := build
 abs_srctree := /home/d/linux
@@ -95,6 +95,14 @@ $(abs_objtree)/%.o: %.c
 	@echo "  CC     " $@
 	$(Q) $(CC) $(c_flags) -c -o $@ $<
 
+$(abs_objtree)/%.o: %.S
+	@echo "  AS     " $@
+	$(Q) $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
+
+$(abs_objtree)/%.lds: %.lds.S
+	@echo "  LDS    " $@
+	$(Q) $(CPP) $(LINUXINCLUDE) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
+
 block := $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs.o blk-flush.o blk-settings.o blk-ioc.o blk-map.o blk-merge.o blk-timeout.o blk-lib.o blk-mq.o blk-mq-tag.o blk-stat.o blk-mq-sysfs.o blk-mq-cpumap.o blk-mq-sched.o ioctl.o genhd.o ioprio.o badblocks.o partitions/core.o blk-rq-qos.o disk-events.o blk-ia-ranges.o blk-mq-pci.o blk-mq-virtio.o)
 
 drivers := block/virtio_blk.o net/loopback.o clocksource/i8253.o
@@ -144,6 +152,8 @@ lib := $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 	$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
 	$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o blake2s-selftest.o))
 
+lib_lib := $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o plist.o decompress.o kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o nodemask.o win_minmax.o memcat_p.o buildid.o dump_stack.o kobject.o klist.o logic_pio.o bug.o)
+
 core-y := arch/x86/ kernel/
 libs-y := arch/x86/lib/ lib/
 
@@ -163,11 +173,56 @@ export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
 
 vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
 
-objs: $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(kernel))
 
 build/lib/crc32.o: build/lib/crc32table.h
 build/lib/crc32table.h: build/lib/gen_crc32table
 	$(Q) $< > $@
+
+
+# x86 := $(addprefix arch/x86/, $(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o)
+
+x86 := $(addprefix arch/x86/, $(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
+	$(addprefix events/, core.o probe.o msr.o) \
+	$(addprefix realmode/, init.o rmpiggy.o) \
+	$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o maccess.o pgprot.o $(addprefix pat/, set_memory.o memtype.o)) \
+	$(addprefix pci/, i386.o init.o direct.o fixup.o legacy.o irq.o common.o early.o bus_numa.o) \
+	$(addprefix kernel/, process_64.o signal.o traps.o idt.o irq.o irq_64.o dumpstack_64.o time.o ioport.o dumpstack.o nmi.o setup.o x86_init.o i8259.o irqinit.o irq_work.o probe_roms.o sys_x86_64.o bootflag.o e820.o pci-dma.o quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o $(addprefix fpu/, init.o bugs.o core.o regset.o signal.o xstate.o) ptrace.o step.o stacktrace.o $(addprefix cpu/, cacheinfo.o scattered.o topology.o common.o rdrand.o match.o bugs.o aperfmperf.o cpuid-deps.o umwait.o proc.o capflags.o powerflags.o feat_ctl.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) reboot.o early-quirks.o tsc_sync.o mpparse.o $(addprefix apic/, apic.o apic_common.o apic_noop.o ipi.o vector.o hw_nmi.o io_apic.o ipi.o apic_flat_64.o probe_64.o msi.o) trace_clock.o early_printk.o hpet.o kvm.o kvmclock.o paravirt.o pvclock.o pcspeaker.o perf_regs.o unwind_orc.o vsmp_64.o head_64.o head64.o ebda.o platform-quirks.o))
+
+build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
+
+build/arch/x86/realmode/rm/realmode.bin:
+	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/realmode/rm arch/x86/realmode/rm/realmode.bin
+
+extra-y	:= kernel/vmlinux.lds
+
+CFLAGS_build/arch/x86/kernel/irq.o := -I $(srctree)/arch/x86/kernel/../include/asm/trace
+CFLAGS_build/arch/x86/mm/fault.o := -I $(srctree)/arch/x86/kernel/../include/asm/trace
+
+cpufeature = arch/x86/kernel/cpu/../../include/asm/cpufeatures.h
+vmxfeature = arch/x86/kernel/cpu/../../include/asm/vmxfeatures.h
+
+arch/x86/kernel/cpu/capflags.c: $(cpufeature) $(vmxfeature) arch/x86/kernel/cpu/mkcapflags.sh
+	$(Q) $(CONFIG_SHELL) $(srctree)/arch/x86/kernel/cpu/mkcapflags.sh $@ $^
+
+vobjs-y := vdso-note.o vclock_gettime.o vgetcpu.o
+
+vobjs := $(foreach F,$(vobjs-y),build/arch/x86/entry/vdso/$F)
+
+build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vobjs)
+	$(Q) $(LD) -o $@ -shared --hash-style=both -Bsymbolic -m elf_x86_64 \
+		-soname linux-vdso.so.1 --no-undefined -z max-page-size=4096 -T $^
+
+arch/x86/entry/vdso/vdso-image-64.c: build/arch/x86/entry/vdso/vdso64.so.dbg build/arch/x86/entry/vdso/vdso64.so build/arch/x86/entry/vdso/vdso2c
+	$(Q) build/arch/x86/entry/vdso/vdso2c $< $(<:64.dbg=64) $@
+
+$(vobjs): KBUILD_CFLAGS := $(KBUILD_CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector -fno-omit-frame-pointer -foptimize-sibling-calls -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO -D__KERNEL__
+
+build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
+	$(Q) $(OBJCOPY) -S --remove-section __ex_table $< $@
+
+
+
+
 
 $(vmlinux-deps): $(vmlinux-dirs)
 
@@ -176,40 +231,13 @@ vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
 
 prepare0:
 	@ mkdir -p $(abs_objtree)/include/generated/uapi/linux/ \
-		$(abs_objtree)/scripts \
-		$(abs_objtree)/arch/x86/boot/compressed \
-		$(abs_objtree)/arch/x86/entry/vdso \
-		$(abs_objtree)/arch/x86/tools \
-		$(abs_objtree)/arch/x86/boot/tools \
-		$(abs_objtree)/drivers/base/firmware_loader/builtin \
-		$(abs_objtree)/drivers/base/power \
-		$(abs_objtree)/drivers/pci/pcie \
-		$(abs_objtree)/drivers/pci/msi \
-		$(abs_objtree)/drivers/clocksource \
-		$(abs_objtree)/drivers/virtio \
-		$(abs_objtree)/drivers/char \
-		$(abs_objtree)/drivers/net \
-		$(abs_objtree)/drivers/rtc \
-		$(abs_objtree)/drivers/block \
-		$(abs_objtree)/drivers/tty/hvc \
-		$(abs_objtree)/drivers/platform/x86 \
-		$(abs_objtree)/net/ipv6 \
-		$(abs_objtree)/net/ethernet \
-		$(abs_objtree)/net/ethtool \
-		$(abs_objtree)/net/sched \
-		$(abs_objtree)/net/unix \
-		$(abs_objtree)/net/netlink \
-		$(abs_objtree)/net/core \
-		$(abs_objtree)/fs/iomap \
-		$(abs_objtree)/fs/nls \
-		$(abs_objtree)/fs/proc \
-		$(abs_objtree)/fs/devpts \
-		$(abs_objtree)/fs/ext2 \
-		$(abs_objtree)/fs/ramfs \
-		$(abs_objtree)/fs/exportfs \
-		$(abs_objtree)/security \
+		$(abs_objtree)/{mm,block/partitions,init,scripts,security} \
+		$(abs_objtree)/arch/x86/{boot/compressed,entry/vdso,tools,boot/tools} \
+		$(abs_objtree)/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
+		$(abs_objtree)/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
+		$(abs_objtree)/fs/{iomap,nls,proc,devpts,ext2,ramfs,exportfs} \
+		$(abs_objtree)/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm} \
 		$(abs_objtree)/lib/{math,crypto} \
-		$(abs_objtree)/{mm,block/partitions,init} \
 		$(abs_objtree)/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}
 	@ echo '#define UTS_RELEASE "5.19.0"' > $(abs_objtree)/include/generated/utsrelease.h
 	@ cp $(srctree)/scripts/compile.h $(abs_objtree)/include/generated/
@@ -224,3 +252,5 @@ prepare0:
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build_
+
+objs: $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(lib_lib) $(kernel) $(x86))
