@@ -65,7 +65,7 @@ block	:= $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs
 
 drivers := block/virtio_blk.o net/loopback.o clocksource/i8253.o
 drivers += $(addprefix virtio/, virtio.o virtio_ring.o virtio_pci_modern_dev.o virtio_pci_modern.o virtio_pci_common.o)
-drivers += $(addprefix tty/, tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o tty_mutex.o  tty_ldsem.o tty_baudrate.o tty_jobctrl.o n_null.o pty.o hvc/hvc_console.o)
+drivers += $(addprefix tty/, tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o tty_mutex.o tty_ldsem.o tty_baudrate.o tty_jobctrl.o n_null.o hvc/hvc_console.o)
 drivers += $(addprefix rtc/, lib.o rtc-mc146818-lib.o)
 drivers += $(addprefix char/, mem.o random.o misc.o virtio_console.o)
 drivers += $(addprefix pci/, access.o bus.o probe.o host-bridge.o remove.o pci.o pci-driver.o search.o pci-sysfs.o \
@@ -79,7 +79,7 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o $
 	$(addprefix sched/, sch_generic.o sch_mq.o) $(addprefix unix/, af_unix.o garbage.o scm.o) $(addprefix netlink/, af_netlink.o genetlink.o policy.o) \
 	$(addprefix core/, sock.o request_sock.o skbuff.o datagram.o stream.o scm.o gen_stats.o gen_estimator.o net_namespace.o secure_seq.o flow_dissector.o dev.o dev_addr_lists.o dst.o netevent.o neighbour.o rtnetlink.o utils.o link_watch.o filter.o sock_diag.o dev_ioctl.o tso.o sock_reuseport.o fib_notifier.o xdp.o flow_offload.o gro.o net-sysfs.o net-procfs.o))
 
-fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.o exec.o pipe.o namei.o fcntl.o ioctl.o readdir.o select.o dcache.o inode.o attr.o bad_inode.o file.o filesystems.o namespace.o seq_file.o xattr.o libfs.o fs-writeback.o pnode.o splice.o sync.o utimes.o d_path.o stack.o fs_struct.o statfs.o fs_pin.o nsfs.o fs_types.o fs_context.o fs_parser.o fsopen.o init.o kernel_read_file.o remap_range.o buffer.o direct-io.o mpage.o proc_namespace.o anon_inodes.o locks.o binfmt_script.o binfmt_elf.o mbcache.o fhandle.o exportfs/expfs.o devpts/inode.o	$(addprefix ramfs/, inode.o file-mmu.o) $(addprefix iomap/, trace.o iter.o buffered-io.o direct-io.o fiemap.o seek.o) $(addprefix ext2/, balloc.o dir.o file.o ialloc.o inode.o ioctl.o namei.o super.o symlink.o) $(addprefix proc/, task_mmu.o inode.o root.o base.o generic.o array.o fd.o proc_tty.o cmdline.o consoles.o cpuinfo.o devices.o interrupts.o loadavg.o meminfo.o stat.o uptime.o util.o version.o softirqs.o namespaces.o self.o thread_self.o proc_net.o))
+fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.o exec.o pipe.o namei.o fcntl.o ioctl.o readdir.o select.o dcache.o inode.o attr.o bad_inode.o file.o filesystems.o namespace.o seq_file.o xattr.o libfs.o fs-writeback.o pnode.o splice.o sync.o utimes.o d_path.o stack.o fs_struct.o statfs.o fs_pin.o nsfs.o fs_types.o fs_context.o fs_parser.o fsopen.o init.o kernel_read_file.o remap_range.o buffer.o direct-io.o mpage.o proc_namespace.o anon_inodes.o locks.o binfmt_script.o binfmt_elf.o mbcache.o fhandle.o exportfs/expfs.o $(addprefix ramfs/, inode.o file-mmu.o) $(addprefix iomap/, trace.o iter.o buffered-io.o direct-io.o fiemap.o seek.o) $(addprefix ext2/, balloc.o dir.o file.o ialloc.o inode.o ioctl.o namei.o super.o symlink.o) $(addprefix proc/, task_mmu.o inode.o root.o base.o generic.o array.o fd.o proc_tty.o cmdline.o consoles.o cpuinfo.o devices.o interrupts.o loadavg.o meminfo.o stat.o uptime.o util.o version.o softirqs.o namespaces.o self.o thread_self.o proc_net.o))
 
 mm	:= $(addprefix mm/, highmem.o memory.o mincore.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o vmalloc.o filemap.o mempool.o oom_kill.o fadvise.o maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o shmem.o util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o compaction.o vmacache.o interval_tree.o list_lru.o workingset.o debug.o gup.o mmap_lock.o page_alloc.o init-mm.o memblock.o madvise.o dmapool.o sparse.o slub.o early_ioremap.o secretmem.o)
 
@@ -266,7 +266,7 @@ prepare:
 		$(BUILD)/arch/x86/{boot/compressed,entry/vdso,tools,boot/tools} \
 		$(BUILD)/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 		$(BUILD)/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
-		$(BUILD)/fs/{iomap,nls,proc,devpts,ext2,ramfs,exportfs} \
+		$(BUILD)/fs/{iomap,nls,proc,ext2,ramfs,exportfs} \
 		$(BUILD)/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
 		$(BUILD)/lib/{math,crypto} \
 		$(BUILD)/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}
