@@ -87,7 +87,7 @@ init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
-kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o ptrace.o user.o signal.o sys.o umh.o workqueue.o pid.o task_work.o extable.o params.o kthread.o sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o smpboot.o ucount.o regset.o groups.o irq_work.o power/qos.o bpf/core.o static_call.o static_call_inline.o context_tracking.o iomem.o up.o platform-feature.o \
+kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o ptrace.o user.o signal.o sys.o umh.o workqueue.o pid.o task_work.o extable.o params.o kthread.o sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o smpboot.o ucount.o regset.o groups.o irq_work.o power/qos.o bpf/core.o static_call.o static_call_inline.o context_tracking.o iomem.o up.o platform-feature.o kallsyms.o \
 	$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 	$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 	$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
@@ -117,6 +117,7 @@ libs	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o 
 	insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o \
 	copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(libs))
+export libs
 $(libs): c_flags = $(vmlinux_flags)
 
 arch/x86/lib/inat-tables.c:
@@ -253,14 +254,11 @@ arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz 
 	@echo "  MKPIGGY" $@
 	$(Q) build/arch/x86/boot/compressed/mkpiggy $< > $@
 
-objs = $(addprefix $(BUILD)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(kernel) $(x86))
+export objs = $(addprefix $(BUILD)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(kernel) $(x86))
 $(objs): c_flags = $(vmlinux_flags)
 
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
-	@echo "  LD     " $@
-	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ --whole-archive $(objs) --no-whole-archive -start-group $(libs) --end-group
-	@echo "  SYSMAP " System.map
-	$(Q) nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
+	$(Q) sh scripts/link-vmlinux.sh
 
 prepare:
 	@ mkdir -p $(BUILD)/include/generated/uapi/linux/ \
