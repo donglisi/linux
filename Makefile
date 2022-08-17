@@ -154,6 +154,7 @@ lib := $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 
 libs := $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o plist.o decompress.o kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o nodemask.o win_minmax.o memcat_p.o buildid.o dump_stack.o kobject.o klist.o logic_pio.o bug.o)
 libs += $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
+libs := $(addprefix build/, $(libs))
 
 arch/x86/lib/inat-tables.c:
 	$(Q) awk -f $(srctree)/arch/x86/tools/gen-insn-attr-x86.awk $(srctree)/arch/x86/lib/x86-opcode-map.txt > $@
@@ -264,10 +265,9 @@ build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vm
 build/arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz build/arch/x86/boot/compressed/mkpiggy
 	$(Q) build/arch/x86/boot/compressed/mkpiggy $< > $@
 
-objs = $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(libs) $(kernel) $(x86)) # $(REALMODE_OBJS)
-build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs)
-	ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ --whole-archive $(objs) --no-whole-archive
-#	ld -m elf_x86_64 -z max-page-size=0x200000 --script=${objtree}/${KBUILD_LDS} -o ${output} --whole-archive ${KBUILD_VMLINUX_OBJS} --no-whole-archive --start-group ${KBUILD_VMLINUX_LIBS} --end-group $2
+objs = $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(kernel) $(x86))
+build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
+	ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ --whole-archive $(objs) --no-whole-archive -start-group $(libs) --end-group
 
 prepare0:
 	@ mkdir -p $(abs_objtree)/include/generated/uapi/linux/ \
@@ -288,7 +288,7 @@ prepare0:
 	@ cp $(srctree)/arch/x86/boot/mkcpustr $(abs_objtree)/arch/x86/boot/
 	@ cp $(srctree)/arch/x86/boot/tools/build $(abs_objtree)/arch/x86/boot/tools
 	@ cp $(srctree)/arch/x86/entry/vdso/vdso2c $(abs_objtree)/arch/x86/entry/vdso/
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/entry/syscalls all
+	$(Q) $(MAKE) -f $(srctree)/arch/x86/entry/syscalls/Makefile all
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build_
