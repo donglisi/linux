@@ -29,12 +29,8 @@ export CC	= gcc
 export LD	= ld
 export AR	= ar
 export NM	= nm
-export OBJCOPY	= objcopy
+OBJCOPY	= objcopy
 REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member  -D_SETUP
-
-
-
-
 
 export LINUXINCLUDE = \
 		-nostdinc \
@@ -250,6 +246,8 @@ objs = $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(m
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	@echo "  LD     " $@
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ --whole-archive $(objs) --no-whole-archive -start-group $(libs) --end-group
+	@echo "  SYSMAP " System.map
+	$(Q) nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
 
 prepare:
 	@ mkdir -p $(abs_objtree)/include/generated/uapi/linux/ \
