@@ -1,4 +1,5 @@
-export Q =
+MAKEFLAGS := -rR --no-print-directory
+export Q = @
 
 abs_objtree := build
 abs_srctree := /home/d/linux
@@ -11,48 +12,17 @@ export CONFIG_SHELL := sh
 
 all: build/arch/x86/boot/bzImage
 
-export KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
-		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
-		   -Werror=implicit-function-declaration -Werror=implicit-int \
-		   -Werror=return-type -Wno-format-security \
-		   -std=gnu11
-KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx
-KBUILD_CFLAGS += -falign-jumps=1
-KBUILD_CFLAGS += -falign-loops=1
-KBUILD_CFLAGS += -mno-80387
-KBUILD_CFLAGS += -mno-fp-ret-in-387
-KBUILD_CFLAGS += -mskip-rax-setup
-KBUILD_CFLAGS += -mno-red-zone
-KBUILD_CFLAGS += -mcmodel=kernel
-KBUILD_CFLAGS += -Wno-sign-compare
-KBUILD_CFLAGS += -fno-asynchronous-unwind-tables
-KBUILD_CFLAGS += -fno-delete-null-pointer-checks
-KBUILD_CFLAGS += -Wno-frame-address
-KBUILD_CFLAGS += -Wno-format-truncation
-KBUILD_CFLAGS += -Wno-format-overflow
-KBUILD_CFLAGS += -Wno-address-of-packed-member
-KBUILD_CFLAGS += -O2
-KBUILD_CFLAGS += -fno-allow-store-data-races
-KBUILD_CFLAGS += -Wno-main
-KBUILD_CFLAGS += -fno-stack-protector
-KBUILD_CFLAGS += -Wimplicit-fallthrough=5
-KBUILD_CFLAGS += -Wno-declaration-after-statement
-KBUILD_CFLAGS += -Wno-vla
-KBUILD_CFLAGS += -Wno-pointer-sign
-KBUILD_CFLAGS += -Wno-cast-function-type
-KBUILD_CFLAGS += -Wno-unused-const-variable
-KBUILD_CFLAGS += -Wno-unused-but-set-variable
-KBUILD_CFLAGS += -Wno-stringop-truncation
-KBUILD_CFLAGS += -Wno-stringop-overflow
-KBUILD_CFLAGS += -Wno-restrict
-KBUILD_CFLAGS += -Wno-maybe-uninitialized
-KBUILD_CFLAGS += -fno-strict-overflow
-KBUILD_CFLAGS += -fno-stack-check
-KBUILD_CFLAGS += -fconserve-stack
-KBUILD_CFLAGS += -Wno-error=date-time
-KBUILD_CFLAGS += -Werror=incompatible-pointer-types
-KBUILD_CFLAGS += -Werror=designated-init
-KBUILD_CFLAGS += -D__KERNEL__
+export KBUILD_CFLAGS := -D__KERNEL__ -Wall -Wundef -fshort-wchar -std=gnu11 -O2 -Wimplicit-fallthrough=5
+KBUILD_CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mno-red-zone -mno-red-zone
+KBUILD_CFLAGS += -falign-jumps=1 -falign-loops=1 -fshort-wchar -fconserve-stack
+KBUILD_CFLAGS += -mskip-rax-setup -mcmodel=kernel
+KBUILD_CFLAGS += -fno-asynchronous-unwind-tables -fno-delete-null-pointer-checks -fno-stack-protector -fno-PIE \
+		-fno-allow-store-data-races -fno-strict-overflow -fno-stack-check -fno-stack-check -fno-strict-aliasing -fno-common 
+KBUILD_CFLAGS += -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -Wno-format-security \
+		-Wno-main -Wno-declaration-after-statement -Wno-vla -Wno-pointer-sign -Wno-cast-function-type \
+		-Wno-unused-const-variable -Wno-unused-but-set-variable -Wno-stringop-truncation -Wno-stringop-overflow \
+		-Wno-restrict -Wno-maybe-uninitialized -Wno-error=date-time -Wno-maybe-uninitialized -Wno-sign-compare -Wno-maybe-uninitialized -Wno-trigraphs
+KBUILD_CFLAGS += -Werror=incompatible-pointer-types -Werror=designated-init -Werror=return-type -Werror=implicit-function-declaration -Werror=implicit-int -Werror=strict-prototypes
 
 export CPP	= $(CC) -E
 export CC	= gcc
@@ -225,12 +195,15 @@ $(SETUP_OBJS): KBUILD_CFLAGS := $(REALMODE_CFLAGS) -fmacro-prefix-map=$(srctree)
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
 build/arch/x86/boot/cpustr.h: build/arch/x86/boot/mkcpustr
+	@echo "  CPUSTR " $@
 	$(Q) build/arch/x86/boot/mkcpustr > $@
 
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/tools/build build/vmlinux $(SETUP_OBJS) $(REALMODE_OBJS)
+	@echo "  BUILD  " $@
 	$(Q) build/arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
 
 build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
+	@echo "  OBJCOPY" $@
 	$(Q) $(OBJCOPY) -O binary -R .note -R .comment -S $< $@
 
 build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
@@ -239,37 +212,46 @@ build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
 build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
 
 build/arch/x86/boot/setup.elf: arch/x86/boot/setup.ld $(SETUP_OBJS)
+	@echo "  LD     " $@
 	$(Q) $(LD) -m elf_i386 -T $^ -o $@
 
 build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
+	@echo "  OBJCOPY" $@
 	$(Q) $(OBJCOPY) -O binary $< $@
 
-
 build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
+	@echo "  VOFFSET" $@
 	$(Q) $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
 
 build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
 
 VMLINUX_OBJS = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
-$(VMLINUX_OBJS): KBUILD_CFLAGS := -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -DDISABLE_BRANCH_PROFILING -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector -Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -D__DISABLE_EXPORTS -include $(srctree)/include/linux/hidden.h -D__KERNEL__
+$(VMLINUX_OBJS): KBUILD_CFLAGS := -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector -Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -D__DISABLE_EXPORTS -include $(srctree)/include/linux/hidden.h -D__KERNEL__
 
 build/arch/x86/boot/compressed/vmlinux: $(VMLINUX_OBJS)
 	$(Q) $(LD) -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(VMLINUX_OBJS) -o $@
 
 build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
+	@echo "  OBJCOPY" $@
 	$(Q) $(OBJCOPY) -R .comment -S $< $@
 
 build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vmlinux.bin
+	@echo "  GZIP   " $@
 	$(Q) cat $< | gzip -n -f -9 > $@
 
 build/arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz build/arch/x86/boot/compressed/mkpiggy
+	@echo "  MKPIGGY" $@
 	$(Q) build/arch/x86/boot/compressed/mkpiggy $< > $@
+
+build/arch/x86/boot/compressed/piggy.o: build/arch/x86/boot/compressed/piggy.S
+	$(Q) $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
 
 objs = $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(kernel) $(x86))
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
-	ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ --whole-archive $(objs) --no-whole-archive -start-group $(libs) --end-group
+	@echo "  LD     " $@
+	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ --whole-archive $(objs) --no-whole-archive -start-group $(libs) --end-group
 
-prepare0:
+prepare:
 	@ mkdir -p $(abs_objtree)/include/generated/uapi/linux/ \
 		$(abs_objtree)/{mm,block/partitions,init,scripts,security} \
 		$(abs_objtree)/arch/x86/{boot/compressed,entry/vdso,tools,boot/tools} \
