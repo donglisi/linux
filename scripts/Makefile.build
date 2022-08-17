@@ -47,7 +47,7 @@ $(offsets-file): build/arch/x86/kernel/asm-offsets.s
 
 build/%.s: %.c
 	@echo "  CC     " $@
-	$(Q) $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -S -o $@ $<
+	$(Q) gcc $(LINUXINCLUDE) $(KBUILD_CFLAGS) -S -o $@ $<
 
 __build: $(always-y)
 
