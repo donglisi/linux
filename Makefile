@@ -7,6 +7,9 @@ export srctree BUILD
 
 all: build/arch/x86/boot/bzImage
 
+clean:
+	rm -rf $(BUILD) arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/kernel/cpu/capflags.c arch/x86/lib/inat-tables.c
+
 export LINUXINCLUDE = \
 		-nostdinc \
 		-I $(srctree)/include \
