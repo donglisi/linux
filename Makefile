@@ -66,7 +66,7 @@ REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -W
 
 
 
-LINUXINCLUDE = \
+export LINUXINCLUDE = \
 		-nostdinc \
 		-I $(srctree)/include \
 		-I $(srctree)/include/uapi \
