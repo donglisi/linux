@@ -235,12 +235,9 @@ build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vm
 	@echo "  GZIP   " $@
 	$(Q) cat $< | gzip -n -f -9 > $@
 
-build/arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz build/arch/x86/boot/compressed/mkpiggy
+arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz build/arch/x86/boot/compressed/mkpiggy
 	@echo "  MKPIGGY" $@
 	$(Q) build/arch/x86/boot/compressed/mkpiggy $< > $@
-
-build/arch/x86/boot/compressed/piggy.o: build/arch/x86/boot/compressed/piggy.S
-	$(Q) $(CC) $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
 
 objs = $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(kernel) $(x86))
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
