@@ -9,7 +9,7 @@ export srctree objtree
 
 export CONFIG_SHELL := sh
 
-all: bzImage
+all: build/arch/x86/boot/bzImage
 
 export KBUILD_CFLAGS := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
@@ -155,22 +155,6 @@ lib := $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 libs := $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o plist.o decompress.o kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o nodemask.o win_minmax.o memcat_p.o buildid.o dump_stack.o kobject.o klist.o logic_pio.o bug.o)
 libs += $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 
-bzImage: vmlinux
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build obj=arch/x86/boot arch/x86/boot/bzImage
-
-vmlinux-dirs	:= $(patsubst %/, %, $(filter %/, $(core-y) $(libs-y)))
-
-KBUILD_VMLINUX_OBJS := $(addprefix $(abs_objtree)/, $(patsubst %/, %/built-in.a, $(core-y)) $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib))
-KBUILD_VMLINUX_OBJS += $(addsuffix built-in.a, $(filter %/, $(libs-y)))
-
-export KBUILD_VMLINUX_OBJS
-
-export KBUILD_VMLINUX_LIBS := $(patsubst %/, %/lib.a, $(libs-y))
-
-export KBUILD_LDS := arch/x86/kernel/vmlinux.lds
-
-vmlinux-deps := $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)
-
 arch/x86/lib/inat-tables.c:
 	$(Q) awk -f $(srctree)/arch/x86/tools/gen-insn-attr-x86.awk $(srctree)/arch/x86/lib/x86-opcode-map.txt > $@
 
@@ -186,7 +170,7 @@ x86 := $(addprefix arch/x86/, $(addprefix entry/, entry_64.o thunk_64.o syscall_
 	$(addprefix realmode/, init.o rmpiggy.o) \
 	$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o maccess.o pgprot.o $(addprefix pat/, set_memory.o memtype.o)) \
 	$(addprefix pci/, i386.o init.o direct.o fixup.o legacy.o irq.o common.o early.o bus_numa.o) \
-	$(addprefix kernel/, process_64.o signal.o traps.o idt.o irq.o irq_64.o dumpstack_64.o time.o ioport.o dumpstack.o nmi.o setup.o x86_init.o i8259.o irqinit.o irq_work.o probe_roms.o sys_x86_64.o bootflag.o e820.o pci-dma.o quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o $(addprefix fpu/, init.o bugs.o core.o regset.o signal.o xstate.o) ptrace.o step.o stacktrace.o $(addprefix cpu/, cacheinfo.o scattered.o topology.o common.o rdrand.o match.o bugs.o aperfmperf.o cpuid-deps.o umwait.o proc.o capflags.o powerflags.o feat_ctl.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) reboot.o early-quirks.o tsc_sync.o mpparse.o $(addprefix apic/, apic.o apic_common.o apic_noop.o ipi.o vector.o hw_nmi.o io_apic.o ipi.o apic_flat_64.o probe_64.o msi.o) trace_clock.o early_printk.o hpet.o kvm.o kvmclock.o paravirt.o pvclock.o pcspeaker.o perf_regs.o unwind_orc.o vsmp_64.o head_64.o head64.o ebda.o platform-quirks.o))
+	$(addprefix kernel/, process_64.o signal.o traps.o idt.o irq.o irq_64.o dumpstack_64.o time.o ioport.o dumpstack.o nmi.o setup.o x86_init.o i8259.o irqinit.o irq_work.o probe_roms.o sys_x86_64.o bootflag.o e820.o pci-dma.o quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o $(addprefix fpu/, init.o bugs.o core.o regset.o signal.o xstate.o) ptrace.o step.o stacktrace.o $(addprefix cpu/, cacheinfo.o scattered.o topology.o common.o rdrand.o match.o bugs.o aperfmperf.o cpuid-deps.o umwait.o proc.o capflags.o powerflags.o feat_ctl.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) reboot.o early-quirks.o tsc_sync.o mpparse.o $(addprefix apic/, apic.o apic_common.o apic_noop.o ipi.o vector.o hw_nmi.o io_apic.o apic_flat_64.o probe_64.o msi.o) trace_clock.o early_printk.o hpet.o kvm.o kvmclock.o paravirt.o pvclock.o pcspeaker.o perf_regs.o unwind_orc.o vsmp_64.o head_64.o head64.o ebda.o platform-quirks.o))
 
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
@@ -234,14 +218,56 @@ $(vobjs): KBUILD_CFLAGS := $(KBUILD_CFLAGS) -mcmodel=small -fPIC -O2 -fasynchron
 build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 	$(Q) $(OBJCOPY) -S --remove-section __ex_table $< $@
 
+SETUP_OBJS = $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o)
+$(SETUP_OBJS): KBUILD_CFLAGS := $(REALMODE_CFLAGS) -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -include $(srctree)/scripts/config.h -D__KERNEL__
+
+build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
+
+build/arch/x86/boot/cpustr.h: build/arch/x86/boot/mkcpustr
+	$(Q) build/arch/x86/boot/mkcpustr > $@
+
+build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/tools/build build/vmlinux $(SETUP_OBJS) $(REALMODE_OBJS)
+	$(Q) build/arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
+
+build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
+	$(Q) $(OBJCOPY) -O binary -R .note -R .comment -S $< $@
+
+build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
+	$(Q) $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
+
+build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
+
+build/arch/x86/boot/setup.elf: arch/x86/boot/setup.ld $(SETUP_OBJS)
+	$(Q) $(LD) -m elf_i386 -T $^ -o $@
+
+build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
+	$(Q) $(OBJCOPY) -O binary $< $@
 
 
+build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
+	$(Q) $(NM) $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
 
+build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
 
-$(vmlinux-deps): $(vmlinux-dirs)
+VMLINUX_OBJS = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
+$(VMLINUX_OBJS): KBUILD_CFLAGS := -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -DDISABLE_BRANCH_PROFILING -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector -Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -D__DISABLE_EXPORTS -include $(srctree)/include/linux/hidden.h -D__KERNEL__
 
-vmlinux: scripts/link-vmlinux.sh $(vmlinux-deps)
-	$(Q) $(CONFIG_SHELL) $< "$(LD)"
+build/arch/x86/boot/compressed/vmlinux: $(VMLINUX_OBJS)
+	$(Q) $(LD) -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(VMLINUX_OBJS) -o $@
+
+build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
+	$(Q) $(OBJCOPY) -R .comment -S $< $@
+
+build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vmlinux.bin
+	$(Q) cat $< | gzip -n -f -9 > $@
+
+build/arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz build/arch/x86/boot/compressed/mkpiggy
+	$(Q) build/arch/x86/boot/compressed/mkpiggy $< > $@
+
+objs = $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(libs) $(kernel) $(x86)) # $(REALMODE_OBJS)
+build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs)
+	ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ --whole-archive $(objs) --no-whole-archive
+#	ld -m elf_x86_64 -z max-page-size=0x200000 --script=${objtree}/${KBUILD_LDS} -o ${output} --whole-archive ${KBUILD_VMLINUX_OBJS} --no-whole-archive --start-group ${KBUILD_VMLINUX_LIBS} --end-group $2
 
 prepare0:
 	@ mkdir -p $(abs_objtree)/include/generated/uapi/linux/ \
@@ -266,5 +292,3 @@ prepare0:
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
 	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build_
-
-objs: $(addprefix $(abs_objtree)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(libs) $(kernel) $(x86))
