@@ -38,23 +38,24 @@ KBUILD_CFLAGS += -Wno-frame-address -Wno-format-truncation -Wno-format-overflow 
 KBUILD_CFLAGS += -Werror=incompatible-pointer-types -Werror=designated-init -Werror=return-type -Werror=implicit-function-declaration -Werror=implicit-int -Werror=strict-prototypes
 export KBUILD_CFLAGS
 
-REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
-
-basetarget = $(basename $(notdir $@))
-basetarget_fix_name = $(subst -,_,$(basetarget))
-c_flags        = $(LINUXINCLUDE) $(KBUILD_CFLAGS) $(CFLAGS_$(basename $@).o) \
+vmlinux_flags = $(KBUILD_CFLAGS) $(CFLAGS_$(basename $@).o) \
 		-DKBUILD_MODFILE='"$(basename $@)"' \
 		-DKBUILD_BASENAME='"$(basetarget_fix_name)"' \
 		-DKBUILD_MODNAME='"$(basetarget_fix_name)"' \
 		-D__KBUILD_MODNAME=kmod_$(basetarget_fix_name)
 
+REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 -fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
+
+basetarget = $(basename $(notdir $@))
+basetarget_fix_name = $(subst -,_,$(basetarget))
+
 $(BUILD)/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) gcc $(c_flags) -c -o $@ $<
+	$(Q) gcc $(LINUXINCLUDE) $(c_flags) -c -o $@ $<
 
 $(BUILD)/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) gcc $(LINUXINCLUDE) $(KBUILD_CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) gcc $(LINUXINCLUDE) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
 
 $(BUILD)/%.lds: %.lds.S
 	@echo "  LDS    " $@
@@ -116,6 +117,7 @@ libs	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o 
 	insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o \
 	copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(libs))
+$(libs): c_flags = $(vmlinux_flags)
 
 arch/x86/lib/inat-tables.c:
 	$(Q) awk -f $(srctree)/arch/x86/tools/gen-insn-attr-x86.awk $(srctree)/arch/x86/lib/x86-opcode-map.txt > $@
@@ -148,7 +150,7 @@ x86	:= $(addprefix arch/x86/, $(addprefix entry/, entry_64.o thunk_64.o syscall_
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
 REALMODE_OBJS = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
-$(REALMODE_OBJS): KBUILD_CFLAGS := $(REALMODE_CFLAGS) -D_WAKEUP -I$(srctree)/arch/x86/boot
+$(REALMODE_OBJS): c_flags = $(REALMODE_CFLAGS) -D_WAKEUP -I$(srctree)/arch/x86/boot
 
 build/arch/x86/realmode/rm/pasyms.h: $(REALMODE_OBJS)
 	$(Q) nm $^ | sed -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p' | sort | uniq > $@
@@ -186,7 +188,7 @@ arch/x86/entry/vdso/vdso-image-64.c: build/arch/x86/entry/vdso/vdso64.so.dbg bui
 	@echo "  VDSO2C " $@
 	$(Q) build/arch/x86/entry/vdso/vdso2c $< $(<:64.dbg=64) $@
 
-$(vobjs): KBUILD_CFLAGS := $(KBUILD_CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector -fno-omit-frame-pointer -foptimize-sibling-calls -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
+$(vobjs): c_flags = $(KBUILD_CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector -fno-omit-frame-pointer -foptimize-sibling-calls -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
 
 build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 	@echo "  OBJCOPY" $@
@@ -196,7 +198,7 @@ SETUP_OBJS := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.
 		early_serial_console.o edd.o header.o main.o memory.o pm.o \
 		pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o \
 		version.o video-vga.o video-vesa.o video-bios.o)
-$(SETUP_OBJS): KBUILD_CFLAGS := $(REALMODE_CFLAGS) -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -include $(srctree)/scripts/config.h
+$(SETUP_OBJS): c_flags = $(REALMODE_CFLAGS) -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -include $(srctree)/scripts/config.h
 
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
@@ -234,7 +236,7 @@ build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset
 VMLINUX_OBJS = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o \
 		misc.o string.o cmdline.o error.o piggy.o cpuflags.o \
 		early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
-$(VMLINUX_OBJS): KBUILD_CFLAGS := -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector -Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -D__DISABLE_EXPORTS -include $(srctree)/include/linux/hidden.h -D__KERNEL__
+$(VMLINUX_OBJS): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector -Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -D__DISABLE_EXPORTS -include $(srctree)/include/linux/hidden.h -D__KERNEL__
 
 build/arch/x86/boot/compressed/vmlinux: $(VMLINUX_OBJS)
 	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(VMLINUX_OBJS) -o $@
@@ -252,6 +254,8 @@ arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz 
 	$(Q) build/arch/x86/boot/compressed/mkpiggy $< > $@
 
 objs = $(addprefix $(BUILD)/, $(init) $(block) $(net) $(drivers) $(fs) $(mm) $(security) $(lib) $(kernel) $(x86))
+$(objs): c_flags = $(vmlinux_flags)
+
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	@echo "  LD     " $@
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ --whole-archive $(objs) --no-whole-archive -start-group $(libs) --end-group
