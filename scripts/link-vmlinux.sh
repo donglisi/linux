@@ -45,6 +45,6 @@ kallsyms_vmlinux=""
 
 vmlinux_link build/vmlinux "${kallsymso}"
 
-info SYSMAP System.map
+info SYSMAP build/System.map
 nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
 
