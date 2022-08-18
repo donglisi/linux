@@ -1,31 +1,51 @@
 MAKEFLAGS := -rR --no-print-directory
 export Q = @
 
-build := build
 srctree := /home/d/linux
-export srctree build
 
 all: build/arch/x86/boot/bzImage
 
 clean:
-	rm -rf $(build) arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/kernel/cpu/capflags.c arch/x86/lib/inat-tables.c
+	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/kernel/cpu/capflags.c arch/x86/lib/inat-tables.c
+prepare:
+	mkdir -p \
+	      build/include \
+	      build/arch/x86/include \
+	      build/{mm,block/partitions,init,scripts,security} \
+	      build/arch/x86/{boot/compressed,entry/vdso,tools,boot/tools} \
+	      build/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
+	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
+	      build/fs/{iomap,nls,proc,ext2,ramfs,exportfs} \
+	      build/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
+	      build/lib/{math,crypto} \
+	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}
+	cp -r scripts/generated              build/include
+	cp -r scripts/asm_generated          build/arch/x86/include/generated
+	cp lib/gen_crc32table                build/lib
+	cp arch/x86/tools/relocs             build/arch/x86/tools
+	cp arch/x86/boot/compressed/mkpiggy  build/arch/x86/boot/compressed
+	cp arch/x86/boot/mkcpustr            build/arch/x86/boot
+	cp arch/x86/boot/tools/build         build/arch/x86/boot/tools
+	cp arch/x86/entry/vdso/vdso2c        build/arch/x86/entry/vdso
+	cp kernel/bounds.s                   build/kernel
+	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
 
 export LINUXINCLUDE = \
 		-nostdinc \
-		-I $(srctree)/include \
-		-I $(srctree)/include/uapi \
-		-I $(srctree)/arch/x86/include \
-		-I $(srctree)/arch/x86/include/uapi \
-		-I $(srctree)/$(subst $(build)/,,$(dir $@)) \
-		-I $(build)/include \
-		-I $(build)/arch/x86/include/generated \
-		-I $(build)/arch/x86/include/generated/uapi \
-		-I $(build)/include/generated/uapi \
+		-I include \
+		-I include/uapi \
+		-I arch/x86/include \
+		-I arch/x86/include/uapi \
+		-I $(subst build/,,$(dir $@)) \
+		-I build/include \
+		-I build/arch/x86/include/generated \
+		-I build/arch/x86/include/generated/uapi \
+		-I build/include/generated/uapi \
 		-I $(dir $@) \
-		-include $(srctree)/scripts/config.h \
-		-include $(srctree)/include/linux/kconfig.h \
-		-include $(srctree)/include/linux/compiler_types.h \
-		-include $(srctree)/include/linux/compiler-version.h \
+		-include scripts/config.h \
+		-include include/linux/kconfig.h \
+		-include include/linux/compiler_types.h \
+		-include include/linux/compiler-version.h \
 
 CFLAGS := -D__KERNEL__ -Wall -Wundef -fshort-wchar -std=gnu11 -O2 -Wimplicit-fallthrough=5
 CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mno-red-zone -mno-red-zone
@@ -53,15 +73,15 @@ realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -W
 			-fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding \
 			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 
-$(build)/%.o: %.c
+build/%.o: %.c
 	@echo "  CC     " $@
 	$(Q) gcc $(LINUXINCLUDE) $(c_flags) -c -o $@ $<
 
-$(build)/%.o: %.S
+build/%.o: %.S
 	@echo "  AS     " $@
 	$(Q) gcc $(LINUXINCLUDE) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
 
-$(build)/%.lds: %.lds.S
+build/%.lds: %.lds.S
 	@echo "  LDS    " $@
 	$(Q) gcc -E $(LINUXINCLUDE) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
@@ -164,7 +184,7 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
-export objs = $(addprefix $(build)/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
+export objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
 $(objs): c_flags = $(vmlinux_flags)
 
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
@@ -179,7 +199,7 @@ export libs
 $(libs): c_flags = $(vmlinux_flags)
 
 arch/x86/lib/inat-tables.c:
-	$(Q) awk -f $(srctree)/arch/x86/tools/gen-insn-attr-x86.awk $(srctree)/arch/x86/lib/x86-opcode-map.txt > $@
+	$(Q) awk -f arch/x86/tools/gen-insn-attr-x86.awk $(srctree)/arch/x86/lib/x86-opcode-map.txt > $@
 
 build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
 
@@ -190,7 +210,7 @@ build/lib/crc32table.h: build/lib/gen_crc32table
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
 realmode_objs = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
-$(realmode_objs): c_flags = $(realmode_cflags) -D_WAKEUP -I$(srctree)/arch/x86/boot
+$(realmode_objs): c_flags = $(realmode_cflags) -D_WAKEUP -Iarch/x86/boot
 
 build/arch/x86/realmode/rm/pasyms.h: $(realmode_objs)
 	$(Q) nm $^ | sed -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p' | sort | uniq > $@
@@ -207,14 +227,14 @@ build/arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf
 build/arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.elf
 	$(Q) arch/x86/tools/relocs --realmode $< > $@
 
-CFLAGS_build/arch/x86/kernel/irq.o := -I $(srctree)/arch/x86/kernel/../include/asm/trace
-CFLAGS_build/arch/x86/mm/fault.o := -I $(srctree)/arch/x86/kernel/../include/asm/trace
+CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
+CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
 cpufeature = arch/x86/kernel/cpu/../../include/asm/cpufeatures.h
 vmxfeature = arch/x86/kernel/cpu/../../include/asm/vmxfeatures.h
 
 arch/x86/kernel/cpu/capflags.c: $(cpufeature) $(vmxfeature) arch/x86/kernel/cpu/mkcapflags.sh
-	$(Q) sh $(srctree)/arch/x86/kernel/cpu/mkcapflags.sh $@ $^
+	$(Q) sh arch/x86/kernel/cpu/mkcapflags.sh $@ $^
 
 vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
 $(vobjs): c_flags = $(CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector \
@@ -235,7 +255,7 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -include $(srctree)/scripts/config.h
+$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include $(srctree)/scripts/config.h
 
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
@@ -273,8 +293,8 @@ build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset
 vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
 			piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
 $(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
-			-Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables \
-			-D__DISABLE_EXPORTS -include $(srctree)/include/linux/hidden.h -D__KERNEL__
+			-Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map== -fno-asynchronous-unwind-tables \
+			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
 
 build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
 	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(vmlinux_objs) -o $@
@@ -293,26 +313,3 @@ arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz 
 
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	$(Q) sh scripts/link-vmlinux.sh
-
-prepare:
-	@ mkdir -p \
-		$(build)/include \
-		$(build)/arch/x86/include \
-		$(build)/{mm,block/partitions,init,scripts,security} \
-		$(build)/arch/x86/{boot/compressed,entry/vdso,tools,boot/tools} \
-		$(build)/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
-		$(build)/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
-		$(build)/fs/{iomap,nls,proc,ext2,ramfs,exportfs} \
-		$(build)/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
-		$(build)/lib/{math,crypto} \
-		$(build)/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}
-	@ cp -r $(srctree)/scripts/generated			$(build)/include
-	@ cp -r $(srctree)/scripts/asm_generated		$(build)/arch/x86/include/generated
-	@ cp $(srctree)/lib/gen_crc32table			$(build)/lib
-	@ cp $(srctree)/arch/x86/tools/relocs			$(build)/arch/x86/tools
-	@ cp $(srctree)/arch/x86/boot/compressed/mkpiggy	$(build)/arch/x86/boot/compressed
-	@ cp $(srctree)/arch/x86/boot/mkcpustr			$(build)/arch/x86/boot
-	@ cp $(srctree)/arch/x86/boot/tools/build		$(build)/arch/x86/boot/tools
-	@ cp $(srctree)/arch/x86/entry/vdso/vdso2c		$(build)/arch/x86/entry/vdso
-	@ cp $(srctree)/kernel/bounds.s				$(build)/kernel
-	@ cp $(srctree)/arch/x86/kernel/asm-offsets.s		$(build)/arch/x86/kernel
