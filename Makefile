@@ -7,7 +7,7 @@ clean:
 	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/kernel/cpu/capflags.c arch/x86/lib/inat-tables.c
 
 prepare:
-	mkdir -p \
+	bash -c "mkdir -p \
 	      build/include \
 	      build/arch/x86/include \
 	      build/{mm,block/partitions,init,scripts,security} \
@@ -17,7 +17,7 @@ prepare:
 	      build/fs/{iomap,nls,proc,ext2,ramfs,exportfs} \
 	      build/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
 	      build/lib/{math,crypto} \
-	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}
+	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}"
 	cp -r scripts/generated              build/include
 	cp -r scripts/asm_generated          build/arch/x86/include/generated
 	cp kernel/bounds.s                   build/kernel
