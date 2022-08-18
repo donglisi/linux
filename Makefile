@@ -1,5 +1,5 @@
 MAKEFLAGS := -rR --no-print-directory
-export Q = @
+Q = @
 
 all: build/arch/x86/boot/bzImage
 
