@@ -163,6 +163,14 @@ libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
 $(libs): c_flags = $(vmlinux_flags)
 OBJS += $(libs)
 
+part1_objs := $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init))
+part1_objs: $(part1_objs)
+OBJS += $(part1_objs)
+
+part2_objs := $(addprefix build/, $(kernel) $(lib) $(mm) $(net) $(security) $(lib_lib) $(lib_x86))
+part2_objs: $(part2_objs)
+OBJS += $(part2_objs)
+
 build/%.o: %.c
 	@echo "  CC     " $@
 	$(Q) gcc $(include) $(c_flags) -MD -c -o $@ $<
