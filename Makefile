@@ -180,12 +180,14 @@ export libs
 $(libs): c_flags = $(vmlinux_flags)
 
 arch/x86/lib/inat-tables.c:
+	@echo "  GEN    " $@
 	$(Q) awk -f arch/x86/tools/gen-insn-attr-x86.awk arch/x86/lib/x86-opcode-map.txt > $@
 
 build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
 
 build/lib/crc32.o: build/lib/crc32table.h
 build/lib/crc32table.h: build/lib/gen_crc32table
+	@echo "  GEN    " $@
 	$(Q) $< > $@
 
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
@@ -194,11 +196,13 @@ realmode_objs = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.
 $(realmode_objs): c_flags = $(realmode_cflags) -D_WAKEUP -Iarch/x86/boot
 
 build/arch/x86/realmode/rm/pasyms.h: $(realmode_objs)
+	@echo "  PASYMS " $@
 	$(Q) nm $^ | sed -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p' | sort | uniq > $@
 
 build/arch/x86/realmode/rm/realmode.lds: build/arch/x86/realmode/rm/pasyms.h
 
 build/arch/x86/realmode/rm/realmode.elf: build/arch/x86/realmode/rm/realmode.lds $(realmode_objs)
+	@echo "  LD     " $@
 	$(Q) ld -m elf_i386 --emit-relocs -T $^ -o $@
 
 build/arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf build/arch/x86/realmode/rm/realmode.relocs
@@ -206,6 +210,7 @@ build/arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf
 	$(Q) objcopy -O binary $< $@
 
 build/arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.elf
+	@echo "  RELOCS " $@
 	$(Q) arch/x86/tools/relocs --realmode $< > $@
 
 CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
@@ -215,6 +220,7 @@ cpufeature = arch/x86/kernel/cpu/../../include/asm/cpufeatures.h
 vmxfeature = arch/x86/kernel/cpu/../../include/asm/vmxfeatures.h
 
 arch/x86/kernel/cpu/capflags.c: $(cpufeature) $(vmxfeature) arch/x86/kernel/cpu/mkcapflags.sh
+	@echo "  MKCAP  " $@
 	$(Q) sh arch/x86/kernel/cpu/mkcapflags.sh $@ $^
 
 vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
@@ -253,6 +259,7 @@ build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
 	$(Q) objcopy -O binary -R .note -R .comment -S $< $@
 
 build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
+	@echo "  ZOFFSET" $@
 	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
 
 build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
@@ -278,6 +285,7 @@ $(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx 
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
 
 build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
+	@echo "  LD     " $@
 	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(vmlinux_objs) -o $@
 
 build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
