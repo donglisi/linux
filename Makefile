@@ -295,7 +295,9 @@ build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	$(Q) sh scripts/link-vmlinux.sh
 
 prepare:
-	@ mkdir -p $(build)/include/generated/uapi/linux/ \
+	@ mkdir -p \
+		$(build)/include \
+		$(build)/arch/x86/include \
 		$(build)/{mm,block/partitions,init,scripts,security} \
 		$(build)/arch/x86/{boot/compressed,entry/vdso,tools,boot/tools} \
 		$(build)/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
@@ -304,16 +306,13 @@ prepare:
 		$(build)/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
 		$(build)/lib/{math,crypto} \
 		$(build)/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}
-	@ echo '#define UTS_RELEASE "5.19.0"' > $(build)/include/generated/utsrelease.h
-	@ cp $(srctree)/scripts/compile.h $(build)/include/generated/
-	@ cp $(srctree)/scripts/version.h $(build)/include/generated/uapi/linux/
-	@ cp $(srctree)/lib/gen_crc32table $(build)/lib/
-	@ cp $(srctree)/arch/x86/tools/relocs $(build)/arch/x86/tools/
-	@ cp $(srctree)/arch/x86/boot/compressed/mkpiggy $(build)/arch/x86/boot/compressed/
-	@ cp $(srctree)/arch/x86/boot/mkcpustr $(build)/arch/x86/boot/
-	@ cp $(srctree)/arch/x86/boot/tools/build $(build)/arch/x86/boot/tools
-	@ cp $(srctree)/arch/x86/entry/vdso/vdso2c $(build)/arch/x86/entry/vdso/
-	$(Q) $(MAKE) -f $(srctree)/arch/x86/entry/syscalls/Makefile all
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/uapi/asm generic=include/uapi/asm-generic
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.asm-generic obj=arch/x86/include/generated/asm generic=include/asm-generic
-	$(Q) $(MAKE) -f $(srctree)/scripts/Makefile.build
+	@ cp -r $(srctree)/scripts/generated			$(build)/include
+	@ cp -r $(srctree)/scripts/asm_generated		$(build)/arch/x86/include/generated
+	@ cp $(srctree)/lib/gen_crc32table			$(build)/lib
+	@ cp $(srctree)/arch/x86/tools/relocs			$(build)/arch/x86/tools
+	@ cp $(srctree)/arch/x86/boot/compressed/mkpiggy	$(build)/arch/x86/boot/compressed
+	@ cp $(srctree)/arch/x86/boot/mkcpustr			$(build)/arch/x86/boot
+	@ cp $(srctree)/arch/x86/boot/tools/build		$(build)/arch/x86/boot/tools
+	@ cp $(srctree)/arch/x86/entry/vdso/vdso2c		$(build)/arch/x86/entry/vdso
+	@ cp $(srctree)/kernel/bounds.s				$(build)/kernel
+	@ cp $(srctree)/arch/x86/kernel/asm-offsets.s		$(build)/arch/x86/kernel
