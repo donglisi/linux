@@ -20,11 +20,6 @@ prepare:
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}
 	cp -r scripts/generated              build/include
 	cp -r scripts/asm_generated          build/arch/x86/include/generated
-	cp lib/gen_crc32table                build/lib
-	cp arch/x86/tools/relocs             build/arch/x86/tools
-	cp arch/x86/boot/compressed/mkpiggy  build/arch/x86/boot/compressed
-	cp arch/x86/boot/mkcpustr            build/arch/x86/boot
-	cp arch/x86/boot/tools/build         build/arch/x86/boot/tools
 	cp arch/x86/entry/vdso/vdso2c        build/arch/x86/entry/vdso
 	cp kernel/bounds.s                   build/kernel
 	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
@@ -53,18 +48,6 @@ vmlinux_flags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basena
 realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
 			-fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding \
 			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
-
-build/%.o: %.c
-	@echo "  CC     " $@
-	$(Q) gcc $(include) $(c_flags) -c -o $@ $<
-
-build/%.o: %.S
-	@echo "  AS     " $@
-	$(Q) gcc $(include) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
-
-build/%.lds: %.lds.S
-	@echo "  LDS    " $@
-	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
@@ -179,6 +162,18 @@ libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
 export libs
 $(libs): c_flags = $(vmlinux_flags)
 
+build/%.o: %.c
+	@echo "  CC     " $@
+	$(Q) gcc $(include) $(c_flags) -c -o $@ $<
+
+build/%.o: %.S
+	@echo "  AS     " $@
+	$(Q) gcc $(include) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
+
+build/%.lds: %.lds.S
+	@echo "  LDS    " $@
+	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
+
 arch/x86/lib/inat-tables.c:
 	@echo "  GEN    " $@
 	$(Q) awk -f arch/x86/tools/gen-insn-attr-x86.awk arch/x86/lib/x86-opcode-map.txt > $@
@@ -186,7 +181,7 @@ arch/x86/lib/inat-tables.c:
 build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
 
 build/lib/crc32.o: build/lib/crc32table.h
-build/lib/crc32table.h: build/lib/gen_crc32table
+build/lib/crc32table.h:
 	@echo "  GEN    " $@
 	$(Q) $< > $@
 
@@ -231,7 +226,7 @@ build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vo
 	@echo "  VDSO   " $@
 	$(Q) ld -o $@ -shared --hash-style=both -Bsymbolic -m elf_x86_64 -soname linux-vdso.so.1 --no-undefined -z max-page-size=4096 -T $^
 
-arch/x86/entry/vdso/vdso-image-64.c: build/arch/x86/entry/vdso/vdso64.so.dbg build/arch/x86/entry/vdso/vdso64.so build/arch/x86/entry/vdso/vdso2c
+arch/x86/entry/vdso/vdso-image-64.c: build/arch/x86/entry/vdso/vdso64.so.dbg build/arch/x86/entry/vdso/vdso64.so
 	@echo "  VDSO2C " $@
 	$(Q) build/arch/x86/entry/vdso/vdso2c $< $(<:64.dbg=64) $@
 
@@ -246,11 +241,11 @@ $(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchrono
 
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
-build/arch/x86/boot/cpustr.h: build/arch/x86/boot/mkcpustr
+build/arch/x86/boot/cpustr.h:
 	@echo "  CPUSTR " $@
-	$(Q) build/arch/x86/boot/mkcpustr > $@
+	$(Q) arch/x86/boot/mkcpustr > $@
 
-build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/tools/build build/vmlinux
+build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
 	@echo "  BUILD  " $@
 	$(Q) build/arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
 
@@ -286,7 +281,7 @@ $(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx 
 
 build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
 	@echo "  LD     " $@
-	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(vmlinux_objs) -o $@
+	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $^ -o $@
 
 build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
 	@echo "  OBJCOPY" $@
@@ -296,9 +291,9 @@ build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vm
 	@echo "  GZIP   " $@
 	$(Q) cat $< | gzip -n -f -9 > $@
 
-arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz build/arch/x86/boot/compressed/mkpiggy
+arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz
 	@echo "  MKPIGGY" $@
-	$(Q) build/arch/x86/boot/compressed/mkpiggy $< > $@
+	$(Q) arch/x86/boot/compressed/mkpiggy $< > $@
 
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	$(Q) sh scripts/link-vmlinux.sh
