@@ -30,7 +30,7 @@ prepare:
 	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
 
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
-		-Ibuild/include -Ibuild/arch/x86/include/generated -Ibuild/arch/x86/include/generated/uapi -Ibuild/include/generated/uapi \
+		-Ibuild/include -Ibuild/include/generated/uapi -Ibuild/arch/x86/include/generated -Ibuild/arch/x86/include/generated/uapi \
 		-include scripts/config.h -include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
 CFLAGS := -D__KERNEL__ -Wall -Wundef -fshort-wchar -std=gnu11 -O2 -Wimplicit-fallthrough=5
