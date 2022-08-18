@@ -1,5 +1,6 @@
 MAKEFLAGS := -rR --no-print-directory
-Q = @
+Q := @
+OBJS :=
 
 all: build/arch/x86/boot/bzImage
 
@@ -147,8 +148,9 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
-export objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
+objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
 $(objs): c_flags = $(vmlinux_flags)
+OBJS += $(objs)
 
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
 		extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
@@ -158,16 +160,16 @@ lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64
 		memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
-export libs
 $(libs): c_flags = $(vmlinux_flags)
+OBJS += $(libs)
 
 build/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) gcc $(include) $(c_flags) -c -o $@ $<
+	$(Q) gcc $(include) $(c_flags) -MD -c -o $@ $<
 
 build/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) gcc $(include) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) gcc $(include) $(c_flags) -MD -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
 	@echo "  LDS    " $@
@@ -188,6 +190,7 @@ build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
 realmode_objs = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
 $(realmode_objs): c_flags = $(realmode_cflags) -D_WAKEUP -Iarch/x86/boot
+OBJS += $(realmode_objs)
 
 build/arch/x86/realmode/rm/pasyms.h: $(realmode_objs)
 	@echo "  PASYMS " $@
@@ -220,6 +223,7 @@ arch/x86/kernel/cpu/capflags.c: $(cpufeature) $(vmxfeature) arch/x86/kernel/cpu/
 vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
 $(vobjs): c_flags = $(CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector \
 			-fno-omit-frame-pointer -foptimize-sibling-calls -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
+OBJS += $(vobjs)
 
 build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vobjs)
 	@echo "  VDSO   " $@
@@ -237,6 +241,7 @@ setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
 $(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include scripts/config.h
+OBJS += $(setup_objs)
 
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
@@ -277,6 +282,7 @@ vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_i
 $(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
 			-Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map== -fno-asynchronous-unwind-tables \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
+OBJS += $(filter-out build/arch/x86/boot/compressed/vmlinux.lds,$(vmlinux_objs))
 
 build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
 	@echo "  LD     " $@
@@ -299,3 +305,5 @@ build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o $@ --whole-archive $(objs) --no-whole-archive --start-group $(libs) --end-group
 	@echo "  SYSMAP  build/System.map"
 	$(Q) nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
+
+-include $(OBJS:.o=.d)
