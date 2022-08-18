@@ -40,8 +40,8 @@ kallsymso=""
 kallsymso_prev=""
 kallsyms_vmlinux=""
 
-# kallsyms_step 1
-# kallsyms_step 2
+kallsyms_step 1
+kallsyms_step 2
 
 vmlinux_link build/vmlinux "${kallsymso}"
 
