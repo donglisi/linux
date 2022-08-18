@@ -57,15 +57,10 @@ CFLAGS += -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-ad
 			-Wno-restrict -Wno-maybe-uninitialized -Wno-error=date-time -Wno-maybe-uninitialized -Wno-sign-compare -Wno-maybe-uninitialized 
 CFLAGS += -Werror=incompatible-pointer-types -Werror=designated-init -Werror=return-type -Werror=implicit-function-declaration \
 			-Werror=implicit-int -Werror=strict-prototypes
-export CFLAGS
 
-basetarget = $(basename $(notdir $@))
-basetarget_fix_name = $(subst -,_,$(basetarget))
-vmlinux_flags = $(CFLAGS) $(CFLAGS_$(basename $@).o) \
-		-DKBUILD_MODFILE='"$(basename $@)"' \
-		-DKBUILD_BASENAME='"$(basetarget_fix_name)"' \
-		-DKBUILD_MODNAME='"$(basetarget_fix_name)"' \
-		-D__KBUILD_MODNAME=kmod_$(basetarget_fix_name)
+basetarget = $(subst -,_,$(basename $(notdir $@)))
+vmlinux_flags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
+			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
 realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
 			-fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding \
