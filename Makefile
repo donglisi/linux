@@ -5,6 +5,7 @@ all: build/arch/x86/boot/bzImage
 
 clean:
 	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/kernel/cpu/capflags.c arch/x86/lib/inat-tables.c
+
 prepare:
 	mkdir -p \
 	      build/include \
