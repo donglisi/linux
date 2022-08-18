@@ -1,8 +1,6 @@
 MAKEFLAGS := -rR --no-print-directory
 export Q = @
 
-srctree := /home/d/linux
-
 all: build/arch/x86/boot/bzImage
 
 clean:
@@ -199,7 +197,7 @@ export libs
 $(libs): c_flags = $(vmlinux_flags)
 
 arch/x86/lib/inat-tables.c:
-	$(Q) awk -f arch/x86/tools/gen-insn-attr-x86.awk $(srctree)/arch/x86/lib/x86-opcode-map.txt > $@
+	$(Q) awk -f arch/x86/tools/gen-insn-attr-x86.awk arch/x86/lib/x86-opcode-map.txt > $@
 
 build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
 
@@ -255,7 +253,7 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include $(srctree)/scripts/config.h
+$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include scripts/config.h
 
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
