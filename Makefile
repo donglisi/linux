@@ -49,7 +49,7 @@ vmlinux_flags = $(CFLAGS) $(CFLAGS_$(basename $@).o) \
 		-DKBUILD_MODNAME='"$(basetarget_fix_name)"' \
 		-D__KBUILD_MODNAME=kmod_$(basetarget_fix_name)
 
-REALMODE_CFLAGS := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
+realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
 			-fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding \
 			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 
@@ -190,7 +190,7 @@ build/lib/crc32table.h: build/lib/gen_crc32table
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
 realmode_objs = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
-$(realmode_objs): c_flags = $(REALMODE_CFLAGS) -D_WAKEUP -I$(srctree)/arch/x86/boot
+$(realmode_objs): c_flags = $(realmode_cflags) -D_WAKEUP -I$(srctree)/arch/x86/boot
 
 build/arch/x86/realmode/rm/pasyms.h: $(realmode_objs)
 	$(Q) nm $^ | sed -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p' | sort | uniq > $@
@@ -235,7 +235,7 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(REALMODE_CFLAGS) -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -include $(srctree)/scripts/config.h
+$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables -include $(srctree)/scripts/config.h
 
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
