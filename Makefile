@@ -20,7 +20,6 @@ prepare:
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}
 	cp -r scripts/generated              build/include
 	cp -r scripts/asm_generated          build/arch/x86/include/generated
-	cp arch/x86/entry/vdso/vdso2c        build/arch/x86/entry/vdso
 	cp kernel/bounds.s                   build/kernel
 	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
 
@@ -183,7 +182,7 @@ build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
 build/lib/crc32.o: build/lib/crc32table.h
 build/lib/crc32table.h:
 	@echo "  GEN    " $@
-	$(Q) $< > $@
+	$(Q) lib/gen_crc32table > $@
 
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
@@ -228,7 +227,7 @@ build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vo
 
 arch/x86/entry/vdso/vdso-image-64.c: build/arch/x86/entry/vdso/vdso64.so.dbg build/arch/x86/entry/vdso/vdso64.so
 	@echo "  VDSO2C " $@
-	$(Q) build/arch/x86/entry/vdso/vdso2c $< $(<:64.dbg=64) $@
+	$(Q) arch/x86/entry/vdso/vdso2c $< $(<:64.dbg=64) $@
 
 build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 	@echo "  OBJCOPY" $@
@@ -247,7 +246,7 @@ build/arch/x86/boot/cpustr.h:
 
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
 	@echo "  BUILD  " $@
-	$(Q) build/arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
+	$(Q) arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
 
 build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
 	@echo "  OBJCOPY" $@
