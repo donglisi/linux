@@ -270,14 +270,14 @@ build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
 
 build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
 
-VMLINUX_OBJS = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
+vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
 			piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
-$(VMLINUX_OBJS): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
+$(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
 			-Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map=$(srctree)/= -fno-asynchronous-unwind-tables \
 			-D__DISABLE_EXPORTS -include $(srctree)/include/linux/hidden.h -D__KERNEL__
 
-build/arch/x86/boot/compressed/vmlinux: $(VMLINUX_OBJS)
-	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(VMLINUX_OBJS) -o $@
+build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
+	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $(vmlinux_objs) -o $@
 
 build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
 	@echo "  OBJCOPY" $@
