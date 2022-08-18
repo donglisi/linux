@@ -105,7 +105,7 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		ptrace.o user.o signal.o sys.o umh.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
 		sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o smpboot.o ucount.o regset.o \
 		groups.o irq_work.o power/qos.o bpf/core.o static_call.o static_call_inline.o context_tracking.o iomem.o \
-		up.o platform-feature.o kallsyms.o \
+		up.o platform-feature.o \
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
@@ -295,4 +295,7 @@ arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz
 	$(Q) arch/x86/boot/compressed/mkpiggy $< > $@
 
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
-	$(Q) sh scripts/link-vmlinux.sh
+	@echo "  LD     " $@
+	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o $@ --whole-archive $(objs) --no-whole-archive --start-group $(libs) --end-group
+	@echo "  SYSMAP  build/System.map"
+	$(Q) nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
