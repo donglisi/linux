@@ -29,22 +29,9 @@ prepare:
 	cp kernel/bounds.s                   build/kernel
 	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
 
-export LINUXINCLUDE = \
-		-nostdinc \
-		-I include \
-		-I include/uapi \
-		-I arch/x86/include \
-		-I arch/x86/include/uapi \
-		-I $(subst build/,,$(dir $@)) \
-		-I build/include \
-		-I build/arch/x86/include/generated \
-		-I build/arch/x86/include/generated/uapi \
-		-I build/include/generated/uapi \
-		-I $(dir $@) \
-		-include scripts/config.h \
-		-include include/linux/kconfig.h \
-		-include include/linux/compiler_types.h \
-		-include include/linux/compiler-version.h \
+include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
+		-Ibuild/include -Ibuild/arch/x86/include/generated -Ibuild/arch/x86/include/generated/uapi -Ibuild/include/generated/uapi \
+		-include scripts/config.h -include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
 CFLAGS := -D__KERNEL__ -Wall -Wundef -fshort-wchar -std=gnu11 -O2 -Wimplicit-fallthrough=5
 CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mno-red-zone -mno-red-zone
@@ -69,15 +56,15 @@ realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -W
 
 build/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) gcc $(LINUXINCLUDE) $(c_flags) -c -o $@ $<
+	$(Q) gcc $(include) $(c_flags) -c -o $@ $<
 
 build/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) gcc $(LINUXINCLUDE) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) gcc $(include) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
 	@echo "  LDS    " $@
-	$(Q) gcc -E $(LINUXINCLUDE) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
+	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
