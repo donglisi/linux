@@ -216,8 +216,7 @@ vmxfeature = arch/x86/kernel/cpu/../../include/asm/vmxfeatures.h
 arch/x86/kernel/cpu/capflags.c: $(cpufeature) $(vmxfeature) arch/x86/kernel/cpu/mkcapflags.sh
 	$(Q) sh $(srctree)/arch/x86/kernel/cpu/mkcapflags.sh $@ $^
 
-vobjs-y := vdso-note.o vclock_gettime.o vgetcpu.o
-vobjs := $(foreach F,$(vobjs-y),build/arch/x86/entry/vdso/$F)
+vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
 
 build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vobjs)
 	@echo "  VDSO   " $@
