@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-echo "192.168.1.3::linux/ 192.168.1.4::linux/" | xargs -n 1 rsync --delete --exclude="*.git" --exclude="build" -a .
 
 dist () {
+	rsync --delete --exclude="*.git" --exclude="build" -a . $ip::linux
 	ip=$1
 	ssh $1 "cd linux; make -j$2 "${@:3}" && tar cf $1.tar build"
 	scp $1:linux/$1.tar . > /dev/null
