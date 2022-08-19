@@ -23,6 +23,7 @@ prepare:
 	cp -r scripts/asm_generated          build/arch/x86/include/generated
 	cp kernel/bounds.s                   build/kernel
 	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
+	time echo "192.168.1.2::linux/ 192.168.1.4::linux/" | xargs -n 1 rsync --delete -a build
 
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
 		-Ibuild/include -Ibuild/include/generated/uapi -Ibuild/arch/x86/include/generated -Ibuild/arch/x86/include/generated/uapi \
