@@ -245,6 +245,7 @@ setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.
 			video-vga.o video-vesa.o video-bios.o)
 $(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include scripts/config.h
 OBJS += $(setup_objs)
+setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
 
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
@@ -280,14 +281,15 @@ build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
 
 build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
 
-vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
+vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
 			piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
 $(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
 			-Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map== -fno-asynchronous-unwind-tables \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
-OBJS += $(filter-out build/arch/x86/boot/compressed/vmlinux.lds,$(vmlinux_objs))
+OBJS += $(vmlinux_objs)
+vmlinux_objs: $(filter-out build/arch/x86/boot/compressed/piggy.o build/arch/x86/boot/compressed/misc.o, $(vmlinux_objs))
 
-build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
+build/arch/x86/boot/compressed/vmlinux: build/arch/x86/boot/compressed/vmlinux.lds $(vmlinux_objs)
 	@echo "  LD     " $@
 	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $^ -o $@
 
@@ -308,5 +310,7 @@ build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o $@ --whole-archive $(objs) --no-whole-archive --start-group $(libs) --end-group
 	@echo "  SYSMAP  build/System.map"
 	$(Q) nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
+
+$(foreach i, realmode_objs vobjs, $(eval $i: $($i)))
 
 -include $(OBJS:.o=.d)
