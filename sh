@@ -2,8 +2,9 @@
 
 
 dist () {
-	rsync --delete --exclude="*.git" --exclude="build" -a . $ip::linux
 	ip=$1
+
+	rsync --delete --exclude="*.git" --exclude="build" -a . $ip::linux
 	ssh $1 "cd linux; make -j$2 "${@:3}" && tar cf $1.tar build"
 	scp $1:linux/$1.tar . > /dev/null
 	ssh $1 "rm linux/$1.tar"
