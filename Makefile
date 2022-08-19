@@ -60,11 +60,11 @@ x86	:= $(addprefix arch/x86/, \
 			nmi.o setup.o x86_init.o i8259.o irqinit.o irq_work.o probe_roms.o sys_x86_64.o bootflag.o e820.o \
 			pci-dma.o quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o tsc.o tsc_msr.o io_delay.o \
 			rtc.o resource.o irqflags.o static_call.o process.o ptrace.o step.o stacktrace.o reboot.o early-quirks.o \
-			tsc_sync.o mpparse.o trace_clock.o hpet.o kvm.o kvmclock.o paravirt.o pvclock.o pcspeaker.o perf_regs.o \
+			tsc_sync.o mpparse.o trace_clock.o hpet.o kvm.o kvmclock.o paravirt.o pvclock.o perf_regs.o \
 			unwind_orc.o vsmp_64.o head_64.o head64.o ebda.o platform-quirks.o early_printk.o \
 			$(addprefix fpu/, init.o bugs.o core.o regset.o signal.o xstate.o) \
 			$(addprefix cpu/, cacheinfo.o scattered.o topology.o common.o rdrand.o match.o bugs.o aperfmperf.o cpuid-deps.o \
-				umwait.o proc.o capflags.o powerflags.o feat_ctl.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) \
+				umwait.o proc.o capflags.o powerflags.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) \
 			$(addprefix apic/, apic.o apic_common.o apic_noop.o ipi.o vector.o hw_nmi.o io_apic.o apic_flat_64.o probe_64.o msi.o)))
 
 block	:= $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs.o blk-flush.o blk-settings.o \
@@ -90,8 +90,7 @@ fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.
 		ioctl.o readdir.o select.o dcache.o inode.o attr.o bad_inode.o file.o filesystems.o namespace.o \
 		seq_file.o xattr.o libfs.o fs-writeback.o pnode.o splice.o sync.o utimes.o d_path.o stack.o fs_struct.o \
 		statfs.o fs_pin.o nsfs.o fs_types.o fs_context.o fs_parser.o fsopen.o init.o kernel_read_file.o \
-		remap_range.o buffer.o direct-io.o mpage.o proc_namespace.o anon_inodes.o locks.o binfmt_script.o \
-		binfmt_elf.o mbcache.o fhandle.o exportfs/expfs.o \
+		remap_range.o buffer.o direct-io.o mpage.o proc_namespace.o anon_inodes.o locks.o binfmt_script.o binfmt_elf.o \
 		$(addprefix ramfs/, inode.o file-mmu.o) \
 		$(addprefix iomap/, trace.o iter.o buffered-io.o direct-io.o fiemap.o seek.o) \
 		$(addprefix ext2/, balloc.o dir.o file.o ialloc.o inode.o ioctl.o namei.o super.o symlink.o) \
@@ -104,8 +103,7 @@ init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.
 kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o \
 		ptrace.o user.o signal.o sys.o umh.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
 		sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o smpboot.o ucount.o regset.o \
-		groups.o irq_work.o power/qos.o bpf/core.o static_call.o static_call_inline.o context_tracking.o iomem.o \
-		up.o platform-feature.o \
+		groups.o irq_work.o power/qos.o bpf/core.o static_call.o static_call_inline.o iomem.o up.o platform-feature.o \
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
@@ -133,7 +131,7 @@ mm	:= $(addprefix mm/, highmem.o memory.o mincore.o mlock.o mmap.o mmu_gather.o 
 		fadvise.o maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o shmem.o \
 		util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o compaction.o vmacache.o \
 		interval_tree.o list_lru.o workingset.o debug.o gup.o mmap_lock.o page_alloc.o init-mm.o memblock.o \
-		madvise.o dmapool.o sparse.o slub.o early_ioremap.o secretmem.o)
+		dmapool.o sparse.o slub.o early_ioremap.o secretmem.o)
 
 net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 		$(addprefix ethtool/, ioctl.o common.o) \
