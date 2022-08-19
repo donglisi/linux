@@ -5,7 +5,8 @@ OBJS :=
 all: build/arch/x86/boot/bzImage
 
 clean:
-	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/lib/inat-tables.c
+	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/lib/inat-tables.c \
+		arch/x86/realmode/rm/realmode.relocs arch/x86/realmode/rm/realmode.bin
 
 prepare:
 	bash -c "mkdir -p \
@@ -183,7 +184,7 @@ arch/x86/lib/inat-tables.c:
 
 build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
 
-build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
+build/arch/x86/realmode/rmpiggy.o: arch/x86/realmode/rm/realmode.bin
 
 realmode_objs = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
 $(realmode_objs): c_flags = $(realmode_cflags) -D_WAKEUP -Iarch/x86/boot
@@ -199,11 +200,11 @@ build/arch/x86/realmode/rm/realmode.elf: build/arch/x86/realmode/rm/realmode.lds
 	@echo "  LD     " $@
 	$(Q) ld -m elf_i386 --emit-relocs -T $^ -o $@
 
-build/arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf build/arch/x86/realmode/rm/realmode.relocs
+arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf arch/x86/realmode/rm/realmode.relocs
 	@echo "  OBJCOPY" $@
 	$(Q) objcopy -O binary $< $@
 
-build/arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.elf
+arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.elf
 	@echo "  RELOCS " $@
 	$(Q) arch/x86/tools/relocs --realmode $< > $@
 

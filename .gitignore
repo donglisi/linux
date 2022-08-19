@@ -2,6 +2,8 @@ GPATH
 GRTAGS
 GTAGS
 arch/x86/boot/compressed/piggy.S
+arch/x86/realmode/rm/realmode.relocs
+arch/x86/realmode/rm/realmode.bin
 arch/x86/entry/vdso/vdso-image-64.c
 arch/x86/lib/inat-tables.c
 build/
