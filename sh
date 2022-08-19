@@ -5,9 +5,10 @@ dist () {
 	ip=$1
 
 	rsync --delete --exclude="*.git" --exclude="build" -a . $ip::linux
-	ssh $1 "cd linux; make -j$2 "${@:3}" && find build -name "*.o" | cpio -o > /dev/shm/$ip.cpio 2> /dev/null"
-	rsync $ip::shm/$1.cpio /dev/shm
-	cpio -id < /dev/shm/$1.cpio 2> /dev/null
+	ssh $1 "cd /dev/shm/linux; make -j$2 "${@:3}" && find build -name "*.o" | cpio -o > $ip.cpio 2> /dev/null"
+	rsync $ip::linux/$1.cpio $1.cpio
+	cpio -id < $1.cpio 2> /dev/null
+	rm $1.cpio
 }
 
 dist 192.168.1.2 12 lib net drivers block &
