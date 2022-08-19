@@ -20,14 +20,12 @@ prepare:
 	      build/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
 	      build/lib/{math,crypto} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}"
-	cp -r scripts/generated              build/include
-	cp -r scripts/asm_generated          build/arch/x86/include/generated
 	cp kernel/bounds.s                   build/kernel
 	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
 
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
-		-Ibuild/include -Ibuild/include/generated/uapi -Ibuild/arch/x86/include/generated -Ibuild/arch/x86/include/generated/uapi \
-		-include scripts/config.h -include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
+		-Ibuild/include -Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
+		-include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
 CFLAGS := -D__KERNEL__ -Wall -Wundef -fshort-wchar -std=gnu11 -O2 -Wimplicit-fallthrough=5
 CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mno-red-zone -mno-red-zone
@@ -231,7 +229,7 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include scripts/config.h
+$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include include/linux/kconfig.h
 OBJS += $(setup_objs)
 setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
 
