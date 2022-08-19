@@ -22,12 +22,12 @@ build ()
 	remote_build 192.168.1.2 12 fs mm drivers &
 	pid[0]=$!
 	
-	remote_build 192.168.1.4 12 block &
+	remote_build 192.168.1.4 12 block init &
 	pid[1]=$!
 	
 	trap "kill ${pid[0]} ${pid[1]}; exit 1" INT
 	
-	make -j16 x86 lib_x86 kernel lib lib_lib init
+	make -j16 x86 lib_x86 lib lib_lib kernel
 
 	wait ${pid[0]} ${pid[1]}
 	

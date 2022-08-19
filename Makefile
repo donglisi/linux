@@ -5,7 +5,7 @@ OBJS :=
 all: build/arch/x86/boot/bzImage
 
 clean:
-	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/kernel/cpu/capflags.c arch/x86/lib/inat-tables.c
+	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/lib/inat-tables.c
 
 prepare:
 	bash -c "mkdir -p \
@@ -214,13 +214,6 @@ build/arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.
 
 CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
-
-cpufeature = arch/x86/kernel/cpu/../../include/asm/cpufeatures.h
-vmxfeature = arch/x86/kernel/cpu/../../include/asm/vmxfeatures.h
-
-arch/x86/kernel/cpu/capflags.c: $(cpufeature) $(vmxfeature) arch/x86/kernel/cpu/mkcapflags.sh
-	@echo "  MKCAP  " $@
-	$(Q) sh arch/x86/kernel/cpu/mkcapflags.sh $@ $^
 
 vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
 $(vobjs): c_flags = $(CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector \
