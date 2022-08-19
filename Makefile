@@ -20,8 +20,6 @@ prepare:
 	      build/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
 	      build/lib/{math,crypto} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}"
-	cp kernel/bounds.s                   build/kernel
-	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
 
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
