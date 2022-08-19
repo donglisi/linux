@@ -5,11 +5,9 @@ dist () {
 	ip=$1
 
 	rsync --delete --exclude="*.git" --exclude="build" -a . $ip::linux
-	ssh $1 "cd linux; make -j$2 "${@:3}" && tar cf $1.tar build"
-	scp $1:linux/$1.tar . > /dev/null
-	ssh $1 "rm linux/$1.tar"
-	tar xf $1.tar
-	rm $1.tar
+	ssh $1 "cd linux; make -j$2 "${@:3}" && find build -name "*.o" | cpio -o > /dev/shm/$ip.cpio 2> /dev/null"
+	rsync $ip::shm/$1.cpio /dev/shm
+	cpio -id < /dev/shm/$1.cpio 2> /dev/null
 }
 
 dist 192.168.1.3 16 kernel mm net lib &
