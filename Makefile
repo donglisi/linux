@@ -125,7 +125,7 @@ lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 		scatterlist.o list_sort.o uuid.o iov_iter.o clz_ctz.o bsearch.o find_bit.o llist.o memweight.o kfifo.o \
 		percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o errseq.o bucket_locks.o generic-radix-tree.o \
 		lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o \
-		crc32.o syscall.o nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o bitrev.o \
+		syscall.o nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o bitrev.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
 		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o blake2s-selftest.o))
 
@@ -182,11 +182,6 @@ arch/x86/lib/inat-tables.c:
 	$(Q) awk -f arch/x86/tools/gen-insn-attr-x86.awk arch/x86/lib/x86-opcode-map.txt > $@
 
 build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
-
-build/lib/crc32.o: build/lib/crc32table.h
-build/lib/crc32table.h:
-	@echo "  GEN    " $@
-	$(Q) lib/gen_crc32table > $@
 
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
