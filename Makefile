@@ -1,6 +1,7 @@
 MAKEFLAGS := -rR --no-print-directory
 Q := @
 OBJS :=
+CC = gcc
 
 all: build/arch/x86/boot/bzImage
 
@@ -162,11 +163,11 @@ $(foreach i, x86 block drivers fs init kernel lib mm net security lib_lib lib_x8
 
 build/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) gcc $(include) $(c_flags) -MD -c -o $@ $<
+	$(Q) $(CC) $(include) $(c_flags) -MD -c -o $@ $<
 
 build/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) gcc $(include) $(c_flags) -MD -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) $(CC) $(include) $(c_flags) -MD -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
 	@echo "  LDS    " $@
