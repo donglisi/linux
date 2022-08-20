@@ -162,7 +162,7 @@ CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
 vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
-$(vobjs): c_flags = $(CFLAGS) -mcmodel=small -fPIC -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
+$(vobjs): c_flags := $(CFLAGS) -mcmodel=small -fPIC -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
 
 build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vobjs)
 	@echo "  VDSO   " $@
@@ -176,12 +176,11 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 	@echo "  OBJCOPY" $@
 	$(Q) objcopy -S --remove-section __ex_table $< $@
 
-setup_cflags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding -fno-pic \
-			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(setup_cflags)
+$(setup_objs): c_flags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding -fno-pic \
+			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
 
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
@@ -214,7 +213,7 @@ build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset
 
 vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
 			piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
-$(vmlinux_objs): c_flags = -fPIE -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -Wno-pointer-sign \
+$(vmlinux_objs): c_flags := -fPIE -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -Wno-pointer-sign \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
 vmlinux_objs: $(filter-out build/arch/x86/boot/compressed/piggy.o build/arch/x86/boot/compressed/misc.o, $(vmlinux_objs))
 
