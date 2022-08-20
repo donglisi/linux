@@ -1329,8 +1329,6 @@ failed:
 
 void __init mem_init(void)
 {
-	pci_iommu_alloc();
-
 	/* clear_bss() already clear the empty_zero_page */
 
 	/* this will put all memory onto the freelists */
