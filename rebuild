@@ -4,16 +4,16 @@ remote_build ()
 {
 	ip=$1
 
-	rsync --delete --exclude=".git" --exclude="G*" -a . $ip::linux 2> /dev/null
+	rsync --delete --exclude=".git" --exclude="G*" -a . $ip::linux
 	ssh $ip "cd /dev/shm/linux; make CC=/usr/bin/gcc -j$2 "${@:3}" && find build -name "*.o" -o -name "*.d" | cpio -o > $ip.cpio 2> /dev/null"
-	rsync $ip::linux/$ip.cpio . 2> /dev/null
-	cpio -id < $ip.cpio 2> /dev/null
+	rsync $ip::linux/$ip.cpio .
+	cpio -id < $ip.cpio
 	rm $ip.cpio
 }
 
 make clean
 
-remote_build 192.168.1.2 12 fs mm drivers lib_lib init vmlinux_objs setup_objs &
+remote_build 192.168.1.2 12 fs mm drivers lib_lib init vmlinux_objs setup_objs 2> /dev/null &
 pid[0]=$!
 
 trap "kill ${pid[0]}; exit 1" INT

@@ -111,7 +111,7 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix dma/, mapping.o direct.o swiotlb.o remap.o) \
 		$(addprefix entry/, common.o syscall_user_dispatch.o) \
 		$(addprefix time/, time.o timer.o hrtimer.o timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timeconv.o \
-			timecounter.o alarmtimer.o posix-timers.o posix-cpu-timers.o posix-clock.o itimer.o clockevents.o \
+			timecounter.o alarmtimer.o posix-stubs.o clockevents.o \
 			tick-common.o tick-broadcast.o tick-oneshot.o tick-sched.o vsyscall.o) \
 		$(addprefix futex/, core.o syscalls.o pi.o requeue.o waitwake.o) \
 		$(addprefix events/, core.o ring_buffer.o callchain.o hw_breakpoint.o))

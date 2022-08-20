@@ -34,7 +34,7 @@
 
 
 
-#define TASK_threadsp 1816 /* offsetof(struct task_struct, thread.sp) */
+#define TASK_threadsp 1688 /* offsetof(struct task_struct, thread.sp) */
 
 #define pbe_address 0 /* offsetof(struct pbe, address) */
 #define pbe_orig_address 8 /* offsetof(struct pbe, orig_address) */
