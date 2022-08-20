@@ -25,25 +25,14 @@ include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/inclu
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
 		-include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
-CFLAGS := -D__KERNEL__ -Wall -Wundef -fshort-wchar -std=gnu11 -O2 -Wimplicit-fallthrough=5
-CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mno-red-zone -mno-red-zone
-CFLAGS += -falign-jumps=1 -falign-loops=1 -fshort-wchar -fconserve-stack
-CFLAGS += -mskip-rax-setup -mcmodel=kernel
-CFLAGS += -fno-asynchronous-unwind-tables -fno-delete-null-pointer-checks -fno-stack-protector -fno-PIE -fno-stack-check \
-			-fno-allow-store-data-races -fno-strict-overflow  -fno-stack-check -fno-strict-aliasing -fno-common
-CFLAGS += -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -Wno-format-security \
-			-Wno-main -Wno-declaration-after-statement -Wno-vla -Wno-pointer-sign -Wno-cast-function-type -Wno-trigraphs \
-			-Wno-unused-const-variable -Wno-unused-but-set-variable -Wno-stringop-truncation -Wno-stringop-overflow \
-			-Wno-restrict -Wno-maybe-uninitialized -Wno-error=date-time -Wno-maybe-uninitialized -Wno-sign-compare -Wno-maybe-uninitialized 
-CFLAGS += -Werror=incompatible-pointer-types -Werror=designated-init -Werror=return-type -Werror=implicit-function-declaration \
-			-Werror=implicit-int -Werror=strict-prototypes
+CFLAGS := -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -Wno-format-truncation \
+		-Wno-address-of-packed-member -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized
 
 basetarget = $(subst -,_,$(basename $(notdir $@)))
-vmlinux_flags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
+vmlinux_cflags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
 			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
-realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
-			-fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding \
+realmode_cflags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding \
 			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 
 x86	:= $(addprefix arch/x86/, \
@@ -144,7 +133,7 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
 objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
-$(objs): c_flags = $(vmlinux_flags)
+$(objs): c_flags = $(vmlinux_cflags)
 OBJS += $(objs)
 
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
@@ -155,7 +144,7 @@ lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64
 		memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
-$(libs): c_flags = $(vmlinux_flags)
+$(libs): c_flags = $(vmlinux_cflags)
 OBJS += $(libs)
 
 $(foreach i, x86 block drivers fs init kernel lib mm net security lib_lib lib_x86, $(eval $i: $(addprefix build/, $($i))))
@@ -206,8 +195,7 @@ CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
 vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
-$(vobjs): c_flags = $(CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector \
-			-fno-omit-frame-pointer -foptimize-sibling-calls -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
+$(vobjs): c_flags = $(CFLAGS) -mcmodel=small -fPIC -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
 OBJS += $(vobjs)
 
 build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vobjs)
@@ -225,7 +213,7 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include include/linux/kconfig.h
+$(setup_objs): c_flags = $(realmode_cflags)
 OBJS += $(setup_objs)
 setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
 
@@ -265,8 +253,7 @@ build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset
 
 vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
 			piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
-$(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
-			-Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map== -fno-asynchronous-unwind-tables \
+$(vmlinux_objs): c_flags = -fPIE -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -Wno-pointer-sign \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
 OBJS += $(vmlinux_objs)
 vmlinux_objs: $(filter-out build/arch/x86/boot/compressed/piggy.o build/arch/x86/boot/compressed/misc.o, $(vmlinux_objs))
