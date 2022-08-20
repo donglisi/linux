@@ -218,12 +218,6 @@ $(setup_objs): c_flags = $(realmode_cflags)
 OBJS += $(setup_objs)
 setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
 
-build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
-
-build/arch/x86/boot/cpustr.h:
-	@echo "  CPUSTR " $@
-	$(Q) arch/x86/boot/mkcpustr > $@
-
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
 	@echo "  BUILD  " $@
 	$(Q) arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
