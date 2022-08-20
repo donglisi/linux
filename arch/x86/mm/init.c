@@ -216,10 +216,7 @@ static int page_size_mask;
  */
 static inline void cr4_set_bits_and_update_boot(unsigned long mask)
 {
-	mmu_cr4_features |= mask;
-	if (trampoline_cr4_features)
-		*trampoline_cr4_features = mmu_cr4_features;
-	cr4_set_bits(mask);
+	return;
 }
 
 static void __init probe_page_size_mask(void)
@@ -722,17 +719,7 @@ static void __init memory_map_bottom_up(unsigned long map_start,
  */
 static void __init init_trampoline(void)
 {
-#ifdef CONFIG_X86_64
-	/*
-	 * The code below will alias kernel page-tables in the user-range of the
-	 * address space, including the Global bit. So global TLB entries will
-	 * be created when using the trampoline page-table.
-	 */
-	if (!kaslr_memory_enabled())
-		trampoline_pgd_entry = init_top_pgt[pgd_index(__PAGE_OFFSET)];
-	else
-		init_trampoline_kaslr();
-#endif
+	return;
 }
 
 void __init init_mem_mapping(void)

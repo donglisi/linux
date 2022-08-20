@@ -11,15 +11,14 @@ $(shell bash -c "mkdir -p \
 	      build/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
 	      build/fs/{iomap,nls,proc,ext2,ramfs,exportfs} \
-	      build/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
+	      build/arch/x86/{entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
 	      build/lib/{math,crypto} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
 
 all: build/arch/x86/boot/bzImage
 
 clean:
-	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/lib/inat-tables.c \
-		arch/x86/realmode/rm/realmode.relocs arch/x86/realmode/rm/realmode.bin
+	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/lib/inat-tables.c
 
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
@@ -33,14 +32,10 @@ basetarget = $(subst -,_,$(basename $(notdir $@)))
 vmlinux_cflags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
 			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
-realmode_cflags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding -fno-pic \
-			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
-
 x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
 		$(addprefix lib/, msr.o msr-reg.o msr-reg-export.o hweight.o iomem.o iomap_copy_64.o) \
 		$(addprefix events/, core.o probe.o msr.o) \
-		$(addprefix realmode/, init.o rmpiggy.o) \
 		$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o maccess.o pgprot.o \
 			$(addprefix pat/, set_memory.o memtype.o)) \
 		$(addprefix pci/, i386.o init.o direct.o fixup.o legacy.o irq.o common.o early.o bus_numa.o) \
@@ -167,30 +162,6 @@ arch/x86/lib/inat-tables.c:
 
 build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
 
-build/arch/x86/realmode/rmpiggy.o: arch/x86/realmode/rm/realmode.bin
-
-realmode_objs = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
-$(realmode_objs): c_flags = $(realmode_cflags) -D_WAKEUP -Iarch/x86/boot
-OBJS += $(realmode_objs)
-
-build/arch/x86/realmode/rm/pasyms.h: $(realmode_objs)
-	@echo "  PASYMS " $@
-	$(Q) nm $^ | sed -n -r -e 's/^([0-9a-fA-F]+) [ABCDGRSTVW] (.+)$$/pa_\2 = \2;/p' | sort | uniq > $@
-
-build/arch/x86/realmode/rm/realmode.lds: build/arch/x86/realmode/rm/pasyms.h
-
-build/arch/x86/realmode/rm/realmode.elf: build/arch/x86/realmode/rm/realmode.lds $(realmode_objs)
-	@echo "  LD     " $@
-	$(Q) ld -m elf_i386 --emit-relocs -T $^ -o $@
-
-arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf arch/x86/realmode/rm/realmode.relocs
-	@echo "  OBJCOPY" $@
-	$(Q) objcopy -O binary $< $@
-
-arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.elf
-	@echo "  RELOCS " $@
-	$(Q) arch/x86/tools/relocs --realmode $< > $@
-
 CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
@@ -210,10 +181,12 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 	@echo "  OBJCOPY" $@
 	$(Q) objcopy -S --remove-section __ex_table $< $@
 
+setup_cflags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding -fno-pic \
+			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(realmode_cflags)
+$(setup_objs): c_flags = $(setup_cflags)
 OBJS += $(setup_objs)
 setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
 

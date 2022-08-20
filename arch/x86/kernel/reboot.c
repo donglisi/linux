@@ -112,21 +112,7 @@ void __noreturn machine_real_restart(unsigned int type)
 	CMOS_WRITE(0x00, 0x8f);
 	spin_unlock(&rtc_lock);
 
-	/*
-	 * Switch to the trampoline page table.
-	 */
-	load_trampoline_pgtable();
-
 	/* Jump to the identity-mapped low memory code */
-#ifdef CONFIG_X86_32
-	asm volatile("jmpl *%0" : :
-		     "rm" (real_mode_header->machine_real_restart_asm),
-		     "a" (type));
-#else
-	asm volatile("ljmpl *%0" : :
-		     "m" (real_mode_header->machine_real_restart_asm),
-		     "D" (type));
-#endif
 	unreachable();
 }
 #ifdef CONFIG_APM_MODULE
