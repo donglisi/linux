@@ -5,7 +5,7 @@ remote_build ()
 	ip=$1
 
 	rsync --delete --exclude=".git" --exclude="G*" -a . $ip::linux
-	ssh $ip "cd /dev/shm/linux; make CC=/usr/bin/gcc -j$2 "${@:3}" && find build -name "*.o" -o -name "*.d" | cpio -o > $ip.cpio 2> /dev/null"
+	ssh $ip "cd /dev/shm/linux; make CC=/usr/bin/gcc -j$2 "${@:3}" && find build -name "*.o" | cpio -o > $ip.cpio 2> /dev/null"
 	rsync $ip::linux/$ip.cpio .
 	cpio -id < $ip.cpio
 	rm $ip.cpio

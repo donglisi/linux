@@ -1,12 +1,11 @@
 MAKEFLAGS := -rR --no-print-directory
 Q := @
-OBJS :=
 CC := gcc
 
 $(shell bash -c "mkdir -p \
 	      build/include \
 	      build/arch/x86/include \
-	      build/{mm,block/partitions,init,scripts,security} \
+	      build/{mm,block/partitions,init,security} \
 	      build/arch/x86/{boot/compressed,entry/vdso,tools,boot/tools} \
 	      build/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
@@ -128,7 +127,6 @@ security:= $(addprefix security/, commoncap.o min_addr.o)
 
 objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
 $(objs): c_flags = $(vmlinux_cflags)
-OBJS += $(objs)
 
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
 		extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
@@ -139,17 +137,16 @@ lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
 $(libs): c_flags = $(vmlinux_cflags)
-OBJS += $(libs)
 
 $(foreach i, x86 block drivers fs init kernel lib mm net security lib_lib lib_x86, $(eval $i: $(addprefix build/, $($i))))
 
 build/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) $(CC) $(include) $(c_flags) -MD -c -o $@ $<
+	$(Q) $(CC) $(include) $(c_flags) -c -o $@ $<
 
 build/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) $(CC) $(include) $(c_flags) -MD -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) $(CC) $(include) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
 	@echo "  LDS    " $@
@@ -166,7 +163,6 @@ CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
 vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
 $(vobjs): c_flags = $(CFLAGS) -mcmodel=small -fPIC -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
-OBJS += $(vobjs)
 
 build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vobjs)
 	@echo "  VDSO   " $@
@@ -186,7 +182,6 @@ setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
 $(setup_objs): c_flags = $(setup_cflags)
-OBJS += $(setup_objs)
 setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
 
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
@@ -221,7 +216,6 @@ vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, kernel_info.o head_6
 			piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
 $(vmlinux_objs): c_flags = -fPIE -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -Wno-pointer-sign \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
-OBJS += $(vmlinux_objs)
 vmlinux_objs: $(filter-out build/arch/x86/boot/compressed/piggy.o build/arch/x86/boot/compressed/misc.o, $(vmlinux_objs))
 
 build/arch/x86/boot/compressed/vmlinux: build/arch/x86/boot/compressed/vmlinux.lds $(vmlinux_objs)
@@ -245,5 +239,3 @@ build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o $@ --whole-archive $(objs) --no-whole-archive --start-group $(libs) --end-group
 	@echo "  SYSMAP  build/System.map"
 	$(Q) nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
-
--include $(OBJS:.o=.d)
