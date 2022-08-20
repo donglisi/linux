@@ -25,14 +25,15 @@ include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/inclu
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
 		-include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
-CFLAGS := -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -Wno-format-truncation \
-		-Wno-address-of-packed-member -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized
+CFLAGS := -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -fno-PIE \
+		-Wno-format-security -Wno-format-truncation -fno-PIE -Wno-address-of-packed-member -Wno-pointer-sign \
+		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized
 
 basetarget = $(subst -,_,$(basename $(notdir $@)))
 vmlinux_cflags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
 			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
-realmode_cflags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding \
+realmode_cflags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding -fno-pic \
 			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 
 x86	:= $(addprefix arch/x86/, \
