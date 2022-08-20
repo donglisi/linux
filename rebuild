@@ -13,16 +13,13 @@ remote_build ()
 
 make clean
 
-remote_build 192.168.1.2 12 fs mm drivers &
+remote_build 192.168.1.2 12 fs mm drivers lib_lib init vmlinux_objs setup_objs &
 pid[0]=$!
 
-remote_build 192.168.1.4 12 net block &
-pid[1]=$!
+trap "kill ${pid[0]}; exit 1" INT
 
-trap "kill ${pid[0]} ${pid[1]}; exit 1" INT
+make CC=/usr/bin/gcc -j16 x86 lib_x86 lib kernel net block
 
-make CC=/usr/bin/gcc -j16 x86 lib_x86 lib lib_lib kernel init
-
-wait ${pid[0]} ${pid[1]}
+wait ${pid[0]}
 
 make CC=/usr/bin/gcc -j16

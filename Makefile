@@ -293,6 +293,4 @@ build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	@echo "  SYSMAP  build/System.map"
 	$(Q) nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
 
-$(foreach i, realmode_objs vobjs, $(eval $i: $($i)))
-
 -include $(OBJS:.o=.d)
