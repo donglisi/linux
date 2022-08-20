@@ -1,16 +1,9 @@
 MAKEFLAGS := -rR --no-print-directory
 Q := @
 OBJS :=
-CC = gcc
+CC := gcc
 
-all: build/arch/x86/boot/bzImage
-
-clean:
-	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/lib/inat-tables.c \
-		arch/x86/realmode/rm/realmode.relocs arch/x86/realmode/rm/realmode.bin
-
-prepare:
-	bash -c "mkdir -p \
+$(shell bash -c "mkdir -p \
 	      build/include \
 	      build/arch/x86/include \
 	      build/{mm,block/partitions,init,scripts,security} \
@@ -20,7 +13,13 @@ prepare:
 	      build/fs/{iomap,nls,proc,ext2,ramfs,exportfs} \
 	      build/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
 	      build/lib/{math,crypto} \
-	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}"
+	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
+
+all: build/arch/x86/boot/bzImage
+
+clean:
+	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/lib/inat-tables.c \
+		arch/x86/realmode/rm/realmode.relocs arch/x86/realmode/rm/realmode.bin
 
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
