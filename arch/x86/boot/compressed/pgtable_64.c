@@ -4,7 +4,6 @@
 #include <asm/processor.h>
 #include "pgtable.h"
 #include "../string.h"
-#include "efi.h"
 
 struct paging_config {
 	unsigned long trampoline_start;

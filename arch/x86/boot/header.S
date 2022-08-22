@@ -157,56 +157,19 @@ initrd_addr_max: .long 0x7fffffff
 kernel_alignment:  .long CONFIG_PHYSICAL_ALIGN	#physical addr alignment
 						#required for protected mode
 						#kernel
-#ifdef CONFIG_RELOCATABLE
-relocatable_kernel:    .byte 1
-#else
 relocatable_kernel:    .byte 0
-#endif
 min_alignment:		.byte MIN_KERNEL_ALIGN_LG2	# minimum alignment
 
 xloadflags:
-#ifdef CONFIG_X86_64
-# define XLF0 XLF_KERNEL_64			/* 64-bit kernel */
-#else
-# define XLF0 0
-#endif
+#define XLF0 XLF_KERNEL_64			/* 64-bit kernel */
 
-#if defined(CONFIG_RELOCATABLE) && defined(CONFIG_X86_64)
-   /* kernel/boot_param/ramdisk could be loaded above 4g */
-# define XLF1 XLF_CAN_BE_LOADED_ABOVE_4G
-#else
-# define XLF1 0
-#endif
+#define XLF1 0
 
-#ifdef CONFIG_EFI_STUB
-# ifdef CONFIG_EFI_MIXED
-#  define XLF23 (XLF_EFI_HANDOVER_32|XLF_EFI_HANDOVER_64)
-# else
-#  ifdef CONFIG_X86_64
-#   define XLF23 XLF_EFI_HANDOVER_64		/* 64-bit EFI handover ok */
-#  else
-#   define XLF23 XLF_EFI_HANDOVER_32		/* 32-bit EFI handover ok */
-#  endif
-# endif
-#else
-# define XLF23 0
-#endif
+#define XLF23 0
 
-#if defined(CONFIG_X86_64) && defined(CONFIG_EFI) && defined(CONFIG_KEXEC_CORE)
-# define XLF4 XLF_EFI_KEXEC
-#else
-# define XLF4 0
-#endif
+#define XLF4 0
 
-#ifdef CONFIG_X86_64
-#ifdef CONFIG_X86_5LEVEL
-#define XLF56 (XLF_5LEVEL|XLF_5LEVEL_ENABLED)
-#else
 #define XLF56 XLF_5LEVEL
-#endif
-#else
-#define XLF56 0
-#endif
 
 			.word XLF0 | XLF1 | XLF23 | XLF4 | XLF56
 
@@ -227,100 +190,6 @@ setup_data:		.quad 0			# 64-bit physical pointer to
 						# struct setup_data
 
 pref_address:		.quad LOAD_PHYSICAL_ADDR	# preferred load addr
-
-#
-# Getting to provably safe in-place decompression is hard. Worst case
-# behaviours need to be analyzed. Here let's take the decompression of
-# a gzip-compressed kernel as example, to illustrate it:
-#
-# The file layout of gzip compressed kernel is:
-#
-#    magic[2]
-#    method[1]
-#    flags[1]
-#    timestamp[4]
-#    extraflags[1]
-#    os[1]
-#    compressed data blocks[N]
-#    crc[4] orig_len[4]
-#
-# ... resulting in +18 bytes overhead of uncompressed data.
-#
-# (For more information, please refer to RFC 1951 and RFC 1952.)
-#
-# Files divided into blocks
-# 1 bit (last block flag)
-# 2 bits (block type)
-#
-# 1 block occurs every 32K -1 bytes or when there 50% compression
-# has been achieved. The smallest block type encoding is always used.
-#
-# stored:
-#    32 bits length in bytes.
-#
-# fixed:
-#    magic fixed tree.
-#    symbols.
-#
-# dynamic:
-#    dynamic tree encoding.
-#    symbols.
-#
-#
-# The buffer for decompression in place is the length of the uncompressed
-# data, plus a small amount extra to keep the algorithm safe. The
-# compressed data is placed at the end of the buffer.  The output pointer
-# is placed at the start of the buffer and the input pointer is placed
-# where the compressed data starts. Problems will occur when the output
-# pointer overruns the input pointer.
-#
-# The output pointer can only overrun the input pointer if the input
-# pointer is moving faster than the output pointer.  A condition only
-# triggered by data whose compressed form is larger than the uncompressed
-# form.
-#
-# The worst case at the block level is a growth of the compressed data
-# of 5 bytes per 32767 bytes.
-#
-# The worst case internal to a compressed block is very hard to figure.
-# The worst case can at least be bounded by having one bit that represents
-# 32764 bytes and then all of the rest of the bytes representing the very
-# very last byte.
-#
-# All of which is enough to compute an amount of extra data that is required
-# to be safe.  To avoid problems at the block level allocating 5 extra bytes
-# per 32767 bytes of data is sufficient.  To avoid problems internal to a
-# block adding an extra 32767 bytes (the worst case uncompressed block size)
-# is sufficient, to ensure that in the worst case the decompressed data for
-# block will stop the byte before the compressed data for a block begins.
-# To avoid problems with the compressed data's meta information an extra 18
-# bytes are needed.  Leading to the formula:
-#
-# extra_bytes = (uncompressed_size >> 12) + 32768 + 18
-#
-# Adding 8 bytes per 32K is a bit excessive but much easier to calculate.
-# Adding 32768 instead of 32767 just makes for round numbers.
-#
-# Above analysis is for decompressing gzip compressed kernel only. Up to
-# now 6 different decompressor are supported all together. And among them
-# xz stores data in chunks and has maximum chunk of 64K. Hence safety
-# margin should be updated to cover all decompressors so that we don't
-# need to deal with each of them separately. Please check
-# the description in lib/decompressor_xxx.c for specific information.
-#
-# extra_bytes = (uncompressed_size >> 12) + 65536 + 128
-#
-# LZ4 is even worse: data that cannot be further compressed grows by 0.4%,
-# or one byte per 256 bytes. OTOH, we can safely get rid of the +128 as
-# the size-dependent part now grows so fast.
-#
-# extra_bytes = (uncompressed_size >> 8) + 65536
-#
-# ZSTD compressed data grows by at most 3 bytes per 128K, and only has a 22
-# byte fixed overhead but has a maximum block size of 128K, so it needs a
-# larger margin.
-#
-# extra_bytes = (uncompressed_size >> 8) + 131072
 
 #define ZO_z_extra_bytes	((ZO_z_output_len >> 8) + 131072)
 #if ZO_z_output_len > ZO_z_input_len
@@ -358,74 +227,4 @@ kernel_info_offset:	.long 0			# Filled in by build.c
 
 	.section ".entrytext", "ax"
 start_of_setup:
-# Force %es = %ds
-	movw	%ds, %ax
-	movw	%ax, %es
-	cld
-
-# Apparently some ancient versions of LILO invoked the kernel with %ss != %ds,
-# which happened to work by accident for the old code.  Recalculate the stack
-# pointer if %ss is invalid.  Otherwise leave it alone, LOADLIN sets up the
-# stack behind its own code, so we can't blindly put it directly past the heap.
-
-	movw	%ss, %dx
-	cmpw	%ax, %dx	# %ds == %ss?
-	movw	%sp, %dx
-	je	2f		# -> assume %sp is reasonably set
-
-	# Invalid %ss, make up a new stack
-	movw	$_end, %dx
-	testb	$CAN_USE_HEAP, loadflags
-	jz	1f
-	movw	heap_end_ptr, %dx
-1:	addw	$STACK_SIZE, %dx
-	jnc	2f
-	xorw	%dx, %dx	# Prevent wraparound
-
-2:	# Now %dx should point to the end of our stack space
-	andw	$~3, %dx	# dword align (might as well...)
-	jnz	3f
-	movw	$0xfffc, %dx	# Make sure we're not zero
-3:	movw	%ax, %ss
-	movzwl	%dx, %esp	# Clear upper half of %esp
-	sti			# Now we should have a working stack
-
-# We will have entered with %cs = %ds+0x20, normalize %cs so
-# it is on par with the other segments.
-	pushw	%ds
-	pushw	$6f
-	lretw
-6:
-
-# Check signature at end of setup
-	cmpl	$0x5a5aaa55, setup_sig
-	jne	setup_bad
-
-# Zero the bss
-	movw	$__bss_start, %di
-	movw	$_end+3, %cx
-	xorl	%eax, %eax
-	subw	%di, %cx
-	shrw	$2, %cx
-	rep; stosl
-
-# Jump to C code (should not return)
 	calll	main
-
-# Setup corrupt somehow...
-setup_bad:
-	movl	$setup_corrupt, %eax
-	# Fall through...
-
-	.globl	die
-	.type	die, @function
-die:
-	hlt
-	jmp	die
-
-	.size	die, .-die
-
-	.section ".initdata", "a"
-setup_corrupt:
-	.byte	7
-	.string	"No setup signature found...\n"

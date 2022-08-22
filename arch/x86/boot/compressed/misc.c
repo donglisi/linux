@@ -246,14 +246,6 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 	init_default_io_ops();
 
 	/*
-	 * Detect TDX guest environment.
-	 *
-	 * It has to be done before console_init() in order to use
-	 * paravirtualized port I/O operations if needed.
-	 */
-	early_tdx_detect();
-
-	/*
 	 * Save RSDP address for later use. Have this after console_init()
 	 * so that early debugging output from the RSDP parsing code can be
 	 * collected.
