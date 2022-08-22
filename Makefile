@@ -239,5 +239,7 @@ arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	@echo "  LD     " $@
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o $@ --whole-archive $(objs) --no-whole-archive --start-group $(libs) --end-group
+	@echo "  OBJCOPY" build/vmlinux.bin
+	$(Q) objcopy -O binary build/vmlinux build/vmlinux.bin
 	@echo "  SYSMAP  build/System.map"
 	$(Q) nm -n build/vmlinux | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)\|\( \.L\)' > build/System.map
