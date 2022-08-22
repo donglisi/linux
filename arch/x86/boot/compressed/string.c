@@ -8,8 +8,6 @@
  */
 #include "error.h"
 
-#include "../string.c"
-
 #ifdef CONFIG_X86_32
 static void *____memcpy(void *dest, const void *src, size_t n)
 {
@@ -68,7 +66,6 @@ void *memmove(void *dest, const void *src, size_t n)
 void *memcpy(void *dest, const void *src, size_t n)
 {
 	if (dest > src && dest - src < n) {
-		warn("Avoiding potentially unsafe overlapping memcpy()!");
 		return memmove(dest, src, n);
 	}
 	return ____memcpy(dest, src, n);

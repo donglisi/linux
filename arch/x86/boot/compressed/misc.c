@@ -13,7 +13,6 @@
  */
 
 #include "misc.h"
-#include "error.h"
 #include "pgtable.h"
 #include "../string.h"
 #include "../voffset.h"
@@ -109,25 +108,12 @@ static void serial_putchar(int ch)
 {
 	unsigned timeout = 0xffff;
 
-	while ((inb(early_serial_base + LSR) & XMTRDY) == 0 && --timeout)
-		cpu_relax();
-
-	outb(ch, early_serial_base + TXR);
 }
 
 void __putstr(const char *s)
 {
 	int x, y, pos;
 	char c;
-
-	if (early_serial_base) {
-		const char *str = s;
-		while (*str) {
-			if (*str == '\n')
-				serial_putchar('\r');
-			serial_putchar(*str++);
-		}
-	}
 
 	if (lines == 0 || cols == 0)
 		return;
@@ -181,128 +167,18 @@ void __puthex(unsigned long value)
 	}
 }
 
-#ifdef CONFIG_X86_NEED_RELOCS
-static void handle_relocations(void *output, unsigned long output_len,
-			       unsigned long virt_addr)
-{
-	int *reloc;
-	unsigned long delta, map, ptr;
-	unsigned long min_addr = (unsigned long)output;
-	unsigned long max_addr = min_addr + (VO___bss_start - VO__text);
-
-	/*
-	 * Calculate the delta between where vmlinux was linked to load
-	 * and where it was actually loaded.
-	 */
-	delta = min_addr - LOAD_PHYSICAL_ADDR;
-
-	/*
-	 * The kernel contains a table of relocation addresses. Those
-	 * addresses have the final load address of the kernel in virtual
-	 * memory. We are currently working in the self map. So we need to
-	 * create an adjustment for kernel memory addresses to the self map.
-	 * This will involve subtracting out the base address of the kernel.
-	 */
-	map = delta - __START_KERNEL_map;
-
-	/*
-	 * 32-bit always performs relocations. 64-bit relocations are only
-	 * needed if KASLR has chosen a different starting address offset
-	 * from __START_KERNEL_map.
-	 */
-	if (IS_ENABLED(CONFIG_X86_64))
-		delta = virt_addr - LOAD_PHYSICAL_ADDR;
-
-	if (!delta) {
-		debug_putstr("No relocation needed... ");
-		return;
-	}
-	debug_putstr("Performing relocations... ");
-
-	/*
-	 * Process relocations: 32 bit relocations first then 64 bit after.
-	 * Three sets of binary relocations are added to the end of the kernel
-	 * before compression. Each relocation table entry is the kernel
-	 * address of the location which needs to be updated stored as a
-	 * 32-bit value which is sign extended to 64 bits.
-	 *
-	 * Format is:
-	 *
-	 * kernel bits...
-	 * 0 - zero terminator for 64 bit relocations
-	 * 64 bit relocation repeated
-	 * 0 - zero terminator for inverse 32 bit relocations
-	 * 32 bit inverse relocation repeated
-	 * 0 - zero terminator for 32 bit relocations
-	 * 32 bit relocation repeated
-	 *
-	 * So we work backwards from the end of the decompressed image.
-	 */
-	for (reloc = output + output_len - sizeof(*reloc); *reloc; reloc--) {
-		long extended = *reloc;
-		extended += map;
-
-		ptr = (unsigned long)extended;
-		if (ptr < min_addr || ptr > max_addr)
-			error("32-bit relocation outside of kernel!\n");
-
-		*(uint32_t *)ptr += delta;
-	}
-#ifdef CONFIG_X86_64
-	while (*--reloc) {
-		long extended = *reloc;
-		extended += map;
-
-		ptr = (unsigned long)extended;
-		if (ptr < min_addr || ptr > max_addr)
-			error("inverse 32-bit relocation outside of kernel!\n");
-
-		*(int32_t *)ptr -= delta;
-	}
-	for (reloc--; *reloc; reloc--) {
-		long extended = *reloc;
-		extended += map;
-
-		ptr = (unsigned long)extended;
-		if (ptr < min_addr || ptr > max_addr)
-			error("64-bit relocation outside of kernel!\n");
-
-		*(uint64_t *)ptr += delta;
-	}
-#endif
-}
-#else
-static inline void handle_relocations(void *output, unsigned long output_len,
-				      unsigned long virt_addr)
-{ }
-#endif
-
 static void parse_elf(void *output)
 {
-#ifdef CONFIG_X86_64
 	Elf64_Ehdr ehdr;
 	Elf64_Phdr *phdrs, *phdr;
-#else
-	Elf32_Ehdr ehdr;
-	Elf32_Phdr *phdrs, *phdr;
-#endif
 	void *dest;
 	int i;
 
 	memcpy(&ehdr, output, sizeof(ehdr));
-	if (ehdr.e_ident[EI_MAG0] != ELFMAG0 ||
-	   ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
-	   ehdr.e_ident[EI_MAG2] != ELFMAG2 ||
-	   ehdr.e_ident[EI_MAG3] != ELFMAG3) {
-		error("Kernel is not a valid ELF file");
-		return;
-	}
 
 	debug_putstr("Parsing ELF... ");
 
 	phdrs = malloc(sizeof(*phdrs) * ehdr.e_phnum);
-	if (!phdrs)
-		error("Failed to allocate space for phdrs");
 
 	memcpy(phdrs, output + ehdr.e_phoff, sizeof(*phdrs) * ehdr.e_phnum);
 
@@ -311,16 +187,7 @@ static void parse_elf(void *output)
 
 		switch (phdr->p_type) {
 		case PT_LOAD:
-#ifdef CONFIG_X86_64
-			if ((phdr->p_align % 0x200000) != 0)
-				error("Alignment of LOAD segment isn't multiple of 2MB");
-#endif
-#ifdef CONFIG_RELOCATABLE
-			dest = output;
-			dest += (phdr->p_paddr - LOAD_PHYSICAL_ADDR);
-#else
 			dest = (void *)(phdr->p_paddr);
-#endif
 			memmove(dest, output + phdr->p_offset, phdr->p_filesz);
 			break;
 		default: /* Ignore other PT_* */ break;
@@ -386,8 +253,6 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 	 */
 	early_tdx_detect();
 
-	console_init();
-
 	/*
 	 * Save RSDP address for later use. Have this after console_init()
 	 * so that early debugging output from the RSDP parsing code can be
@@ -434,39 +299,12 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 				needed_size,
 				&virt_addr);
 
-	/* Validate memory location choices. */
-	if ((unsigned long)output & (MIN_KERNEL_ALIGN - 1))
-		error("Destination physical address inappropriately aligned");
-	if (virt_addr & (MIN_KERNEL_ALIGN - 1))
-		error("Destination virtual address inappropriately aligned");
-#ifdef CONFIG_X86_64
-	if (heap > 0x3fffffffffffUL)
-		error("Destination address too large");
-	if (virt_addr + max(output_len, kernel_total_size) > KERNEL_IMAGE_SIZE)
-		error("Destination virtual address is beyond the kernel mapping area");
-#else
-	if (heap > ((-__PAGE_OFFSET-(128<<20)-1) & 0x7fffffff))
-		error("Destination address too large");
-#endif
-#ifndef CONFIG_RELOCATABLE
-	if (virt_addr != LOAD_PHYSICAL_ADDR)
-		error("Destination virtual address changed when not relocatable");
-#endif
 
 	debug_putstr("\nDecompressing Linux... ");
 	__decompress(input_data, input_len, NULL, NULL, output, output_len,
-			NULL, error);
+			NULL, NULL);
 	parse_elf(output);
-	handle_relocations(output, output_len, virt_addr);
 	debug_putstr("done.\nBooting the kernel.\n");
 
-	/* Disable exception handling before booting the kernel */
-	cleanup_exception_handling();
-
 	return output;
-}
-
-void fortify_panic(const char *name)
-{
-	error("detected buffer overflow");
 }

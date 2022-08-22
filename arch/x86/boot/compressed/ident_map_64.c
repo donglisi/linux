@@ -19,7 +19,6 @@
 /* No PAGE_TABLE_ISOLATION support needed either: */
 #undef CONFIG_PAGE_TABLE_ISOLATION
 
-#include "error.h"
 #include "misc.h"
 
 /* These actually do the work of building the kernel identity maps. */
@@ -102,8 +101,6 @@ void kernel_add_identity_map(unsigned long start, unsigned long end)
 
 	/* Build the mapping. */
 	ret = kernel_ident_mapping_init(&mapping_info, (pgd_t *)top_level_pgt, start, end);
-	if (ret)
-		error("Error: kernel_ident_mapping_init() failed\n");
 }
 
 /* Locates and clears a region for a new top level page table. */
@@ -176,179 +173,8 @@ void initialize_identity_maps(void *rmode)
 		sd = (struct setup_data *)sd->next;
 	}
 
-	sev_prep_identity_maps(top_level_pgt);
-
 	/* Load the new page-table. */
 	write_cr3(top_level_pgt);
-}
-
-static pte_t *split_large_pmd(struct x86_mapping_info *info,
-			      pmd_t *pmdp, unsigned long __address)
-{
-	unsigned long page_flags;
-	unsigned long address;
-	pte_t *pte;
-	pmd_t pmd;
-	int i;
-
-	pte = (pte_t *)info->alloc_pgt_page(info->context);
-	if (!pte)
-		return NULL;
-
-	address     = __address & PMD_MASK;
-	/* No large page - clear PSE flag */
-	page_flags  = info->page_flag & ~_PAGE_PSE;
-
-	/* Populate the PTEs */
-	for (i = 0; i < PTRS_PER_PMD; i++) {
-		set_pte(&pte[i], __pte(address | page_flags));
-		address += PAGE_SIZE;
-	}
-
-	/*
-	 * Ideally we need to clear the large PMD first and do a TLB
-	 * flush before we write the new PMD. But the 2M range of the
-	 * PMD might contain the code we execute and/or the stack
-	 * we are on, so we can't do that. But that should be safe here
-	 * because we are going from large to small mappings and we are
-	 * also the only user of the page-table, so there is no chance
-	 * of a TLB multihit.
-	 */
-	pmd = __pmd((unsigned long)pte | info->kernpg_flag);
-	set_pmd(pmdp, pmd);
-	/* Flush TLB to establish the new PMD */
-	write_cr3(top_level_pgt);
-
-	return pte + pte_index(__address);
-}
-
-static void clflush_page(unsigned long address)
-{
-	unsigned int flush_size;
-	char *cl, *start, *end;
-
-	/*
-	 * Hardcode cl-size to 64 - CPUID can't be used here because that might
-	 * cause another #VC exception and the GHCB is not ready to use yet.
-	 */
-	flush_size = 64;
-	start      = (char *)(address & PAGE_MASK);
-	end        = start + PAGE_SIZE;
-
-	/*
-	 * First make sure there are no pending writes on the cache-lines to
-	 * flush.
-	 */
-	asm volatile("mfence" : : : "memory");
-
-	for (cl = start; cl != end; cl += flush_size)
-		clflush(cl);
-}
-
-static int set_clr_page_flags(struct x86_mapping_info *info,
-			      unsigned long address,
-			      pteval_t set, pteval_t clr)
-{
-	pgd_t *pgdp = (pgd_t *)top_level_pgt;
-	p4d_t *p4dp;
-	pud_t *pudp;
-	pmd_t *pmdp;
-	pte_t *ptep, pte;
-
-	/*
-	 * First make sure there is a PMD mapping for 'address'.
-	 * It should already exist, but keep things generic.
-	 *
-	 * To map the page just read from it and fault it in if there is no
-	 * mapping yet. kernel_add_identity_map() can't be called here because
-	 * that would unconditionally map the address on PMD level, destroying
-	 * any PTE-level mappings that might already exist. Use assembly here
-	 * so the access won't be optimized away.
-	 */
-	asm volatile("mov %[address], %%r9"
-		     :: [address] "g" (*(unsigned long *)address)
-		     : "r9", "memory");
-
-	/*
-	 * The page is mapped at least with PMD size - so skip checks and walk
-	 * directly to the PMD.
-	 */
-	p4dp = p4d_offset(pgdp, address);
-	pudp = pud_offset(p4dp, address);
-	pmdp = pmd_offset(pudp, address);
-
-	if (pmd_large(*pmdp))
-		ptep = split_large_pmd(info, pmdp, address);
-	else
-		ptep = pte_offset_kernel(pmdp, address);
-
-	if (!ptep)
-		return -ENOMEM;
-
-	/*
-	 * Changing encryption attributes of a page requires to flush it from
-	 * the caches.
-	 */
-	if ((set | clr) & _PAGE_ENC) {
-		clflush_page(address);
-
-		/*
-		 * If the encryption attribute is being cleared, change the page state
-		 * to shared in the RMP table.
-		 */
-		if (clr)
-			snp_set_page_shared(__pa(address & PAGE_MASK));
-	}
-
-	/* Update PTE */
-	pte = *ptep;
-	pte = pte_set_flags(pte, set);
-	pte = pte_clear_flags(pte, clr);
-	set_pte(ptep, pte);
-
-	/*
-	 * If the encryption attribute is being set, then change the page state to
-	 * private in the RMP entry. The page state change must be done after the PTE
-	 * is updated.
-	 */
-	if (set & _PAGE_ENC)
-		snp_set_page_private(__pa(address & PAGE_MASK));
-
-	/* Flush TLB after changing encryption attribute */
-	write_cr3(top_level_pgt);
-
-	return 0;
-}
-
-int set_page_decrypted(unsigned long address)
-{
-	return set_clr_page_flags(&mapping_info, address, 0, _PAGE_ENC);
-}
-
-int set_page_encrypted(unsigned long address)
-{
-	return set_clr_page_flags(&mapping_info, address, _PAGE_ENC, 0);
-}
-
-int set_page_non_present(unsigned long address)
-{
-	return set_clr_page_flags(&mapping_info, address, 0, _PAGE_PRESENT);
-}
-
-static void do_pf_error(const char *msg, unsigned long error_code,
-			unsigned long address, unsigned long ip)
-{
-	error_putstr(msg);
-
-	error_putstr("\nError Code: ");
-	error_puthex(error_code);
-	error_putstr("\nCR2: 0x");
-	error_puthex(address);
-	error_putstr("\nRIP relative to _head: 0x");
-	error_puthex(ip - (unsigned long)_head);
-	error_putstr("\n");
-
-	error("Stopping.\n");
 }
 
 void do_boot_page_fault(struct pt_regs *regs, unsigned long error_code)
@@ -361,17 +187,6 @@ void do_boot_page_fault(struct pt_regs *regs, unsigned long error_code)
 
 	address   &= PMD_MASK;
 	end        = address + PMD_SIZE;
-
-	/*
-	 * Check for unexpected error codes. Unexpected are:
-	 *	- Faults on present pages
-	 *	- User faults
-	 *	- Reserved bits set
-	 */
-	if (error_code & (X86_PF_PROT | X86_PF_USER | X86_PF_RSVD))
-		do_pf_error("Unexpected page-fault:", error_code, address, regs->ip);
-	else if (ghcb_fault)
-		do_pf_error("Page-fault on GHCB page:", error_code, address, regs->ip);
 
 	/*
 	 * Error code is sane - now identity map the 2M region around

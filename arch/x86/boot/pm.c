@@ -14,45 +14,6 @@
 #include <asm/segment.h>
 
 /*
- * Invoke the realmode switch hook if present; otherwise
- * disable all interrupts.
- */
-static void realmode_switch_hook(void)
-{
-	if (boot_params.hdr.realmode_swtch) {
-		asm volatile("lcallw *%0"
-			     : : "m" (boot_params.hdr.realmode_swtch)
-			     : "eax", "ebx", "ecx", "edx");
-	} else {
-		asm volatile("cli");
-		outb(0x80, 0x70); /* Disable NMI */
-		io_delay();
-	}
-}
-
-/*
- * Disable all interrupts at the legacy PIC.
- */
-static void mask_all_interrupts(void)
-{
-	outb(0xff, 0xa1);	/* Mask all interrupts on the secondary PIC */
-	io_delay();
-	outb(0xfb, 0x21);	/* Mask all but cascade on the primary PIC */
-	io_delay();
-}
-
-/*
- * Reset IGNNE# if asserted in the FPU.
- */
-static void reset_coprocessor(void)
-{
-	outb(0, 0xf0);
-	io_delay();
-	outb(0, 0xf1);
-	io_delay();
-}
-
-/*
  * Set up the GDT
  */
 
@@ -88,36 +49,11 @@ static void setup_gdt(void)
 }
 
 /*
- * Set up the IDT
- */
-static void setup_idt(void)
-{
-	static const struct gdt_ptr null_idt = {0, 0};
-	asm volatile("lidtl %0" : : "m" (null_idt));
-}
-
-/*
  * Actual invocation sequence
  */
 void go_to_protected_mode(void)
 {
-	/* Hook before leaving real mode, also disables interrupts */
-	realmode_switch_hook();
 
-	/* Enable the A20 gate */
-	if (enable_a20()) {
-		puts("A20 gate not responding, unable to boot...\n");
-		die();
-	}
-
-	/* Reset coprocessor (IGNNE#) */
-	reset_coprocessor();
-
-	/* Mask all interrupts in the PIC */
-	mask_all_interrupts();
-
-	/* Actual transition to protected mode... */
-	setup_idt();
 	setup_gdt();
 	protected_mode_jump(boot_params.hdr.code32_start,
 			    (u32)&boot_params + (ds() << 4));
