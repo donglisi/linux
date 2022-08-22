@@ -23,10 +23,7 @@
 #include <linux/edd.h>
 #include <asm/setup.h>
 #include <asm/asm.h>
-#include "bitops.h"
-#include "ctype.h"
 #include "cpuflags.h"
-#include "io.h"
 
 /* Useful macros */
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
@@ -35,12 +32,6 @@ extern struct setup_header hdr;
 extern struct boot_params boot_params;
 
 #define cpu_relax()	asm volatile("rep; nop")
-
-static inline void io_delay(void)
-{
-	const u16 DELAY_PORT = 0x80;
-	outb(0, DELAY_PORT);
-}
 
 /* These functions are used to reference data in other segments. */
 

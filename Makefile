@@ -181,8 +181,7 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 	@echo "  OBJCOPY" $@
 	$(Q) objcopy -S --remove-section __ex_table $< $@
 
-setup_objs := $(addprefix build/arch/x86/boot/, bioscall.o cmdline.o copy.o \
-			header.o main.o memory.o pm.o pmjump.o regs.o version.o)
+setup_objs := $(addprefix build/arch/x86/boot/, bioscall.o cmdline.o header.o main.o memory.o pm.o pmjump.o regs.o)
 $(setup_objs): c_flags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding -fno-pic \
 			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
@@ -215,7 +214,7 @@ build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
 
 build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
 
-vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, kernel_info.o head_64.o misc.o string.o cmdline.o \
+vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, head_64.o misc.o string.o cmdline.o \
 			piggy.o ident_map_64.o pgtable_64.o)
 $(vmlinux_objs): c_flags := -fPIE -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -Wno-pointer-sign \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__

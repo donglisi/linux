@@ -58,14 +58,6 @@ static void *alloc_pgt_page(void *context)
 	struct alloc_pgt_data *pages = (struct alloc_pgt_data *)context;
 	unsigned char *entry;
 
-	/* Validate there is space available for a new page. */
-	if (pages->pgt_buf_offset >= pages->pgt_buf_size) {
-		debug_putstr("out of pgt_buf in " __FILE__ "!?\n");
-		debug_putaddr(pages->pgt_buf_offset);
-		debug_putaddr(pages->pgt_buf_size);
-		return NULL;
-	}
-
 	entry = pages->pgt_buf + pages->pgt_buf_offset;
 	pages->pgt_buf_offset += PAGE_SIZE;
 
@@ -181,9 +173,6 @@ void do_boot_page_fault(struct pt_regs *regs, unsigned long error_code)
 {
 	unsigned long address = native_read_cr2();
 	unsigned long end;
-	bool ghcb_fault;
-
-	ghcb_fault = sev_es_check_ghcb_fault(address);
 
 	address   &= PMD_MASK;
 	end        = address + PMD_SIZE;

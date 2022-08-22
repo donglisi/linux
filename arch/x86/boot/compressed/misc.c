@@ -47,8 +47,6 @@ void *memmove(void *dest, const void *src, size_t n);
  */
 struct boot_params *boot_params;
 
-struct port_io_ops pio_ops;
-
 memptr free_mem_ptr;
 memptr free_mem_end_ptr;
 
@@ -59,33 +57,7 @@ static int vidport;
 static int lines __section(".data");
 static int cols __section(".data");
 
-#ifdef CONFIG_KERNEL_GZIP
 #include "../../../../lib/decompress_inflate.c"
-#endif
-
-#ifdef CONFIG_KERNEL_BZIP2
-#include "../../../../lib/decompress_bunzip2.c"
-#endif
-
-#ifdef CONFIG_KERNEL_LZMA
-#include "../../../../lib/decompress_unlzma.c"
-#endif
-
-#ifdef CONFIG_KERNEL_XZ
-#include "../../../../lib/decompress_unxz.c"
-#endif
-
-#ifdef CONFIG_KERNEL_LZO
-#include "../../../../lib/decompress_unlzo.c"
-#endif
-
-#ifdef CONFIG_KERNEL_LZ4
-#include "../../../../lib/decompress_unlz4.c"
-#endif
-
-#ifdef CONFIG_KERNEL_ZSTD
-#include "../../../../lib/decompress_unzstd.c"
-#endif
 
 static void parse_elf(void *output)
 {
@@ -95,8 +67,6 @@ static void parse_elf(void *output)
 	int i;
 
 	memcpy(&ehdr, output, sizeof(ehdr));
-
-	debug_putstr("Parsing ELF... ");
 
 	phdrs = malloc(sizeof(*phdrs) * ehdr.e_phnum);
 
@@ -163,17 +133,6 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 	lines = boot_params->screen_info.orig_video_lines;
 	cols = boot_params->screen_info.orig_video_cols;
 
-	init_default_io_ops();
-
-	/*
-	 * Save RSDP address for later use. Have this after console_init()
-	 * so that early debugging output from the RSDP parsing code can be
-	 * collected.
-	 */
-	boot_params->acpi_rsdp_addr = get_rsdp_addr();
-
-	debug_putstr("early console in extract_kernel\n");
-
 	free_mem_ptr     = heap;	/* Heap */
 	free_mem_end_ptr = heap + BOOT_HEAP_SIZE;
 
@@ -189,34 +148,11 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 	 * and doesn't include any reserved areas.
 	 */
 	needed_size = max(output_len, kernel_total_size);
-#ifdef CONFIG_X86_64
 	needed_size = ALIGN(needed_size, MIN_KERNEL_ALIGN);
-#endif
 
-	/* Report initial kernel position details. */
-	debug_putaddr(input_data);
-	debug_putaddr(input_len);
-	debug_putaddr(output);
-	debug_putaddr(output_len);
-	debug_putaddr(kernel_total_size);
-	debug_putaddr(needed_size);
-
-#ifdef CONFIG_X86_64
-	/* Report address of 32-bit trampoline */
-	debug_putaddr(trampoline_32bit);
-#endif
-
-	choose_random_location((unsigned long)input_data, input_len,
-				(unsigned long *)&output,
-				needed_size,
-				&virt_addr);
-
-
-	debug_putstr("\nDecompressing Linux... ");
 	__decompress(input_data, input_len, NULL, NULL, output, output_len,
 			NULL, NULL);
 	parse_elf(output);
-	debug_putstr("done.\nBooting the kernel.\n");
 
 	return output;
 }

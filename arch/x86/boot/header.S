@@ -85,7 +85,7 @@ _start:
 realmode_swtch:	.word	0, 0		# default_switch, SETUPSEG
 start_sys_seg:	.word	SYSSEG		# obsolete and meaningless, but just
 					# in case something decided to "use" it
-		.word	kernel_version-512 # pointing to kernel version string
+		.word	0 # pointing to kernel version string
 					# above section of header is compatible
 					# with loadlin-1.5 (header v1.5). Don't
 					# change it.
