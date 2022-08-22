@@ -108,9 +108,6 @@ SYM_FUNC_START(startup_32)
 	movl	%eax, %gs
 	movl	%eax, %ss
 
-	/* Setup a stack and load CS from current GDT */
-	leal	rva(boot_stack_end)(%ebp), %esp
-
 	pushl	$__KERNEL32_CS
 	leal	rva(1f)(%ebp), %eax
 	pushl	%eax
@@ -256,9 +253,6 @@ SYM_CODE_START(startup_64)
 	subl	$ rva(_end), %ebx
 	addq	%rbp, %rbx
 
-	/* Set up the stack */
-	leaq	rva(boot_stack_end)(%rbx), %rsp
-
 	/*
 	 * At this point we are in long mode with 4-level paging enabled,
 	 * but we might want to enable 5-level paging or vice versa.
@@ -330,8 +324,6 @@ SYM_CODE_START(startup_64)
 	pushq	%rax
 	lretq
 trampoline_return:
-	/* Restore the stack, the 32-bit trampoline uses its own stack */
-	leaq	rva(boot_stack_end)(%rbx), %rsp
 
 	/* Zero EFLAGS */
 	pushq	$0
@@ -424,63 +416,12 @@ SYM_CODE_START(trampoline_32bit_src)
 	/* Set up new stack */
 	leal	TRAMPOLINE_32BIT_STACK_END(%ecx), %esp
 
-	/* Disable paging */
-	movl	%cr0, %eax
-	btrl	$X86_CR0_PG_BIT, %eax
-	movl	%eax, %cr0
-
-	/* Check what paging mode we want to be in after the trampoline */
-	testl	%edx, %edx
-	jz	1f
-
-	/* We want 5-level paging: don't touch CR3 if it already points to 5-level page tables */
-	movl	%cr4, %eax
-	testl	$X86_CR4_LA57, %eax
-	jnz	3f
-	jmp	2f
-1:
-	/* We want 4-level paging: don't touch CR3 if it already points to 4-level page tables */
-	movl	%cr4, %eax
-	testl	$X86_CR4_LA57, %eax
-	jz	3f
-2:
-	/* Point CR3 to the trampoline's new top level page table */
-	leal	TRAMPOLINE_32BIT_PGTABLE_OFFSET(%ecx), %eax
-	movl	%eax, %cr3
-3:
-	/* Set EFER.LME=1 as a precaution in case hypervsior pulls the rug */
-	pushl	%ecx
-	pushl	%edx
-	movl	$MSR_EFER, %ecx
-	rdmsr
-	btsl	$_EFER_LME, %eax
-	/* Avoid writing EFER if no change was made (for TDX guest) */
-	jc	1f
-	wrmsr
-1:	popl	%edx
-	popl	%ecx
-
-	movl	$0, %eax
-
-	/* Enable PAE and LA57 (if required) paging modes */
-	orl	$X86_CR4_PAE, %eax
-	testl	%edx, %edx
-	jz	1f
-	orl	$X86_CR4_LA57, %eax
-1:
-	movl	%eax, %cr4
-
 	/* Calculate address of paging_enabled() once we are executing in the trampoline */
 	leal	.Lpaging_enabled - trampoline_32bit_src + TRAMPOLINE_32BIT_CODE_OFFSET(%ecx), %eax
 
 	/* Prepare the stack for far return to Long Mode */
 	pushl	$__KERNEL_CS
 	pushl	%eax
-
-	/* Enable paging again. */
-	movl	%cr0, %eax
-	btsl	$X86_CR0_PG_BIT, %eax
-	movl	%eax, %cr0
 
 	lret
 SYM_CODE_END(trampoline_32bit_src)
@@ -517,18 +458,7 @@ SYM_DATA_START_LOCAL(gdt)
 	.quad   0x0000000000000000	/* TS continued */
 SYM_DATA_END_LABEL(gdt, SYM_L_LOCAL, gdt_end)
 
-SYM_DATA_START(boot_idt_desc)
-	.word	boot_idt_end - boot_idt - 1
-	.quad	0
-SYM_DATA_END(boot_idt_desc)
 	.balign 8
-SYM_DATA_START(boot_idt)
-	.rept	BOOT_IDT_ENTRIES
-	.quad	0
-	.quad	0
-	.endr
-SYM_DATA_END_LABEL(boot_idt, SYM_L_GLOBAL, boot_idt_end)
-
 
 /*
  * Stack and heap for uncompression
@@ -548,9 +478,3 @@ SYM_DATA_END_LABEL(boot_stack, SYM_L_LOCAL, boot_stack_end)
 	.section ".pgtable","aw",@nobits
 	.balign 4096
 SYM_DATA_LOCAL(pgtable,		.fill BOOT_PGT_SIZE, 1, 0)
-
-/*
- * The page table is going to be used instead of page table in the trampoline
- * memory.
- */
-SYM_DATA_LOCAL(top_pgtable,	.fill PAGE_SIZE, 1, 0)
