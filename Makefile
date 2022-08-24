@@ -8,13 +8,10 @@ else
 endif
 
 $(shell bash -c "mkdir -p \
-	      build/include \
-	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib,boot/compressed,entry/vdso,tools,boot/tools} \
-	      build/{mm,block/partitions,init,security} \
-	      build/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
+	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs,exportfs}} \
+	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed} \
+	      build/drivers/{base/{power,firmware_loader/builtin},pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
-	      build/fs/{iomap,nls,proc,ext2,ramfs,exportfs} \
-	      build/lib/{math,crypto} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
 
 all: build/arch/x86/boot/bzImage
