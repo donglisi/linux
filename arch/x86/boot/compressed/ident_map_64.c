@@ -168,18 +168,3 @@ void initialize_identity_maps(void *rmode)
 	/* Load the new page-table. */
 	write_cr3(top_level_pgt);
 }
-
-void do_boot_page_fault(struct pt_regs *regs, unsigned long error_code)
-{
-	unsigned long address = native_read_cr2();
-	unsigned long end;
-
-	address   &= PMD_MASK;
-	end        = address + PMD_SIZE;
-
-	/*
-	 * Error code is sane - now identity map the 2M region around
-	 * the faulting address.
-	 */
-	kernel_add_identity_map(address, end);
-}
