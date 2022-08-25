@@ -8,13 +8,8 @@ OUTPUT_FORMAT(CONFIG_OUTPUT_FORMAT)
 #include <asm/cache.h>
 #include <asm/page_types.h>
 
-#ifdef CONFIG_X86_64
 OUTPUT_ARCH(i386:x86-64)
 ENTRY(startup_64)
-#else
-OUTPUT_ARCH(i386)
-ENTRY(startup_32)
-#endif
 
 SECTIONS
 {
@@ -58,14 +53,12 @@ SECTIONS
 		. = ALIGN(8);	/* For convenience during zeroing */
 		_ebss = .;
 	}
-#ifdef CONFIG_X86_64
        . = ALIGN(PAGE_SIZE);
        .pgtable : {
 		_pgtable = . ;
 		*(.pgtable)
 		_epgtable = . ;
 	}
-#endif
 	. = ALIGN(PAGE_SIZE);	/* keep ZO size page aligned */
 	_end = .;
 
@@ -79,39 +72,4 @@ SECTIONS
 		*(.hash) *(.gnu.hash)
 		*(.note.*)
 	}
-
-	.got.plt (INFO) : {
-		*(.got.plt)
-	}
-	ASSERT(SIZEOF(.got.plt) == 0 ||
-#ifdef CONFIG_X86_64
-	       SIZEOF(.got.plt) == 0x18,
-#else
-	       SIZEOF(.got.plt) == 0xc,
-#endif
-	       "Unexpected GOT/PLT entries detected!")
-
-	/*
-	 * Sections that should stay zero sized, which is safer to
-	 * explicitly check instead of blindly discarding.
-	 */
-	.got : {
-		*(.got)
-	}
-	ASSERT(SIZEOF(.got) == 0, "Unexpected GOT entries detected!")
-
-	.plt : {
-		*(.plt) *(.plt.*)
-	}
-	ASSERT(SIZEOF(.plt) == 0, "Unexpected run-time procedure linkages detected!")
-
-	.rel.dyn : {
-		*(.rel.*) *(.rel_*)
-	}
-	ASSERT(SIZEOF(.rel.dyn) == 0, "Unexpected run-time relocations (.rel) detected!")
-
-	.rela.dyn : {
-		*(.rela.*) *(.rela_*)
-	}
-	ASSERT(SIZEOF(.rela.dyn) == 0, "Unexpected run-time relocations (.rela) detected!")
 }

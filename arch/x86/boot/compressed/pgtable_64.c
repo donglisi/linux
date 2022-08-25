@@ -20,13 +20,11 @@ struct paging_config {
 unsigned long *trampoline_32bit __section(".data");
 
 extern struct boot_params *boot_params;
-int cmdline_find_option_bool(const char *option);
 
 struct paging_config paging_prepare(void *rmode)
 {
 	struct paging_config paging_config = {};
 
-	/* Initialize boot_params. Required for cmdline_find_option_bool(). */
 	boot_params = rmode;
 
 	paging_config.trampoline_start = 0x9d000;
@@ -45,6 +43,5 @@ struct paging_config paging_prepare(void *rmode)
 	src = *(unsigned long *)__native_read_cr3() & PAGE_MASK;
 	memcpy(trampoline_32bit, (void *)src, PAGE_SIZE);
 
-out:
 	return paging_config;
 }
