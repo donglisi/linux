@@ -183,12 +183,6 @@ build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
 	@echo "  OBJCOPY" $@
 	$(Q) objcopy -O binary $< $@
 
-build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
-	@echo "  VOFFSET" $@
-	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
-
-build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
-
 vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, head_64.o misc.o string.o cmdline.o \
 			piggy.o ident_map_64.o pgtable_64.o)
 $(vmlinux_objs): c_flags := -fPIE -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -Wno-pointer-sign \

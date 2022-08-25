@@ -15,7 +15,6 @@
 #include "misc.h"
 #include "pgtable.h"
 #include "../string.h"
-#include "../voffset.h"
 #include <asm/bootparam_utils.h>
 
 /*
@@ -110,45 +109,11 @@ asmlinkage __visible void *extract_kernel(void *rmode, memptr heap,
 				  unsigned char *output,
 				  unsigned long output_len)
 {
-	const unsigned long kernel_total_size = VO__end - VO__text;
-	unsigned long virt_addr = LOAD_PHYSICAL_ADDR;
-	unsigned long needed_size;
-
 	/* Retain x86 boot parameters pointer passed from startup_32/64. */
 	boot_params = rmode;
 
-	/* Clear flags intended for solely in-kernel use. */
-	boot_params->hdr.loadflags &= ~KASLR_FLAG;
-
-	sanitize_boot_params(boot_params);
-
-	if (boot_params->screen_info.orig_video_mode == 7) {
-		vidmem = (char *) 0xb0000;
-		vidport = 0x3b4;
-	} else {
-		vidmem = (char *) 0xb8000;
-		vidport = 0x3d4;
-	}
-
-	lines = boot_params->screen_info.orig_video_lines;
-	cols = boot_params->screen_info.orig_video_cols;
-
 	free_mem_ptr     = heap;	/* Heap */
 	free_mem_end_ptr = heap + BOOT_HEAP_SIZE;
-
-	/*
-	 * The memory hole needed for the kernel is the larger of either
-	 * the entire decompressed kernel plus relocation table, or the
-	 * entire decompressed kernel plus .bss and .brk sections.
-	 *
-	 * On X86_64, the memory is mapped with PMD pages. Round the
-	 * size up so that the full extent of PMD pages mapped is
-	 * included in the check against the valid memory table
-	 * entries. This ensures the full mapped area is usable RAM
-	 * and doesn't include any reserved areas.
-	 */
-	needed_size = max(output_len, kernel_total_size);
-	needed_size = ALIGN(needed_size, MIN_KERNEL_ALIGN);
 
 	__decompress(input_data, input_len, NULL, NULL, output, output_len,
 			NULL, NULL);

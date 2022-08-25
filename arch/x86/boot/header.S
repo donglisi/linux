@@ -22,7 +22,6 @@
 #include <asm/setup.h>
 #include <asm/bootparam.h>
 #include "boot.h"
-#include "voffset.h"
 #include "zoffset.h"
 
 BOOTSEG		= 0x07C0		/* original address of boot-sector */
