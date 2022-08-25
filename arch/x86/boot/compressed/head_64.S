@@ -373,13 +373,6 @@ SYM_FUNC_START_LOCAL_NOALIGN(.Lrelocated)
 	shrq	$3, %rcx
 	rep	stosq
 
-	pushq	%rsi
-
-	/* Pass boot_params to initialize_identity_maps() */
-	movq	(%rsp), %rdi
-	call	initialize_identity_maps
-	popq	%rsi
-
 /*
  * Do the extraction, and jump to the new kernel..
  */

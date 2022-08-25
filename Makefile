@@ -184,7 +184,7 @@ build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
 	$(Q) objcopy -O binary $< $@
 
 vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, head_64.o misc.o string.o cmdline.o \
-			piggy.o ident_map_64.o pgtable_64.o)
+			piggy.o pgtable_64.o)
 $(vmlinux_objs): c_flags := -fPIE -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -Wno-pointer-sign \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
 vmlinux_objs: $(filter-out build/arch/x86/boot/compressed/piggy.o build/arch/x86/boot/compressed/misc.o, $(vmlinux_objs))
