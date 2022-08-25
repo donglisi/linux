@@ -31,26 +31,12 @@
 #include <linux/decompress/mm.h>
 
 /*
- * Provide definitions of memzero and memmove as some of the decompressors will
- * try to define their own functions if these are not defined as macros.
- */
-#define memzero(s, n)	memset((s), 0, (n))
-#ifndef memmove
-#define memmove		memmove
-/* Functions used by the included decompressor code below. */
-void *memmove(void *dest, const void *src, size_t n);
-#endif
-
-/*
  * This is set up by the setup-routine at boot-time
  */
 struct boot_params *boot_params;
 
 memptr free_mem_ptr;
 memptr free_mem_end_ptr;
-
-static char *vidmem;
-static int vidport;
 
 /* These might be accessed before .bss is cleared, so use .data instead. */
 static int lines __section(".data");

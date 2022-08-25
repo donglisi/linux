@@ -99,7 +99,6 @@ void kernel_add_identity_map(unsigned long start, unsigned long end)
 void initialize_identity_maps(void *rmode)
 {
 	unsigned long cmdline;
-	struct setup_data *sd;
 
 	/* Exclude the encryption mask from __PHYSICAL_MASK */
 	physical_mask &= ~sme_me_mask;
@@ -129,16 +128,6 @@ void initialize_identity_maps(void *rmode)
 	 * cases. On 4-level paging it's equal to 'top_level_pgt'.
 	 */
 	top_level_pgt = read_cr3_pa();
-	if (p4d_offset((pgd_t *)top_level_pgt, 0) == (p4d_t *)_pgtable) {
-		pgt_data.pgt_buf = _pgtable + BOOT_INIT_PGT_SIZE;
-		pgt_data.pgt_buf_size = BOOT_PGT_SIZE - BOOT_INIT_PGT_SIZE;
-		memset(pgt_data.pgt_buf, 0, pgt_data.pgt_buf_size);
-	} else {
-		pgt_data.pgt_buf = _pgtable;
-		pgt_data.pgt_buf_size = BOOT_PGT_SIZE;
-		memset(pgt_data.pgt_buf, 0, pgt_data.pgt_buf_size);
-		top_level_pgt = (unsigned long)alloc_pgt_page(&pgt_data);
-	}
 
 	/*
 	 * New page-table is set up - map the kernel image, boot_params and the
@@ -152,18 +141,6 @@ void initialize_identity_maps(void *rmode)
 	kernel_add_identity_map((unsigned long)boot_params, (unsigned long)(boot_params + 1));
 	cmdline = get_cmd_line_ptr();
 	kernel_add_identity_map(cmdline, cmdline + COMMAND_LINE_SIZE);
-
-	/*
-	 * Also map the setup_data entries passed via boot_params in case they
-	 * need to be accessed by uncompressed kernel via the identity mapping.
-	 */
-	sd = (struct setup_data *)boot_params->hdr.setup_data;
-	while (sd) {
-		unsigned long sd_addr = (unsigned long)sd;
-
-		kernel_add_identity_map(sd_addr, sd_addr + sizeof(*sd) + sd->len);
-		sd = (struct setup_data *)sd->next;
-	}
 
 	/* Load the new page-table. */
 	write_cr3(top_level_pgt);

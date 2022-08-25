@@ -45,10 +45,6 @@ int cmdline_find_option_bool(const char *option);
 
 extern unsigned char _pgtable[];
 
-extern void kernel_add_identity_map(unsigned long start, unsigned long end);
-
-void boot_page_fault(void);
-void boot_stage1_vc(void);
-void boot_stage2_vc(void);
+void kernel_add_identity_map(unsigned long start, unsigned long end);
 
 #endif /* BOOT_COMPRESSED_MISC_H */
