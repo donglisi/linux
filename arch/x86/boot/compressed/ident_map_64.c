@@ -67,9 +67,6 @@ static void *alloc_pgt_page(void *context)
 /* Used to track our allocated page tables. */
 static struct alloc_pgt_data pgt_data;
 
-/* The top level page table entry pointer. */
-static unsigned long top_level_pgt;
-
 phys_addr_t physical_mask = (1ULL << __PHYSICAL_MASK_SHIFT) - 1;
 
 /*
@@ -92,7 +89,7 @@ void kernel_add_identity_map(unsigned long start, unsigned long end)
 		return;
 
 	/* Build the mapping. */
-	ret = kernel_ident_mapping_init(&mapping_info, (pgd_t *)top_level_pgt, start, end);
+	ret = kernel_ident_mapping_init(&mapping_info, (pgd_t *)read_cr3_pa(), start, end);
 }
 
 /* Locates and clears a region for a new top level page table. */
@@ -117,19 +114,6 @@ void initialize_identity_maps(void *rmode)
 	pgt_data.pgt_buf_offset = 0;
 
 	/*
-	 * If we came here via startup_32(), cr3 will be _pgtable already
-	 * and we must append to the existing area instead of entirely
-	 * overwriting it.
-	 *
-	 * With 5-level paging, we use '_pgtable' to allocate the p4d page table,
-	 * the top-level page table is allocated separately.
-	 *
-	 * p4d_offset(top_level_pgt, 0) would cover both the 4- and 5-level
-	 * cases. On 4-level paging it's equal to 'top_level_pgt'.
-	 */
-	top_level_pgt = read_cr3_pa();
-
-	/*
 	 * New page-table is set up - map the kernel image, boot_params and the
 	 * command line. The uncompressed kernel requires boot_params and the
 	 * command line to be mapped in the identity mapping. Map them
@@ -141,7 +125,4 @@ void initialize_identity_maps(void *rmode)
 	kernel_add_identity_map((unsigned long)boot_params, (unsigned long)(boot_params + 1));
 	cmdline = get_cmd_line_ptr();
 	kernel_add_identity_map(cmdline, cmdline + COMMAND_LINE_SIZE);
-
-	/* Load the new page-table. */
-	write_cr3(top_level_pgt);
 }
