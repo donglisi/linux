@@ -24,7 +24,7 @@ include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/inclu
 		-include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
 CFLAGS := -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -fno-PIE \
-		-Wno-format-security -Wno-format-truncation -fno-PIE -Wno-address-of-packed-member -Wno-pointer-sign \
+		-Wno-format-security -Wno-format-truncation -Wno-address-of-packed-member -Wno-pointer-sign \
 		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized
 
 basetarget = $(subst -,_,$(basename $(notdir $@)))
