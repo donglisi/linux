@@ -58,8 +58,6 @@
 
 #include "mm_internal.h"
 
-#include "ident_map.c"
-
 #define DEFINE_POPULATE(fname, type1, type2, init)		\
 static inline void fname##_init(struct mm_struct *mm,		\
 		type1##_t *arg1, type2##_t *arg2, bool init)	\
