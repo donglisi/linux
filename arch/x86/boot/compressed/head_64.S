@@ -115,7 +115,6 @@ SYM_FUNC_START(startup_32)
 1:
 
 	movl	$LOAD_PHYSICAL_ADDR, %ebx
-1:
 
 	/* Target address to relocate to for decompression */
 	addl	BP_init_size(%esi), %ebx
