@@ -156,7 +156,7 @@ build/%.lds: %.lds.S
 CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
-setup_objs := $(addprefix build/arch/x86/boot/, bioscall.o cmdline.o header.o main.o pm.o pmjump.o regs.o)
+setup_objs := $(addprefix build/arch/x86/boot/, bioscall.o header.o main.o pm.o pmjump.o regs.o)
 $(setup_objs): c_flags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding -fno-pic \
 			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
