@@ -23,7 +23,8 @@
 #include <linux/edd.h>
 #include <asm/setup.h>
 #include <asm/asm.h>
-#include "cpuflags.h"
+#include <asm/cpufeatures.h>
+#include <asm/processor-flags.h>
 
 /* Useful macros */
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
