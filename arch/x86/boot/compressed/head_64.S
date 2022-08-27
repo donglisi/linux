@@ -46,31 +46,6 @@
 
 	__HEAD
 
-/*
- * This macro gives the relative virtual address of X, i.e. the offset of X
- * from startup_32. This is the same as the link-time virtual address of X,
- * since startup_32 is at 0, but defining it this way tells the
- * assembler/linker that we do not want the actual run-time address of X. This
- * prevents the linker from trying to create unwanted run-time relocation
- * entries for the reference when the compressed kernel is linked as PIE.
- *
- * A reference X(%reg) will result in the link-time VA of X being stored with
- * the instruction, and a run-time R_X86_64_RELATIVE relocation entry that
- * adds the 64-bit base address where the kernel is loaded.
- *
- * Replacing it with (X-startup_32)(%reg) results in the offset being stored,
- * and no run-time relocation.
- *
- * The macro should be used as a displacement with a base register containing
- * the run-time address of startup_32 [i.e. rva(X)(%reg)], or as an immediate
- * [$ rva(X)].
- *
- * This macro can only be used from within the .head.text section, since the
- * expression requires startup_32 to be in the same section as the code being
- * assembled.
- */
-#define rva(X) ((X) - startup_32)
-
 	.code32
 SYM_FUNC_START(startup_32)
 	/*
@@ -93,10 +68,10 @@ SYM_FUNC_START(startup_32)
 	leal	(BP_scratch+4)(%esi), %esp
 	call	1f
 1:	popl	%ebp
-	subl	$ rva(1b), %ebp
+	subl	$1b, %ebp
 
 	/* Load new GDT with the 64bit segments using 32bit descriptor */
-	leal	rva(gdt)(%ebp), %eax
+	leal	gdt(%ebp), %eax
 	movl	%eax, 2(%eax)
 	lgdt	(%eax)
 
@@ -109,7 +84,7 @@ SYM_FUNC_START(startup_32)
 	movl	%eax, %ss
 
 	pushl	$__KERNEL32_CS
-	leal	rva(1f)(%ebp), %eax
+	leal	1f(%ebp), %eax
 	pushl	%eax
 	lretl
 1:
@@ -118,7 +93,7 @@ SYM_FUNC_START(startup_32)
 
 	/* Target address to relocate to for decompression */
 	addl	BP_init_size(%esi), %ebx
-	subl	$ rva(_end), %ebx
+	subl	$_end, %ebx
 
 /*
  * Prepare for entering 64 bit mode
@@ -133,19 +108,19 @@ SYM_FUNC_START(startup_32)
   * Build early 4G boot pagetable
   */
 	/* Initialize Page tables to 0 */
-	leal	rva(pgtable)(%ebx), %edi
+	leal	pgtable(%ebx), %edi
 	xorl	%eax, %eax
 	movl	$(BOOT_INIT_PGT_SIZE/4), %ecx
 	rep	stosl
 
 	/* Build Level 4 */
-	leal	rva(pgtable + 0)(%ebx), %edi
+	leal	pgtable + 0(%ebx), %edi
 	leal	0x1007 (%edi), %eax
 	movl	%eax, 0(%edi)
 	addl	%edx, 4(%edi)
 
 	/* Build Level 3 */
-	leal	rva(pgtable + 0x1000)(%ebx), %edi
+	leal	pgtable + 0x1000(%ebx), %edi
 	leal	0x1007(%edi), %eax
 	movl	$4, %ecx
 1:	movl	%eax, 0x00(%edi)
@@ -156,7 +131,7 @@ SYM_FUNC_START(startup_32)
 	jnz	1b
 
 	/* Build Level 2 */
-	leal	rva(pgtable + 0x2000)(%ebx), %edi
+	leal	pgtable + 0x2000(%ebx), %edi
 	movl	$0x00000183, %eax
 	movl	$2048, %ecx
 1:	movl	%eax, 0(%edi)
@@ -167,7 +142,7 @@ SYM_FUNC_START(startup_32)
 	jnz	1b
 
 	/* Enable the boot page tables */
-	leal	rva(pgtable)(%ebx), %eax
+	leal	pgtable(%ebx), %eax
 	movl	%eax, %cr3
 
 	/* Enable Long mode in EFER (Extended Feature Enable Register) */
@@ -192,7 +167,7 @@ SYM_FUNC_START(startup_32)
 	 * We place all of the values on our mini stack so lret can
 	 * used to perform that far jump.
 	 */
-	leal	rva(startup_64)(%ebp), %eax
+	leal	startup_64(%ebp), %eax
 
 	pushl	$__KERNEL_CS
 	pushl	%eax
@@ -248,7 +223,7 @@ SYM_CODE_START(startup_64)
 
 	/* Target address to relocate to for decompression */
 	movl	BP_init_size(%rsi), %ebx
-	subl	$ rva(_end), %ebx
+	subl	$_end, %ebx
 	addq	%rbp, %rbx
 
 	/*
@@ -321,7 +296,7 @@ trampoline_return:
  */
 	pushq	%rsi
 	leaq	(_bss-8)(%rip), %rsi
-	leaq	rva(_bss-8)(%rbx), %rdi
+	leaq	_bss-8(%rbx), %rdi
 	movl	$(_bss - startup_32), %ecx
 	shrl	$3, %ecx
 	std
@@ -332,7 +307,7 @@ trampoline_return:
 /*
  * Jump to the relocated address.
  */
-	leaq	rva(.Lrelocated)(%rbx), %rax
+	leaq	.Lrelocated(%rbx), %rax
 	jmp	*%rax
 SYM_CODE_END(startup_64)
 
@@ -405,7 +380,6 @@ SYM_DATA_START_LOCAL(gdt64)
 	.word	gdt_end - gdt - 1
 	.quad   gdt - gdt64
 SYM_DATA_END(gdt64)
-	.balign	8
 SYM_DATA_START_LOCAL(gdt)
 	.word	gdt_end - gdt - 1
 	.long	0
@@ -416,18 +390,15 @@ SYM_DATA_START_LOCAL(gdt)
 	.quad	0x0080890000000000	/* TS descriptor */
 SYM_DATA_END_LABEL(gdt, SYM_L_LOCAL, gdt_end)
 
-	.balign 8
 
 /*
  * Stack and heap for uncompression
  */
 	.bss
-	.balign 4
 SYM_DATA_LOCAL(boot_heap,	.fill BOOT_HEAP_SIZE, 1, 0)
 
 /*
  * Space for page tables (not in .bss so not zeroed)
  */
 	.section ".pgtable","aw",@nobits
-	.balign 4096
 SYM_DATA_LOCAL(pgtable,		.fill BOOT_PGT_SIZE, 1, 0)

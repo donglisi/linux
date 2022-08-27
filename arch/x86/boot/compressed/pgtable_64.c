@@ -38,10 +38,5 @@ struct paging_config paging_prepare(void *rmode)
 	memcpy(trampoline_32bit + TRAMPOLINE_32BIT_CODE_OFFSET / sizeof(unsigned long),
 			&trampoline_32bit_src, TRAMPOLINE_32BIT_CODE_SIZE);
 
-	unsigned long src;
-
-	src = *(unsigned long *)__native_read_cr3() & PAGE_MASK;
-	memcpy(trampoline_32bit, (void *)src, PAGE_SIZE);
-
 	return paging_config;
 }
