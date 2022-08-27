@@ -46,9 +46,3 @@ void *memcpy(void *dest, const void *src, size_t n)
 	}
 	return ____memcpy(dest, src, n);
 }
-
-#ifdef CONFIG_KASAN
-extern void *__memset(void *s, int c, size_t n) __alias(memset);
-extern void *__memmove(void *dest, const void *src, size_t n) __alias(memmove);
-extern void *__memcpy(void *dest, const void *src, size_t n) __alias(memcpy);
-#endif
