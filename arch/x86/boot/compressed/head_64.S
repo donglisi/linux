@@ -353,16 +353,6 @@ SYM_CODE_END(startup_64)
 SYM_FUNC_START_LOCAL_NOALIGN(.Lrelocated)
 
 /*
- * Clear BSS (stack is currently empty)
- */
-	xorl	%eax, %eax
-	leaq    _bss(%rip), %rdi
-	leaq    _ebss(%rip), %rcx
-	subq	%rdi, %rcx
-	shrq	$3, %rcx
-	rep	stosq
-
-/*
  * Do the extraction, and jump to the new kernel..
  */
 	pushq	%rsi			/* Save the real mode argument */
