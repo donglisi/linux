@@ -245,7 +245,6 @@ SYM_CODE_START(startup_64)
 
 	/* Start with the delta to where the kernel will run at. */
 	movq	$LOAD_PHYSICAL_ADDR, %rbp
-1:
 
 	/* Target address to relocate to for decompression */
 	movl	BP_init_size(%rsi), %ebx
@@ -282,14 +281,6 @@ SYM_CODE_START(startup_64)
 	addq	%rax, 2(%rax)
 	lgdt	(%rax)
 
-	/* Reload CS so IRET returns to a CS actually in the GDT */
-	pushq	$__KERNEL_CS
-	leaq	.Lon_kernel_cs(%rip), %rax
-	pushq	%rax
-	lretq
-
-.Lon_kernel_cs:
-
 	/*
 	 * paging_prepare() sets up the trampoline and checks if we need to
 	 * enable 5-level paging.
@@ -323,10 +314,6 @@ SYM_CODE_START(startup_64)
 	pushq	%rax
 	lretq
 trampoline_return:
-
-	/* Zero EFLAGS */
-	pushq	$0
-	popfq
 
 /*
  * Copy the compressed kernel to the end of our buffer
@@ -427,7 +414,6 @@ SYM_DATA_START_LOCAL(gdt)
 	.quad	0x00af9a000000ffff	/* __KERNEL_CS */
 	.quad	0x00cf92000000ffff	/* __KERNEL_DS */
 	.quad	0x0080890000000000	/* TS descriptor */
-	.quad   0x0000000000000000	/* TS continued */
 SYM_DATA_END_LABEL(gdt, SYM_L_LOCAL, gdt_end)
 
 	.balign 8
@@ -438,11 +424,6 @@ SYM_DATA_END_LABEL(gdt, SYM_L_LOCAL, gdt_end)
 	.bss
 	.balign 4
 SYM_DATA_LOCAL(boot_heap,	.fill BOOT_HEAP_SIZE, 1, 0)
-
-SYM_DATA_START_LOCAL(boot_stack)
-	.fill BOOT_STACK_SIZE, 1, 0
-	.balign 16
-SYM_DATA_END_LABEL(boot_stack, SYM_L_LOCAL, boot_stack_end)
 
 /*
  * Space for page tables (not in .bss so not zeroed)
