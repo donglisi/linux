@@ -13,7 +13,7 @@ remote_build ()
 
 make clean
 
-remote_build 192.168.1.2 12 fs mm drivers lib_lib init vmlinux_objs setup_objs 2> /dev/null &
+remote_build 192.168.1.2 12 fs mm drivers lib_lib init 2> /dev/null &
 pid[0]=$!
 
 trap "kill ${pid[0]}; exit 1" INT

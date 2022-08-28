@@ -14,10 +14,10 @@ $(shell bash -c "mkdir -p \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
 
-all: build/arch/x86/boot/bzImage
+all: build/vmlinux.bin
 
 clean:
-	rm -rf build arch/x86/boot/compressed/piggy.S
+	rm -rf build
 
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
@@ -127,7 +127,6 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
 objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
-$(objs): c_flags = $(vmlinux_cflags)
 
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
 		extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
@@ -137,17 +136,16 @@ lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64
 		memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
-$(libs): c_flags = $(vmlinux_cflags)
 
 $(foreach i, x86 block drivers fs init kernel lib mm net security lib_lib lib_x86, $(eval $i: $(addprefix build/, $($i))))
 
 build/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) $(CC) $(include) $(c_flags) -c -o $@ $<
+	$(Q) $(CC) $(include) $(vmlinux_cflags) -c -o $@ $<
 
 build/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) $(CC) $(include) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) $(CC) $(include) $(vmlinux_cflags) -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
 	@echo "  LDS    " $@
@@ -156,54 +154,10 @@ build/%.lds: %.lds.S
 CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
-setup_objs := $(addprefix build/arch/x86/boot/, bioscall.o header.o main.o pm.o pmjump.o regs.o)
-$(setup_objs): c_flags := -m16 -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -march=i386 -mregparm=3 -ffreestanding -fno-pic \
-			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
-setup_objs: $(filter-out build/arch/x86/boot/header.o, $(setup_objs))
-
-build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
-	@echo "  BUILD  " $@
-	$(Q) arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
-
-build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
-	@echo "  OBJCOPY" $@
-	$(Q) objcopy -O binary -R .note -R .comment -S $< $@
-
-build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
-	@echo "  ZOFFSET" $@
-	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
-
-build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
-
-build/arch/x86/boot/setup.elf: arch/x86/boot/setup.ld $(setup_objs)
-	@echo "  LD     " $@
-	$(Q) ld -m elf_i386 -T $^ -o $@
-
-build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
-	@echo "  OBJCOPY" $@
-	$(Q) objcopy -O binary $< $@
-
-vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, head_64.o misc.o string.o piggy.o pgtable_64.o)
-$(vmlinux_objs): c_flags := -fPIE -ffreestanding -fno-stack-protector -Wno-address-of-packed-member -Wno-pointer-sign \
-			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
-vmlinux_objs: $(filter-out build/arch/x86/boot/compressed/piggy.o build/arch/x86/boot/compressed/misc.o, $(vmlinux_objs))
-
-build/arch/x86/boot/compressed/vmlinux: build/arch/x86/boot/compressed/vmlinux.lds $(vmlinux_objs)
-	@echo "  LD     " $@
-	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $^ -o $@
-
-build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
-	@echo "  OBJCOPY" $@
-	$(Q) objcopy -R .comment -S $< $@
-
-build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vmlinux.bin
-	@echo "  GZIP   " $@
-	$(Q) cat $< | gzip -n -f -9 > $@
-
-arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz
-	@echo "  MKPIGGY" $@
-	$(Q) arch/x86/boot/compressed/mkpiggy $< > $@
-
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	@echo "  LD     " $@
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o $@ --whole-archive $(objs) --no-whole-archive --start-group $(libs) --end-group
+
+build/vmlinux.bin: build/vmlinux
+	@echo "  OBJCOPY" $@
+	$(Q) objcopy -O binary -R .note -R .comment -S $< $@
