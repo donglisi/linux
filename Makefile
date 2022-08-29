@@ -156,7 +156,7 @@ CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	@echo "  LD     " $@
-	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o $@ --whole-archive $(objs) --no-whole-archive --start-group $(libs) --end-group
+	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ $(objs) --start-group $(libs) --end-group
 
 build/vmlinux.bin: build/vmlinux
 	@echo "  OBJCOPY" $@
