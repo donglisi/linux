@@ -23,13 +23,12 @@ include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/inclu
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
 		-include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
-CFLAGS := -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -fno-PIE \
-		-Wno-format-security -Wno-format-truncation -Wno-address-of-packed-member -Wno-pointer-sign \
-		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized
-
 basetarget = $(subst -,_,$(basename $(notdir $@)))
-vmlinux_cflags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
-			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
+CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -fno-PIE \
+		-Wno-format-security -Wno-format-truncation -Wno-address-of-packed-member -Wno-pointer-sign \
+		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized \
+		$(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
+		-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
 x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o \
@@ -141,11 +140,11 @@ $(foreach i, x86 block drivers fs init kernel lib mm net security lib_lib lib_x8
 
 build/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) $(CC) $(include) $(vmlinux_cflags) -c -o $@ $<
+	$(Q) $(CC) $(include) $(CFLAGS) -c -o $@ $<
 
 build/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) $(CC) $(include) $(vmlinux_cflags) -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) $(CC) $(include) $(CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
 	@echo "  LDS    " $@
