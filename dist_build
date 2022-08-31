@@ -1,0 +1,23 @@
+#!/bin/bash
+
+remote_build ()
+{
+	ip=$1
+
+	rsync --delete --exclude=".git" --exclude="G*" --exclude="build" -a . $ip::linux
+	ssh $ip "cd /dev/shm/linux; make -j$2 "${@:3}" && find build -type f | cpio -o > $ip.cpio 2> /dev/null"
+	rsync $ip::linux/$ip.cpio .
+	cpio -id < $ip.cpio
+	rm $ip.cpio
+}
+
+remote_build 192.168.1.2 12 fs mm drivers lib_lib init security 2> /dev/null &
+pid[0]=$!
+
+trap "kill ${pid[0]}; exit 1" INT
+
+make -j16 x86 lib_x86 lib kernel net block
+
+wait ${pid[0]}
+
+make -j16

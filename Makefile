@@ -26,7 +26,7 @@ include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/inclu
 basetarget = $(subst -,_,$(basename $(notdir $@)))
 CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -fno-PIE \
 		-Wno-format-security -Wno-format-truncation -Wno-address-of-packed-member -Wno-pointer-sign \
-		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized \
+		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized -MD \
 		$(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
 		-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
@@ -160,3 +160,5 @@ build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 build/vmlinux.bin: build/vmlinux
 	@echo "  OBJCOPY" $@
 	$(Q) objcopy -O binary -R .note -R .comment -S $< $@
+
+-include $(objs:.o=.d)

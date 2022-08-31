@@ -7,7 +7,7 @@
  */
 
 #define NR_PAGEFLAGS 23 /* __NR_PAGEFLAGS */
-#define MAX_NR_ZONES 3 /* __MAX_NR_ZONES */
+#define MAX_NR_ZONES 2 /* __MAX_NR_ZONES */
 #define SPINLOCK_SIZE 0 /* sizeof(spinlock_t) */
 
 #endif
