@@ -105,7 +105,7 @@ lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
 		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o blake2s-selftest.o))
 
-mm	:= $(addprefix mm/, highmem.o memory.o mincore.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o \
+mm	:= $(addprefix mm/, memory.o mincore.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o \
 		page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o vmalloc.o filemap.o mempool.o oom_kill.o \
 		fadvise.o maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o \
 		util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o vmacache.o \
