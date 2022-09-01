@@ -1829,10 +1829,6 @@ unsigned long mmap_region(struct file *file, unsigned long addr,
 		}
 
 		vm_flags = vma->vm_flags;
-	} else if (vm_flags & VM_SHARED) {
-		error = shmem_zero_setup(vma);
-		if (error)
-			goto free_vma;
 	} else {
 		vma_set_anonymous(vma);
 	}
@@ -2269,14 +2265,6 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
 	if (file) {
 		if (file->f_op->get_unmapped_area)
 			get_area = file->f_op->get_unmapped_area;
-	} else if (flags & MAP_SHARED) {
-		/*
-		 * mmap_region() will call shmem_zero_setup() to create a file,
-		 * so use shmem's get_unmapped_area in case it can be huge.
-		 * do_mmap() will clear pgoff, so match alignment.
-		 */
-		pgoff = 0;
-		get_area = shmem_get_unmapped_area;
 	}
 
 	addr = get_area(file, addr, len, pgoff, flags);

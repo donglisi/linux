@@ -533,12 +533,6 @@ static ssize_t read_zero(struct file *file, char __user *buf,
 
 static int mmap_zero(struct file *file, struct vm_area_struct *vma)
 {
-#ifndef CONFIG_MMU
-	return -ENOSYS;
-#endif
-	if (vma->vm_flags & VM_SHARED)
-		return shmem_zero_setup(vma);
-	vma_set_anonymous(vma);
 	return 0;
 }
 
@@ -547,16 +541,6 @@ static unsigned long get_unmapped_area_zero(struct file *file,
 				unsigned long pgoff, unsigned long flags)
 {
 #ifdef CONFIG_MMU
-	if (flags & MAP_SHARED) {
-		/*
-		 * mmap_zero() will call shmem_zero_setup() to create a file,
-		 * so use shmem's get_unmapped_area in case it can be huge;
-		 * and pass NULL for file as in mmap.c's get_unmapped_area(),
-		 * so as not to confuse shmem with our handle on "/dev/zero".
-		 */
-		return shmem_get_unmapped_area(NULL, addr, len, pgoff, flags);
-	}
-
 	/* Otherwise flags & MAP_PRIVATE: with no shmem object beneath it */
 	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
 #else
