@@ -103,7 +103,7 @@ lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 		lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o \
 		syscall.o nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o bitrev.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
-		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o blake2s-selftest.o))
+		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o))
 
 mm	:= $(addprefix mm/, memory.o mincore.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o \
 		page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o vmalloc.o filemap.o mempool.o oom_kill.o \
