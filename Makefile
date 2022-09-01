@@ -12,7 +12,7 @@ $(shell bash -c "mkdir -p \
 	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed} \
 	      build/drivers/{base/{power,firmware_loader/builtin},pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
-	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
+	      build/kernel/{events,sched,entry,bpf,locking,futex,printk,dma,irq,rcu,time}")
 
 all: build/vmlinux.bin
 
@@ -85,7 +85,7 @@ init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.
 kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o \
 		ptrace.o user.o signal.o sys.o umh.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
 		sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o smpboot.o ucount.o regset.o \
-		groups.o irq_work.o power/qos.o bpf/core.o static_call.o static_call_inline.o iomem.o up.o platform-feature.o \
+		groups.o irq_work.o bpf/core.o static_call.o static_call_inline.o iomem.o up.o platform-feature.o \
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
