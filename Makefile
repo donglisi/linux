@@ -10,7 +10,7 @@ endif
 $(shell bash -c "mkdir -p \
 	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs,exportfs}} \
 	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed} \
-	      build/drivers/{base/{power,firmware_loader/builtin},pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
+	      build/drivers/{base/power,pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,printk,dma,irq,rcu,time}")
 
@@ -65,8 +65,7 @@ drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i
 			$(addprefix msi/, pcidev_msi.o msi.o irqdomain.o)) \
 		$(addprefix base/, component.o core.o bus.o dd.o syscore.o driver.o class.o platform.o cpu.o firmware.o \
 			init.o map.o devres.o attribute_container.o transport_class.o topology.o container.o property.o \
-			cacheinfo.o swnode.o devtmpfs.o \
-			$(addprefix firmware_loader/, main.o builtin/main.o)))
+			cacheinfo.o swnode.o devtmpfs.o))
 
 fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.o exec.o pipe.o namei.o fcntl.o \
 		ioctl.o readdir.o select.o dcache.o inode.o attr.o bad_inode.o file.o filesystems.o namespace.o \
