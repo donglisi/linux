@@ -37,7 +37,7 @@ realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -W
 
 x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
-		$(addprefix lib/, msr-reg.o msr-reg-export.o hweight.o iomem.o iomap_copy_64.o) \
+		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o) \
 		$(addprefix events/, core.o) \
 		$(addprefix realmode/, init.o rmpiggy.o) \
 		$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o maccess.o pgprot.o \
@@ -51,7 +51,7 @@ x86	:= $(addprefix arch/x86/, \
 			unwind_orc.o vsmp_64.o head_64.o head64.o ebda.o platform-quirks.o early_printk.o \
 			$(addprefix fpu/, init.o bugs.o core.o regset.o signal.o xstate.o) \
 			$(addprefix cpu/, cacheinfo.o scattered.o topology.o common.o rdrand.o match.o bugs.o aperfmperf.o cpuid-deps.o \
-				umwait.o proc.o capflags.o powerflags.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) \
+				proc.o capflags.o powerflags.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) \
 			$(addprefix apic/, apic.o apic_common.o apic_noop.o ipi.o vector.o hw_nmi.o io_apic.o apic_flat_64.o probe_64.o msi.o)))
 
 block	:= $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs.o blk-flush.o blk-settings.o \
