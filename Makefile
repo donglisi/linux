@@ -186,9 +186,8 @@ build/arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.
 CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
-setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
-			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
-			video-vga.o video-vesa.o video-bios.o)
+setup_objs := $(addprefix build/arch/x86/boot/, bioscall.o \
+			header.o main.o pm.o pmjump.o regs.o)
 $(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables
 
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
@@ -201,7 +200,7 @@ build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
 
 build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
 	@echo "  ZOFFSET" $@
-	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
+	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|input_data\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
 
 build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
 
@@ -213,19 +212,12 @@ build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
 	@echo "  OBJCOPY" $@
 	$(Q) objcopy -O binary $< $@
 
-build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
-	@echo "  VOFFSET" $@
-	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
-
-build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
-
-vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
-			piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
+vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, head_64.o misc.o string.o piggy.o pgtable_64.o)
 $(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
 			-Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map== -fno-asynchronous-unwind-tables \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
 
-build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
+build/arch/x86/boot/compressed/vmlinux: arch/x86/boot/compressed/vmlinux.lds $(vmlinux_objs)
 	@echo "  LD     " $@
 	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $^ -o $@
 
