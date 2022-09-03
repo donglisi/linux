@@ -19,7 +19,6 @@ static int __init default_rootfs(void)
 {
 	int err;
 
-	usermodehelper_enable();
 	err = init_mkdir("/dev", 0755);
 	if (err < 0)
 		goto out;

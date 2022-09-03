@@ -50,7 +50,7 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 
 block	:= $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs.o blk-flush.o blk-settings.o \
 		blk-ioc.o blk-map.o blk-merge.o blk-timeout.o blk-lib.o blk-mq.o blk-mq-tag.o blk-stat.o \
-		blk-mq-sysfs.o blk-mq-cpumap.o 	blk-mq-sched.o ioctl.o genhd.o ioprio.o badblocks.o partitions/core.o \
+		blk-mq-sysfs.o blk-mq-cpumap.o 	blk-mq-sched.o ioctl.o genhd.o badblocks.o partitions/core.o \
 		blk-rq-qos.o disk-events.o blk-ia-ranges.o blk-mq-pci.o blk-mq-virtio.o)
 
 drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i8253.o \
@@ -80,16 +80,16 @@ fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
 
 kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o \
-		ptrace.o user.o signal.o sys.o umh.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
-		sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o smpboot.o ucount.o regset.o \
-		groups.o irq_work.o bpf/core.o static_call.o static_call_inline.o iomem.o up.o platform-feature.o \
+		ptrace.o user.o signal.o sys.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
+		sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o ucount.o regset.o \
+		groups.o irq_work.o bpf/core.o static_call.o static_call_inline.o iomem.o up.o \
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
 		$(addprefix irq/, irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o autoprobe.o \
 			irqdomain.o proc.o matrix.o msi.o) \
 		$(addprefix rcu/, update.o sync.o srcutiny.o tiny.o) \
-		$(addprefix entry/, common.o syscall_user_dispatch.o) \
+		$(addprefix entry/, common.o) \
 		$(addprefix time/, time.o timer.o hrtimer.o timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timeconv.o timecounter.o \
 			alarmtimer.o posix-stubs.o clockevents.o tick-common.o tick-broadcast.o tick-oneshot.o tick-sched.o vsyscall.o) \
 		$(addprefix futex/, core.o syscalls.o pi.o requeue.o waitwake.o) \
@@ -97,7 +97,7 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 
 lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spinlocks.o kasprintf.o bitmap.o \
 		scatterlist.o list_sort.o uuid.o iov_iter.o clz_ctz.o bsearch.o find_bit.o llist.o memweight.o kfifo.o \
-		percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o errseq.o bucket_locks.o generic-radix-tree.o \
+		percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o errseq.o generic-radix-tree.o \
 		lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o \
 		syscall.o nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o bitrev.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
@@ -125,9 +125,9 @@ security:= $(addprefix security/, commoncap.o min_addr.o)
 objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
 
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
-		extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
+		extable.o sha1.o irq_regs.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
 		plist.o decompress.o kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o \
-		nodemask.o win_minmax.o memcat_p.o buildid.o dump_stack.o kobject.o klist.o logic_pio.o bug.o)
+		nodemask.o win_minmax.o memcat_p.o dump_stack.o kobject.o klist.o logic_pio.o bug.o)
 lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o \
 		memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)

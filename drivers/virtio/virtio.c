@@ -174,20 +174,6 @@ static int virtio_features_ok(struct virtio_device *dev)
 
 	might_sleep();
 
-	if (platform_has(PLATFORM_VIRTIO_RESTRICTED_MEM_ACCESS)) {
-		if (!virtio_has_feature(dev, VIRTIO_F_VERSION_1)) {
-			dev_warn(&dev->dev,
-				 "device must provide VIRTIO_F_VERSION_1\n");
-			return -ENODEV;
-		}
-
-		if (!virtio_has_feature(dev, VIRTIO_F_ACCESS_PLATFORM)) {
-			dev_warn(&dev->dev,
-				 "device must provide VIRTIO_F_ACCESS_PLATFORM\n");
-			return -ENODEV;
-		}
-	}
-
 	if (!virtio_has_feature(dev, VIRTIO_F_VERSION_1))
 		return 0;
 

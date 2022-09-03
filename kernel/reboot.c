@@ -82,7 +82,6 @@ void kernel_restart_prepare(char *cmd)
 {
 	blocking_notifier_call_chain(&reboot_notifier_list, SYS_RESTART, cmd);
 	system_state = SYSTEM_RESTART;
-	usermodehelper_disable();
 	device_shutdown();
 }
 
@@ -270,7 +269,6 @@ static void kernel_shutdown_prepare(enum system_states state)
 	blocking_notifier_call_chain(&reboot_notifier_list,
 		(state == SYSTEM_HALT) ? SYS_HALT : SYS_POWER_OFF, NULL);
 	system_state = state;
-	usermodehelper_disable();
 	device_shutdown();
 }
 /**
@@ -794,22 +792,7 @@ static const char reboot_cmd[] = "/sbin/reboot";
 
 static int run_cmd(const char *cmd)
 {
-	char **argv;
-	static char *envp[] = {
-		"HOME=/",
-		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
-		NULL
-	};
-	int ret;
-	argv = argv_split(GFP_KERNEL, cmd, NULL);
-	if (argv) {
-		ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
-		argv_free(argv);
-	} else {
-		ret = -ENOMEM;
-	}
-
-	return ret;
+	return -1;
 }
 
 static int __orderly_reboot(void)
