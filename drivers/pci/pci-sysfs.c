@@ -1487,7 +1487,6 @@ const struct attribute_group *pci_dev_groups[] = {
 	&pci_dev_rom_attr_group,
 	&pci_dev_reset_attr_group,
 	&pci_dev_reset_method_attr_group,
-	&pci_dev_vpd_attr_group,
 #ifdef CONFIG_DMI
 	&pci_dev_smbios_attr_group,
 #endif

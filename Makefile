@@ -44,8 +44,8 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 			tsc_sync.o mpparse.o trace_clock.o hpet.o kvm.o kvmclock.o paravirt.o pvclock.o perf_regs.o \
 			unwind_orc.o vsmp_64.o head_64.o head64.o ebda.o platform-quirks.o early_printk.o \
 			$(addprefix fpu/, init.o bugs.o core.o regset.o signal.o xstate.o) \
-			$(addprefix cpu/, cacheinfo.o scattered.o topology.o common.o rdrand.o match.o bugs.o aperfmperf.o cpuid-deps.o \
-				umwait.o proc.o capflags.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) \
+			$(addprefix cpu/, topology.o common.o match.o bugs.o aperfmperf.o cpuid-deps.o \
+				proc.o capflags.o perfctr-watchdog.o hypervisor.o) \
 			$(addprefix apic/, apic.o apic_common.o ipi.o vector.o hw_nmi.o io_apic.o apic_flat_64.o probe_64.o msi.o)))
 
 block	:= $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs.o blk-flush.o blk-settings.o \
@@ -60,10 +60,10 @@ drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i
 		$(addprefix rtc/, lib.o rtc-mc146818-lib.o) \
 		$(addprefix char/, mem.o random.o misc.o virtio_console.o) \
 		$(addprefix pci/, access.o bus.o probe.o host-bridge.o remove.o pci.o pci-driver.o search.o pci-sysfs.o rom.o \
-			setup-res.o irq.o vpd.o setup-bus.o vc.o mmap.o setup-irq.o proc.o \
+			setup-res.o irq.o setup-bus.o vc.o mmap.o setup-irq.o proc.o \
 			$(addprefix msi/, pcidev_msi.o msi.o irqdomain.o)) \
-		$(addprefix base/, component.o core.o bus.o dd.o syscore.o driver.o class.o platform.o cpu.o firmware.o \
-			init.o map.o devres.o attribute_container.o transport_class.o topology.o container.o property.o \
+		$(addprefix base/, core.o bus.o dd.o syscore.o driver.o class.o platform.o cpu.o firmware.o \
+			init.o map.o devres.o topology.o property.o \
 			cacheinfo.o swnode.o devtmpfs.o))
 
 fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.o exec.o pipe.o namei.o fcntl.o \

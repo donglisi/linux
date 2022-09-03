@@ -2453,7 +2453,6 @@ static void pci_init_capabilities(struct pci_dev *dev)
 	pci_allocate_cap_save_buffers(dev);
 
 	pci_pm_init(dev);		/* Power Management */
-	pci_vpd_init(dev);		/* Vital Product Data */
 	pci_configure_ari(dev);		/* Alternative Routing-ID Forwarding */
 	pci_iov_init(dev);		/* Single Root I/O Virtualization */
 	pci_ats_init(dev);		/* Address Translation Services */
