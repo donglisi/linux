@@ -8,7 +8,7 @@ else
 endif
 
 $(shell bash -c "mkdir -p \
-	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs,exportfs}} \
+	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs}} \
 	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed,realmode/rm} \
 	      build/drivers/{base,pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
@@ -87,11 +87,10 @@ fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.
 
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
 
-kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o \
-		ptrace.o user.o signal.o sys.o umh.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
-		sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o smpboot.o ucount.o regset.o \
-		groups.o irq_work.o power/qos.o bpf/core.o static_call.o static_call_inline.o iomem.o \
-		up.o platform-feature.o kallsyms.o \
+kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o ptrace.o \
+		user.o signal.o sys.o umh.o workqueue.o pid.o task_work.o extable.o params.o kthread.o sys_ni.o nsproxy.o notifier.o \
+		ksysfs.o cred.o reboot.o async.o range.o smpboot.o ucount.o regset.o groups.o irq_work.o power/qos.o bpf/core.o \
+		static_call.o static_call_inline.o iomem.o up.o platform-feature.o \
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
@@ -135,7 +134,6 @@ security:= $(addprefix security/, commoncap.o min_addr.o)
 
 objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
 $(objs): c_flags = $(vmlinux_cflags)
-export objs
 
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
 		extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
@@ -146,7 +144,6 @@ lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
 $(libs): c_flags = $(vmlinux_cflags)
-export libs
 
 build/%.o: %.c
 	@echo "  CC     " $@
@@ -234,4 +231,5 @@ arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz
 	$(Q) arch/x86/boot/compressed/mkpiggy $< > $@
 
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
-	$(Q) sh scripts/link-vmlinux.sh
+	@echo "  LD     " $@
+	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ $(objs) --start-group $(libs) --end-group
