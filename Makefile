@@ -163,17 +163,6 @@ build/%.lds: %.lds.S
 	@echo "  LDS    " $@
 	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
-arch/x86/lib/inat-tables.c:
-	@echo "  GEN    " $@
-	$(Q) awk -f arch/x86/tools/gen-insn-attr-x86.awk arch/x86/lib/x86-opcode-map.txt > $@
-
-build/arch/x86/lib/inat.o: arch/x86/lib/inat-tables.c
-
-build/lib/crc32.o: build/lib/crc32table.h
-build/lib/crc32table.h:
-	@echo "  GEN    " $@
-	$(Q) lib/gen_crc32table > $@
-
 build/arch/x86/realmode/rmpiggy.o: build/arch/x86/realmode/rm/realmode.bin
 
 realmode_objs = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
