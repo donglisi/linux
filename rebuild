@@ -1,11 +1,13 @@
 #!/bin/bash
 
+CC=gcc
+
 remote_build ()
 {
 	ip=$1
 
 	rsync --delete --exclude=".git" --exclude="G*" -a . $ip::linux
-	ssh $ip "cd /dev/shm/linux; make CC=/usr/bin/gcc -j$2 "${@:3}" && find build -name "*.o" | cpio -o > $ip.cpio 2> /dev/null"
+	ssh $ip "cd /dev/shm/linux; make CC=$CC -j$2 "${@:3}" && find build | cpio -o > $ip.cpio 2> /dev/null"
 	rsync $ip::linux/$ip.cpio .
 	cpio -id < $ip.cpio
 	rm $ip.cpio
@@ -13,13 +15,13 @@ remote_build ()
 
 make clean
 
-remote_build 192.168.1.2 12 fs mm drivers lib_lib init security 2> /dev/null &
+remote_build 192.168.1.2 12 fs mm drivers lib_lib init security lib_x86 2> /dev/null &
 pid[0]=$!
 
 trap "kill ${pid[0]}; exit 1" INT
 
-make CC=/usr/bin/gcc -j16 x86 lib_x86 lib kernel net block
+make CC=$CC -j16 x86 lib kernel net block
 
 wait ${pid[0]}
 
-make CC=/usr/bin/gcc -j16
+make CC=$CC -j16
