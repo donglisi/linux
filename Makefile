@@ -10,7 +10,7 @@ endif
 $(shell bash -c "mkdir -p \
 	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs,exportfs}} \
 	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed,realmode/rm} \
-	      build/drivers/{clk/x86,base/{power,firmware_loader/builtin},pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
+	      build/drivers/{base/{power,firmware_loader/builtin},pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
 
@@ -56,7 +56,7 @@ x86	:= $(addprefix arch/x86/, \
 
 block	:= $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs.o blk-flush.o blk-settings.o \
 		blk-ioc.o blk-map.o blk-merge.o blk-timeout.o blk-lib.o blk-mq.o blk-mq-tag.o blk-stat.o \
-		blk-mq-sysfs.o blk-mq-cpumap.o 	blk-mq-sched.o ioctl.o genhd.o ioprio.o badblocks.o partitions/core.o \
+		blk-mq-sysfs.o blk-mq-cpumap.o 	blk-mq-sched.o ioctl.o genhd.o badblocks.o partitions/core.o \
 		blk-rq-qos.o disk-events.o blk-ia-ranges.o blk-mq-pci.o blk-mq-virtio.o)
 
 drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i8253.o \
@@ -64,8 +64,6 @@ drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i
 		$(addprefix tty/, tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o tty_mutex.o tty_ldsem.o \
 			tty_baudrate.o tty_jobctrl.o n_null.o hvc/hvc_console.o) \
 		$(addprefix rtc/, lib.o rtc-mc146818-lib.o) \
-		$(addprefix clk/, clk.o clk-divider.o clk-fixed-factor.o clk-fixed-rate.o clk-gate.o clk-multiplier.o clk-mux.o clk-composite.o \
-				clk-fractional-divider.o clk-gpio.o clk-devres.o clk-bulk.o clkdev.o x86/clk-pmc-atom.o) \
 		$(addprefix char/, mem.o random.o misc.o virtio_console.o) \
 		$(addprefix pci/, access.o bus.o probe.o host-bridge.o remove.o pci.o pci-driver.o search.o pci-sysfs.o rom.o \
 			setup-res.o irq.o vpd.o setup-bus.o vc.o mmap.o setup-irq.o proc.o \
@@ -117,12 +115,12 @@ lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o rational.o) \
 		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o blake2s-selftest.o))
 
-mm	:= $(addprefix mm/, highmem.o memory.o mincore.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o \
+mm	:= $(addprefix mm/, memory.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o \
 		page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o vmalloc.o filemap.o mempool.o oom_kill.o \
 		fadvise.o maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o shmem.o \
-		util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o compaction.o vmacache.o \
+		util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o vmacache.o \
 		interval_tree.o list_lru.o workingset.o debug.o gup.o mmap_lock.o page_alloc.o init-mm.o memblock.o \
-		dmapool.o sparse.o slub.o early_ioremap.o secretmem.o)
+		sparse.o slub.o early_ioremap.o secretmem.o)
 
 net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 		$(addprefix ethtool/, ioctl.o common.o) \
@@ -143,7 +141,7 @@ export objs
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
 		extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
 		plist.o decompress.o kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o \
-		nodemask.o win_minmax.o memcat_p.o buildid.o dump_stack.o kobject.o klist.o logic_pio.o bug.o)
+		memcat_p.o buildid.o dump_stack.o kobject.o klist.o bug.o)
 lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o \
 		memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
