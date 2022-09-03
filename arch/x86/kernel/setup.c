@@ -1039,11 +1039,6 @@ void __init setup_arch(char **cmdline_p)
 	high_memory = (void *)__va(max_pfn * PAGE_SIZE - 1) + 1;
 #endif
 
-	/*
-	 * Find and reserve possible boot-time SMP configuration:
-	 */
-	find_smp_config();
-
 	early_alloc_pgt_buf();
 
 	/*
@@ -1074,9 +1069,6 @@ void __init setup_arch(char **cmdline_p)
 	 * called after ExitBootServices(). This is, in fact, a lie.
 	 */
 	efi_reserve_boot_services();
-
-	/* preallocate 4k for mptable mpc */
-	e820__memblock_alloc_reserved_mpc_new();
 
 #ifdef CONFIG_X86_CHECK_BIOS_CORRUPTION
 	setup_bios_corruption_check();
@@ -1183,11 +1175,6 @@ void __init setup_arch(char **cmdline_p)
 	 */
 	acpi_boot_init();
 	x86_dtb_init();
-
-	/*
-	 * get boot-time SMP configuration:
-	 */
-	get_smp_config();
 
 	/*
 	 * Systems w/o ACPI and mptables might not have it mapped the local

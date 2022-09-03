@@ -184,7 +184,6 @@ int do_sys_settimeofday64(const struct timespec64 *tv, const struct timezone *tz
 			return -EINVAL;
 
 		sys_tz = *tz;
-		update_vsyscall_tz();
 		if (firsttime) {
 			firsttime = 0;
 			if (!tv)
