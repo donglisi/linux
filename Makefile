@@ -9,15 +9,15 @@ endif
 
 $(shell bash -c "mkdir -p \
 	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs,exportfs}} \
-	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed} \
-	      build/drivers/{base/{power,firmware_loader/builtin},pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
+	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed,realmode/rm} \
+	      build/drivers/{clk/x86,base/{power,firmware_loader/builtin},pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
 
 all: build/arch/x86/boot/bzImage
 
 clean:
-	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/kernel/cpu/capflags.c arch/x86/lib/inat-tables.c
+	rm -rf build arch/x86/boot/compressed/piggy.S
 
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
@@ -64,6 +64,8 @@ drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i
 		$(addprefix tty/, tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o tty_mutex.o tty_ldsem.o \
 			tty_baudrate.o tty_jobctrl.o n_null.o hvc/hvc_console.o) \
 		$(addprefix rtc/, lib.o rtc-mc146818-lib.o) \
+		$(addprefix clk/, clk.o clk-divider.o clk-fixed-factor.o clk-fixed-rate.o clk-gate.o clk-multiplier.o clk-mux.o clk-composite.o \
+				clk-fractional-divider.o clk-gpio.o clk-devres.o clk-bulk.o clkdev.o x86/clk-pmc-atom.o) \
 		$(addprefix char/, mem.o random.o misc.o virtio_console.o) \
 		$(addprefix pci/, access.o bus.o probe.o host-bridge.o remove.o pci.o pci-driver.o search.o pci-sysfs.o rom.o \
 			setup-res.o irq.o vpd.o setup-bus.o vc.o mmap.o setup-irq.o proc.o \
@@ -102,7 +104,7 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix dma/, mapping.o direct.o swiotlb.o remap.o) \
 		$(addprefix entry/, common.o syscall_user_dispatch.o) \
 		$(addprefix time/, time.o timer.o hrtimer.o timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timeconv.o \
-			timecounter.o alarmtimer.o posix-timers.o posix-cpu-timers.o posix-clock.o itimer.o clockevents.o \
+			timecounter.o alarmtimer.o posix-stubs.o clockevents.o \
 			tick-common.o tick-broadcast.o tick-oneshot.o tick-sched.o vsyscall.o) \
 		$(addprefix futex/, core.o syscalls.o pi.o requeue.o waitwake.o) \
 		$(addprefix events/, core.o ring_buffer.o callchain.o hw_breakpoint.o))
@@ -112,7 +114,7 @@ lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 		percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o errseq.o bucket_locks.o generic-radix-tree.o \
 		lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o \
 		crc32.o syscall.o nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o bitrev.o \
-		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
+		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o rational.o) \
 		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o blake2s-selftest.o))
 
 mm	:= $(addprefix mm/, highmem.o memory.o mincore.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o \
@@ -134,8 +136,9 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
-export objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
-$(objs): c_flags = $(vmlinux_flags)
+objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
+$(objs): c_flags = $(vmlinux_cflags)
+export objs
 
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
 		extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
@@ -145,8 +148,8 @@ lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64
 		memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
+$(libs): c_flags = $(vmlinux_cflags)
 export libs
-$(libs): c_flags = $(vmlinux_flags)
 
 build/%.o: %.c
 	@echo "  CC     " $@
@@ -197,39 +200,10 @@ build/arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.
 CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
-cpufeature = arch/x86/kernel/cpu/../../include/asm/cpufeatures.h
-vmxfeature = arch/x86/kernel/cpu/../../include/asm/vmxfeatures.h
-
-arch/x86/kernel/cpu/capflags.c: $(cpufeature) $(vmxfeature) arch/x86/kernel/cpu/mkcapflags.sh
-	@echo "  MKCAP  " $@
-	$(Q) sh arch/x86/kernel/cpu/mkcapflags.sh $@ $^
-
-vobjs := $(addprefix build/arch/x86/entry/vdso/, vdso-note.o vclock_gettime.o vgetcpu.o)
-$(vobjs): c_flags = $(CFLAGS) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 -fno-stack-protector \
-			-fno-omit-frame-pointer -foptimize-sibling-calls -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
-
-build/arch/x86/entry/vdso/vdso64.so.dbg: build/arch/x86/entry/vdso/vdso.lds $(vobjs)
-	@echo "  VDSO   " $@
-	$(Q) ld -o $@ -shared --hash-style=both -Bsymbolic -m elf_x86_64 -soname linux-vdso.so.1 --no-undefined -z max-page-size=4096 -T $^
-
-arch/x86/entry/vdso/vdso-image-64.c: build/arch/x86/entry/vdso/vdso64.so.dbg build/arch/x86/entry/vdso/vdso64.so
-	@echo "  VDSO2C " $@
-	$(Q) arch/x86/entry/vdso/vdso2c $< $(<:64.dbg=64) $@
-
-build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
-	@echo "  OBJCOPY" $@
-	$(Q) objcopy -S --remove-section __ex_table $< $@
-
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
 $(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables
-
-build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
-
-build/arch/x86/boot/cpustr.h:
-	@echo "  CPUSTR " $@
-	$(Q) arch/x86/boot/mkcpustr > $@
 
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
 	@echo "  BUILD  " $@
