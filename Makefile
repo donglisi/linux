@@ -36,9 +36,9 @@ realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -W
 			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP -D__KERNEL__
 
 x86	:= $(addprefix arch/x86/, \
-		$(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
+		$(addprefix entry/, entry_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
 		$(addprefix lib/, msr-reg.o msr-reg-export.o hweight.o iomem.o iomap_copy_64.o) \
-		$(addprefix events/, core.o probe.o msr.o) \
+		$(addprefix events/, core.o) \
 		$(addprefix realmode/, init.o rmpiggy.o) \
 		$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o maccess.o pgprot.o \
 			$(addprefix pat/, set_memory.o memtype.o)) \
