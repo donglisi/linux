@@ -1,47 +1,34 @@
 MAKEFLAGS := -rR --no-print-directory
 Q = @
 
+ifeq ("$(origin V)", "command line")
+	Q :=
+else
+	Q := @
+endif
+
+$(shell bash -c "mkdir -p \
+	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs,exportfs}} \
+	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed} \
+	      build/drivers/{base/{power,firmware_loader/builtin},pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
+	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
+	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
+
 all: build/arch/x86/boot/bzImage
 
 clean:
 	rm -rf build arch/x86/boot/compressed/piggy.S arch/x86/entry/vdso/vdso-image-64.c arch/x86/kernel/cpu/capflags.c arch/x86/lib/inat-tables.c
 
-prepare:
-	bash -c "mkdir -p \
-	      build/include \
-	      build/arch/x86/include \
-	      build/{mm,block/partitions,init,scripts,security} \
-	      build/arch/x86/{boot/compressed,entry/vdso,tools,boot/tools} \
-	      build/drivers/{base/firmware_loader/builtin,base/power,pci/pcie,pci/msi,clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
-	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
-	      build/fs/{iomap,nls,proc,ext2,ramfs,exportfs} \
-	      build/arch/x86/{entry/vdso,realmode/rm,kernel/{cpu,fpu,apic},mm/pat,events,boot,pci,tools,kvm,lib} \
-	      build/lib/{math,crypto} \
-	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}"
-	cp -r scripts/generated              build/include
-	cp -r scripts/asm_generated          build/arch/x86/include/generated
-	cp kernel/bounds.s                   build/kernel
-	cp arch/x86/kernel/asm-offsets.s     build/arch/x86/kernel
-
 include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/include/uapi -I $(subst build/,,$(dir $@)) -I $(dir $@) \
-		-Ibuild/include -Ibuild/include/generated/uapi -Ibuild/arch/x86/include/generated -Ibuild/arch/x86/include/generated/uapi \
-		-include scripts/config.h -include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
+		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
+		-include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
-CFLAGS := -D__KERNEL__ -Wall -Wundef -fshort-wchar -std=gnu11 -O2 -Wimplicit-fallthrough=5
-CFLAGS += -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-80387 -mno-fp-ret-in-387 -mno-red-zone -mno-red-zone
-CFLAGS += -falign-jumps=1 -falign-loops=1 -fshort-wchar -fconserve-stack
-CFLAGS += -mskip-rax-setup -mcmodel=kernel
-CFLAGS += -fno-asynchronous-unwind-tables -fno-delete-null-pointer-checks -fno-stack-protector -fno-PIE -fno-stack-check \
-			-fno-allow-store-data-races -fno-strict-overflow  -fno-stack-check -fno-strict-aliasing -fno-common
-CFLAGS += -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -Wno-format-security \
-			-Wno-main -Wno-declaration-after-statement -Wno-vla -Wno-pointer-sign -Wno-cast-function-type -Wno-trigraphs \
-			-Wno-unused-const-variable -Wno-unused-but-set-variable -Wno-stringop-truncation -Wno-stringop-overflow \
-			-Wno-restrict -Wno-maybe-uninitialized -Wno-error=date-time -Wno-maybe-uninitialized -Wno-sign-compare -Wno-maybe-uninitialized 
-CFLAGS += -Werror=incompatible-pointer-types -Werror=designated-init -Werror=return-type -Werror=implicit-function-declaration \
-			-Werror=implicit-int -Werror=strict-prototypes
+CFLAGS := -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -fno-PIE \
+		-Wno-format-security -Wno-format-truncation -Wno-address-of-packed-member -Wno-pointer-sign \
+		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized
 
 basetarget = $(subst -,_,$(basename $(notdir $@)))
-vmlinux_flags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
+vmlinux_cflags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
 			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
 realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
@@ -236,7 +223,7 @@ build/arch/x86/entry/vdso/%.so: build/arch/x86/entry/vdso/%.so.dbg
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o \
 			edd.o header.o main.o memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o \
 			video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables -include scripts/config.h
+$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables
 
 build/arch/x86/boot/cpu.o: build/arch/x86/boot/cpustr.h
 
