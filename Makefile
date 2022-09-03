@@ -42,7 +42,7 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 			quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o tsc.o tsc_msr.o io_delay.o \
 			rtc.o resource.o irqflags.o static_call.o process.o ptrace.o step.o stacktrace.o reboot.o early-quirks.o \
 			tsc_sync.o mpparse.o trace_clock.o hpet.o kvm.o kvmclock.o paravirt.o pvclock.o perf_regs.o \
-			unwind_orc.o vsmp_64.o head_64.o head64.o ebda.o platform-quirks.o early_printk.o \
+			unwind_orc.o head_64.o head64.o platform-quirks.o early_printk.o \
 			$(addprefix fpu/, init.o bugs.o core.o regset.o signal.o xstate.o) \
 			$(addprefix cpu/, topology.o common.o match.o bugs.o aperfmperf.o cpuid-deps.o \
 				proc.o capflags.o perfctr-watchdog.o hypervisor.o) \
@@ -96,18 +96,18 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix events/, core.o ring_buffer.o callchain.o hw_breakpoint.o))
 
 lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spinlocks.o kasprintf.o bitmap.o \
-		scatterlist.o list_sort.o uuid.o iov_iter.o clz_ctz.o bsearch.o find_bit.o llist.o memweight.o kfifo.o \
+		scatterlist.o list_sort.o uuid.o iov_iter.o clz_ctz.o bsearch.o find_bit.o llist.o memweight.o \
 		percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o errseq.o generic-radix-tree.o \
 		lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o \
 		syscall.o nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o bitrev.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
 		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o))
 
-mm	:= $(addprefix mm/, memory.o mincore.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o msync.o \
+mm	:= $(addprefix mm/, memory.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o \
 		page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o vmalloc.o filemap.o mempool.o oom_kill.o \
-		fadvise.o maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o \
+		maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o \
 		util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o vmacache.o \
-		interval_tree.o list_lru.o workingset.o debug.o gup.o mmap_lock.o page_alloc.o init-mm.o memblock.o \
+		interval_tree.o list_lru.o workingset.o debug.o gup.o page_alloc.o init-mm.o memblock.o \
 		sparse.o slub.o early_ioremap.o secretmem.o)
 
 net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
@@ -127,9 +127,9 @@ objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(
 lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o xarray.o idr.o \
 		extable.o sha1.o irq_regs.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
 		plist.o decompress.o kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o \
-		nodemask.o win_minmax.o memcat_p.o dump_stack.o kobject.o klist.o logic_pio.o bug.o)
+		nodemask.o win_minmax.o memcat_p.o dump_stack.o kobject.o klist.o bug.o)
 lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o \
-		memcpy_64.o pc-conf-reg.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
+		memcpy_64.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
 

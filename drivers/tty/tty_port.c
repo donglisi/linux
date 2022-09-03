@@ -223,16 +223,6 @@ EXPORT_SYMBOL_GPL(tty_port_unregister_device);
 
 int tty_port_alloc_xmit_buf(struct tty_port *port)
 {
-	/* We may sleep in get_zeroed_page() */
-	mutex_lock(&port->buf_mutex);
-	if (port->xmit_buf == NULL) {
-		port->xmit_buf = (unsigned char *)get_zeroed_page(GFP_KERNEL);
-		if (port->xmit_buf)
-			kfifo_init(&port->xmit_fifo, port->xmit_buf, PAGE_SIZE);
-	}
-	mutex_unlock(&port->buf_mutex);
-	if (port->xmit_buf == NULL)
-		return -ENOMEM;
 	return 0;
 }
 EXPORT_SYMBOL(tty_port_alloc_xmit_buf);
