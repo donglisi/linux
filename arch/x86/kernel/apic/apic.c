@@ -243,8 +243,6 @@ static int modern_apic(void)
  */
 static void __init apic_disable(void)
 {
-	pr_info("APIC: switched to apic NOOP\n");
-	apic = &apic_noop;
 }
 
 void native_apic_wait_icr_idle(void)

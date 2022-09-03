@@ -8,7 +8,7 @@ else
 endif
 
 $(shell bash -c "mkdir -p \
-	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs,exportfs}} \
+	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{proc,ext2,ramfs}} \
 	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed} \
 	      build/drivers/{base/power,pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
@@ -30,11 +30,10 @@ CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -
 		$(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
 		-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
-x86	:= $(addprefix arch/x86/, \
-		$(addprefix entry/, entry_64.o thunk_64.o syscall_64.o common.o \
+x86	:= $(addprefix arch/x86/, events/core.o \
+		$(addprefix entry/, entry_64.o syscall_64.o common.o \
 		$(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
-		$(addprefix lib/, msr.o msr-reg.o msr-reg-export.o hweight.o iomem.o iomap_copy_64.o) \
-		$(addprefix events/, core.o probe.o msr.o) \
+		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o) \
 		$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o maccess.o pgprot.o \
 			$(addprefix pat/, set_memory.o memtype.o)) \
 		$(addprefix pci/, i386.o init.o direct.o fixup.o legacy.o irq.o common.o early.o bus_numa.o) \
@@ -46,8 +45,8 @@ x86	:= $(addprefix arch/x86/, \
 			unwind_orc.o vsmp_64.o head_64.o head64.o ebda.o platform-quirks.o early_printk.o \
 			$(addprefix fpu/, init.o bugs.o core.o regset.o signal.o xstate.o) \
 			$(addprefix cpu/, cacheinfo.o scattered.o topology.o common.o rdrand.o match.o bugs.o aperfmperf.o cpuid-deps.o \
-				umwait.o proc.o capflags.o powerflags.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) \
-			$(addprefix apic/, apic.o apic_common.o apic_noop.o ipi.o vector.o hw_nmi.o io_apic.o apic_flat_64.o probe_64.o msi.o)))
+				umwait.o proc.o capflags.o perfctr-watchdog.o vmware.o hypervisor.o mshyperv.o) \
+			$(addprefix apic/, apic.o apic_common.o ipi.o vector.o hw_nmi.o io_apic.o apic_flat_64.o probe_64.o msi.o)))
 
 block	:= $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs.o blk-flush.o blk-settings.o \
 		blk-ioc.o blk-map.o blk-merge.o blk-timeout.o blk-lib.o blk-mq.o blk-mq-tag.o blk-stat.o \
@@ -69,14 +68,13 @@ drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i
 
 fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.o exec.o pipe.o namei.o fcntl.o \
 		ioctl.o readdir.o select.o dcache.o inode.o attr.o bad_inode.o file.o filesystems.o namespace.o \
-		seq_file.o xattr.o libfs.o fs-writeback.o pnode.o splice.o sync.o utimes.o d_path.o stack.o fs_struct.o \
+		seq_file.o xattr.o libfs.o fs-writeback.o pnode.o splice.o sync.o utimes.o d_path.o fs_struct.o \
 		statfs.o fs_pin.o nsfs.o fs_types.o fs_context.o fs_parser.o fsopen.o init.o kernel_read_file.o \
 		remap_range.o buffer.o direct-io.o mpage.o proc_namespace.o anon_inodes.o locks.o binfmt_script.o binfmt_elf.o \
 		$(addprefix ramfs/, inode.o file-mmu.o) \
-		$(addprefix iomap/, trace.o iter.o buffered-io.o direct-io.o fiemap.o seek.o) \
 		$(addprefix ext2/, balloc.o dir.o file.o ialloc.o inode.o ioctl.o namei.o super.o symlink.o) \
 		$(addprefix proc/, task_mmu.o inode.o root.o base.o generic.o array.o fd.o proc_tty.o cmdline.o \
-			consoles.o cpuinfo.o devices.o interrupts.o loadavg.o meminfo.o stat.o uptime.o util.o \
+			consoles.o cpuinfo.o devices.o interrupts.o meminfo.o stat.o uptime.o util.o \
 			version.o softirqs.o namespaces.o self.o thread_self.o proc_net.o))
 
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
