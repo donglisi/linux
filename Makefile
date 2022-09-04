@@ -73,7 +73,7 @@ fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.
 		remap_range.o buffer.o direct-io.o mpage.o proc_namespace.o anon_inodes.o locks.o binfmt_script.o binfmt_elf.o \
 		$(addprefix ramfs/, inode.o file-mmu.o) \
 		$(addprefix ext2/, balloc.o dir.o file.o ialloc.o inode.o ioctl.o namei.o super.o symlink.o) \
-		$(addprefix proc/, task_mmu.o inode.o root.o base.o generic.o array.o fd.o proc_tty.o cmdline.o \
+		$(addprefix proc/, task_mmu.o inode.o root.o base.o generic.o array.o fd.o proc_tty.o \
 			cpuinfo.o devices.o interrupts.o meminfo.o stat.o uptime.o util.o \
 			version.o softirqs.o namespaces.o self.o thread_self.o proc_net.o))
 
