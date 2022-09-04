@@ -40,7 +40,7 @@ x86	:= $(addprefix arch/x86/, \
 		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o) \
 		$(addprefix events/, core.o) \
 		$(addprefix realmode/, init.o rmpiggy.o) \
-		$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o maccess.o pgprot.o \
+		$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o pgprot.o \
 			$(addprefix pat/, set_memory.o memtype.o)) \
 		$(addprefix pci/, i386.o init.o direct.o fixup.o legacy.o irq.o common.o early.o bus_numa.o) \
 		$(addprefix kernel/, process_64.o signal.o traps.o idt.o irq.o irq_64.o dumpstack_64.o time.o ioport.o dumpstack.o \
