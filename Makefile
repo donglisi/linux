@@ -3,8 +3,10 @@ Q = @
 
 ifeq ("$(origin V)", "command line")
 	Q :=
+	E = @\#
 else
 	Q := @
+	E := @echo
 endif
 
 $(shell bash -c "mkdir -p \
@@ -27,6 +29,7 @@ CFLAGS := -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone 
 		-Wno-format-security -Wno-format-truncation -Wno-address-of-packed-member -Wno-pointer-sign \
 		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized
 
+depfile = $(dir $@).$(notdir $@).d
 basetarget = $(subst -,_,$(basename $(notdir $@)))
 vmlinux_cflags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
 			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
@@ -150,11 +153,11 @@ export libs
 
 build/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) gcc $(include) $(c_flags) -c -o $@ $<
+	$(Q) gcc $(include) $(c_flags) -Wp,-MD,$(depfile) -Wp,-MT,$@ -c -o $@ $<
 
 build/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) gcc $(include) $(c_flags) -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) gcc $(include) $(c_flags) -Wp,-MD,$(depfile) -Wp,-MT,$@ -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
 	@echo "  LDS    " $@
@@ -192,29 +195,29 @@ setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.
 $(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables
 
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
-	@echo "  BUILD  " $@
+	$(E) "  BUILD  " $@
 	$(Q) arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
 
 build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
-	@echo "  OBJCOPY" $@
+	$(E) "  OBJCOPY" $@
 	$(Q) objcopy -O binary -R .note -R .comment -S $< $@
 
 build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
-	@echo "  ZOFFSET" $@
+	$(E) "  ZOFFSET" $@
 	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
 
 build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
 
 build/arch/x86/boot/setup.elf: arch/x86/boot/setup.ld $(setup_objs)
-	@echo "  LD     " $@
+	$(E) "  LD     " $@
 	$(Q) ld -m elf_i386 -T $^ -o $@
 
 build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
-	@echo "  OBJCOPY" $@
+	$(E) "  OBJCOPY" $@
 	$(Q) objcopy -O binary $< $@
 
 build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
-	@echo "  VOFFSET" $@
+	$(E) "  VOFFSET" $@
 	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$$/\#define VO_\2 _AC(0x\1,UL)/p' > $@
 
 build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
@@ -226,20 +229,22 @@ $(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx 
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h -D__KERNEL__
 
 build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
-	@echo "  LD     " $@
+	$(E) "  LD     " $@
 	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $^ -o $@
 
 build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
-	@echo "  OBJCOPY" $@
+	$(E) "  OBJCOPY" $@
 	$(Q) objcopy -R .comment -S $< $@
 
 build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vmlinux.bin
-	@echo "  GZIP   " $@
+	$(E) "  GZIP   " $@
 	$(Q) cat $< | gzip -n -f -9 > $@
 
 arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz
-	@echo "  MKPIGGY" $@
+	$(E) "  MKPIGGY" $@
 	$(Q) arch/x86/boot/compressed/mkpiggy $< > $@
 
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
 	$(Q) sh scripts/link-vmlinux.sh
+
+-include $(foreach obj,$(objs) $(libs) $(vmlinux_objs) $(setup_objs) $(realmode_objs),$(dir $(obj)).$(notdir $(obj)).d)
