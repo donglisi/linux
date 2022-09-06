@@ -144,7 +144,7 @@ lib_lib	:= $(addprefix lib/, ctype.o string.o vsprintf.o cmdline.o rbtree.o radi
 		extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o \
 		plist.o decompress.o kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o \
 		buildid.o dump_stack.o kobject.o klist.o bug.o)
-lib_x86	+= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o \
+lib_x86	:= $(addprefix arch/x86/lib/, delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o \
 		memcpy_64.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o \
 		csum-wrappers_64.o clear_page_64.o copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o)
 libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
