@@ -2,9 +2,11 @@ MAKEFLAGS := -rR --no-print-directory
 CC := gcc
 
 ifeq ("$(origin V)", "command line")
-	Q :=
+        Q :=
+        E = @\#
 else
-	Q := @
+        Q := @
+        E := @echo
 endif
 
 $(shell bash -c "mkdir -p \
@@ -23,10 +25,11 @@ include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/inclu
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
 		-include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
+depfile = $(dir $@).$(notdir $@).d
 basetarget = $(subst -,_,$(basename $(notdir $@)))
 CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -fno-PIE \
 		-Wno-format-security -Wno-format-truncation -Wno-address-of-packed-member -Wno-pointer-sign \
-		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized -MD \
+		-Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized -Wp,-MD,$(depfile) -Wp,-MT,$@ \
 		$(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
 		-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
@@ -136,26 +139,26 @@ libs	:= $(addprefix build/, $(lib_lib) $(lib_x86))
 $(foreach i, x86 block drivers fs init kernel lib mm net security lib_lib lib_x86, $(eval $i: $(addprefix build/, $($i))))
 
 build/%.o: %.c
-	@echo "  CC     " $@
+	$(E) "  CC     " $@
 	$(Q) $(CC) $(include) $(CFLAGS) -c -o $@ $<
 
 build/%.o: %.S
-	@echo "  AS     " $@
+	$(E) "  AS     " $@
 	$(Q) $(CC) $(include) $(CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
-	@echo "  LDS    " $@
+	$(E) "  LDS    " $@
 	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
 CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs) $(libs)
-	@echo "  LD     " $@
+	$(E) "  LD     " $@
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ $(objs) --start-group $(libs) --end-group
 
 build/vmlinux.bin: build/vmlinux
-	@echo "  OBJCOPY" $@
+	$(E) "  OBJCOPY" $@
 	$(Q) objcopy -O binary -R .note -R .comment -S $< $@
 
--include $(objs:.o=.d)
+-include $(foreach obj,$(objs),$(dir $(obj)).$(notdir $(obj)).d)
