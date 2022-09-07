@@ -12,7 +12,7 @@ vmlinux_link()
 	local output=${1}
 
 	info LD ${output}
-	ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o ${output} ${objs} --start-group ${libs} --end-group $2
+	ld -m elf_x86_64 -z max-page-size=0x200000 --script=build/arch/x86/kernel/vmlinux.lds -o ${output} ${objs} $2
 }
 
 
