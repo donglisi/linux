@@ -183,7 +183,7 @@ build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
 
 build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
 	$(E) "  ZOFFSET" $@
-	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
+	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
 
 build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
 
