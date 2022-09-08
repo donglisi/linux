@@ -892,7 +892,6 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 	char *after_dashes;
 
 	setup_arch(&command_line);
-	setup_per_cpu_areas();
 	build_all_zonelists(NULL);
 	page_alloc_init();
 
