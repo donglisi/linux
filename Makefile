@@ -47,9 +47,7 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 drivers := $(addprefix drivers/, \
 		$(addprefix tty/, tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o tty_mutex.o tty_ldsem.o tty_baudrate.o \
 			tty_jobctrl.o n_null.o hvc/hvc_console.o) \
-		$(addprefix char/, mem.o random.o virtio_console.o) \
-		$(addprefix base/, core.o bus.o dd.o syscore.o driver.o class.o platform.o cpu.o firmware.o init.o map.o devres.o topology.o property.o \
-			cacheinfo.o swnode.o devtmpfs.o))
+		$(addprefix char/, mem.o random.o virtio_console.o))
 
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
 
