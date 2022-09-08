@@ -720,68 +720,7 @@ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
 static ssize_t devkmsg_read(struct file *file, char __user *buf,
 			    size_t count, loff_t *ppos)
 {
-	struct devkmsg_user *user = file->private_data;
-	struct printk_record *r = &user->record;
-	size_t len;
-	ssize_t ret;
-
-	if (!user)
-		return -EBADF;
-
-	ret = mutex_lock_interruptible(&user->lock);
-	if (ret)
-		return ret;
-
-	if (!prb_read_valid(prb, atomic64_read(&user->seq), r)) {
-		if (file->f_flags & O_NONBLOCK) {
-			ret = -EAGAIN;
-			goto out;
-		}
-
-		/*
-		 * Guarantee this task is visible on the waitqueue before
-		 * checking the wake condition.
-		 *
-		 * The full memory barrier within set_current_state() of
-		 * prepare_to_wait_event() pairs with the full memory barrier
-		 * within wq_has_sleeper().
-		 *
-		 * This pairs with __wake_up_klogd:A.
-		 */
-		ret = wait_event_interruptible(log_wait,
-				prb_read_valid(prb,
-					atomic64_read(&user->seq), r)); /* LMM(devkmsg_read:A) */
-		if (ret)
-			goto out;
-	}
-
-	if (r->info->seq != atomic64_read(&user->seq)) {
-		/* our last seen message is gone, return error and reset */
-		atomic64_set(&user->seq, r->info->seq);
-		ret = -EPIPE;
-		goto out;
-	}
-
-	len = info_print_ext_header(user->buf, sizeof(user->buf), r->info);
-	len += msg_print_ext_body(user->buf + len, sizeof(user->buf) - len,
-				  &r->text_buf[0], r->info->text_len,
-				  &r->info->dev_info);
-
-	atomic64_set(&user->seq, r->info->seq + 1);
-
-	if (len > count) {
-		ret = -EINVAL;
-		goto out;
-	}
-
-	if (copy_to_user(buf, user->buf, len)) {
-		ret = -EFAULT;
-		goto out;
-	}
-	ret = len;
-out:
-	mutex_unlock(&user->lock);
-	return ret;
+	return 0;
 }
 
 /*
@@ -1658,120 +1597,7 @@ static void syslog_clear(void)
 
 int do_syslog(int type, char __user *buf, int len, int source)
 {
-	struct printk_info info;
-	bool clear = false;
-	static int saved_console_loglevel = LOGLEVEL_DEFAULT;
-	int error;
-
-	error = check_syslog_permissions(type, source);
-	if (error)
-		return error;
-
-	switch (type) {
-	case SYSLOG_ACTION_CLOSE:	/* Close log */
-		break;
-	case SYSLOG_ACTION_OPEN:	/* Open log */
-		break;
-	case SYSLOG_ACTION_READ:	/* Read from log */
-		if (!buf || len < 0)
-			return -EINVAL;
-		if (!len)
-			return 0;
-		if (!access_ok(buf, len))
-			return -EFAULT;
-		error = syslog_print(buf, len);
-		break;
-	/* Read/clear last kernel messages */
-	case SYSLOG_ACTION_READ_CLEAR:
-		clear = true;
-		fallthrough;
-	/* Read last kernel messages */
-	case SYSLOG_ACTION_READ_ALL:
-		if (!buf || len < 0)
-			return -EINVAL;
-		if (!len)
-			return 0;
-		if (!access_ok(buf, len))
-			return -EFAULT;
-		error = syslog_print_all(buf, len, clear);
-		break;
-	/* Clear ring buffer */
-	case SYSLOG_ACTION_CLEAR:
-		syslog_clear();
-		break;
-	/* Disable logging to console */
-	case SYSLOG_ACTION_CONSOLE_OFF:
-		if (saved_console_loglevel == LOGLEVEL_DEFAULT)
-			saved_console_loglevel = console_loglevel;
-		console_loglevel = minimum_console_loglevel;
-		break;
-	/* Enable logging to console */
-	case SYSLOG_ACTION_CONSOLE_ON:
-		if (saved_console_loglevel != LOGLEVEL_DEFAULT) {
-			console_loglevel = saved_console_loglevel;
-			saved_console_loglevel = LOGLEVEL_DEFAULT;
-		}
-		break;
-	/* Set level of messages printed to console */
-	case SYSLOG_ACTION_CONSOLE_LEVEL:
-		if (len < 1 || len > 8)
-			return -EINVAL;
-		if (len < minimum_console_loglevel)
-			len = minimum_console_loglevel;
-		console_loglevel = len;
-		/* Implicitly re-enable logging to console */
-		saved_console_loglevel = LOGLEVEL_DEFAULT;
-		break;
-	/* Number of chars in the log buffer */
-	case SYSLOG_ACTION_SIZE_UNREAD:
-		mutex_lock(&syslog_lock);
-		if (!prb_read_valid_info(prb, syslog_seq, &info, NULL)) {
-			/* No unread messages. */
-			mutex_unlock(&syslog_lock);
-			return 0;
-		}
-		if (info.seq != syslog_seq) {
-			/* messages are gone, move to first one */
-			syslog_seq = info.seq;
-			syslog_partial = 0;
-		}
-		if (source == SYSLOG_FROM_PROC) {
-			/*
-			 * Short-cut for poll(/"proc/kmsg") which simply checks
-			 * for pending data, not the size; return the count of
-			 * records, not the length.
-			 */
-			error = prb_next_seq(prb) - syslog_seq;
-		} else {
-			bool time = syslog_partial ? syslog_time : printk_time;
-			unsigned int line_count;
-			u64 seq;
-
-			prb_for_each_info(syslog_seq, prb, seq, &info,
-					  &line_count) {
-				error += get_record_print_text_size(&info, line_count,
-								    true, time);
-				time = printk_time;
-			}
-			error -= syslog_partial;
-		}
-		mutex_unlock(&syslog_lock);
-		break;
-	/* Size of the log buffer */
-	case SYSLOG_ACTION_SIZE_BUFFER:
-		error = log_buf_len;
-		break;
-	default:
-		error = -EINVAL;
-		break;
-	}
-
-	return error;
-}
-
-SYSCALL_DEFINE3(syslog, int, type, char __user *, buf, int, len)
-{
-	return do_syslog(type, buf, len, SYSLOG_FROM_READER);
+	return 0;
 }
 
 /*
@@ -2270,7 +2096,6 @@ asmlinkage int vprintk_emit(int facility, int level,
 		preempt_enable();
 	}
 
-	wake_up_klogd();
 	return printed_len;
 }
 EXPORT_SYMBOL(vprintk_emit);
@@ -3457,9 +3282,6 @@ static void wake_up_klogd_work_func(struct irq_work *irq_work)
 		if (console_trylock())
 			console_unlock();
 	}
-
-	if (pending & PRINTK_PENDING_WAKEUP)
-		wake_up_interruptible(&log_wait);
 }
 
 static DEFINE_PER_CPU(struct irq_work, wake_up_klogd_work) =
@@ -3492,7 +3314,6 @@ static void __wake_up_klogd(int val)
 
 void wake_up_klogd(void)
 {
-	__wake_up_klogd(PRINTK_PENDING_WAKEUP);
 }
 
 void defer_console_output(void)
@@ -3501,7 +3322,6 @@ void defer_console_output(void)
 	 * New messages may have been added directly to the ringbuffer
 	 * using vprintk_store(), so wake any waiters as well.
 	 */
-	__wake_up_klogd(PRINTK_PENDING_WAKEUP | PRINTK_PENDING_OUTPUT);
 }
 
 void printk_trigger_flush(void)

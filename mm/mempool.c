@@ -185,7 +185,6 @@ int mempool_init_node(mempool_t *pool, int min_nr, mempool_alloc_t *alloc_fn,
 	pool->pool_data = pool_data;
 	pool->alloc	= alloc_fn;
 	pool->free	= free_fn;
-	init_waitqueue_head(&pool->wait);
 
 	pool->elements = kmalloc_array_node(min_nr, sizeof(void *),
 					    gfp_mask, node_id);
@@ -377,66 +376,7 @@ void *mempool_alloc(mempool_t *pool, gfp_t gfp_mask)
 	unsigned long flags;
 	wait_queue_entry_t wait;
 	gfp_t gfp_temp;
-
-	VM_WARN_ON_ONCE(gfp_mask & __GFP_ZERO);
-	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
-
-	gfp_mask |= __GFP_NOMEMALLOC;	/* don't allocate emergency reserves */
-	gfp_mask |= __GFP_NORETRY;	/* don't loop in __alloc_pages */
-	gfp_mask |= __GFP_NOWARN;	/* failures are OK */
-
-	gfp_temp = gfp_mask & ~(__GFP_DIRECT_RECLAIM|__GFP_IO);
-
-repeat_alloc:
-
-	element = pool->alloc(gfp_temp, pool->pool_data);
-	if (likely(element != NULL))
-		return element;
-
-	spin_lock_irqsave(&pool->lock, flags);
-	if (likely(pool->curr_nr)) {
-		element = remove_element(pool);
-		spin_unlock_irqrestore(&pool->lock, flags);
-		/* paired with rmb in mempool_free(), read comment there */
-		smp_wmb();
-		/*
-		 * Update the allocation stack trace as this is more useful
-		 * for debugging.
-		 */
-		kmemleak_update_trace(element);
-		return element;
-	}
-
-	/*
-	 * We use gfp mask w/o direct reclaim or IO for the first round.  If
-	 * alloc failed with that and @pool was empty, retry immediately.
-	 */
-	if (gfp_temp != gfp_mask) {
-		spin_unlock_irqrestore(&pool->lock, flags);
-		gfp_temp = gfp_mask;
-		goto repeat_alloc;
-	}
-
-	/* We must not sleep if !__GFP_DIRECT_RECLAIM */
-	if (!(gfp_mask & __GFP_DIRECT_RECLAIM)) {
-		spin_unlock_irqrestore(&pool->lock, flags);
-		return NULL;
-	}
-
-	/* Let's wait for someone else to return an element to @pool */
-	init_wait(&wait);
-	prepare_to_wait(&pool->wait, &wait, TASK_UNINTERRUPTIBLE);
-
-	spin_unlock_irqrestore(&pool->lock, flags);
-
-	/*
-	 * FIXME: this should be io_schedule().  The timeout is there as a
-	 * workaround for some DM problems in 2.6.18.
-	 */
-	io_schedule_timeout(5*HZ);
-
-	finish_wait(&pool->wait, &wait);
-	goto repeat_alloc;
+	return 0;
 }
 EXPORT_SYMBOL(mempool_alloc);
 
@@ -493,7 +433,6 @@ void mempool_free(void *element, mempool_t *pool)
 		if (likely(pool->curr_nr < pool->min_nr)) {
 			add_element(pool, element);
 			spin_unlock_irqrestore(&pool->lock, flags);
-			wake_up(&pool->wait);
 			return;
 		}
 		spin_unlock_irqrestore(&pool->lock, flags);

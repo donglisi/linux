@@ -75,8 +75,6 @@
 # include "stats.c"
 #endif
 
-#include "wait.c"
-
 #ifdef CONFIG_SMP
 # include "cpupri.c"
 # include "stop_task.c"

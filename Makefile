@@ -34,7 +34,7 @@ x86	:= $(addprefix arch/x86/, \
 
 init	:= $(addprefix init/, main.o init_task.o)
 
-kernel	:= $(addprefix kernel/, cpu.o resource.o params.o range.o $(addprefix sched/, core.o build_policy.o build_utility.o) \
+kernel	:= $(addprefix kernel/, cpu.o params.o range.o $(addprefix sched/, core.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o) $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
 
 lib	:= $(addprefix lib/, sort.o parser.o bitmap.o find_bit.o string_helpers.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o rbtree.o sym.o \
