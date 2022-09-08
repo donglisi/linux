@@ -93,6 +93,8 @@ void __init setup_arch(char **cmdline_p)
 
 	jump_label_init();
 
+	memblock_reserve(0, (1024 << 10) * 16);
+
 	e820__memory_setup();
 
 	strscpy(command_line, boot_command_line, COMMAND_LINE_SIZE);
@@ -103,8 +105,6 @@ void __init setup_arch(char **cmdline_p)
 	max_pfn = e820__end_of_ram_pfn();
 
 	max_possible_pfn = max_pfn;
-
-	early_alloc_pgt_buf();
 
 	e820__memblock_setup();
 
