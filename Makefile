@@ -31,14 +31,14 @@ CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -
 		-Wp,-MD,$(dir $@).$(notdir $@).d -Wp,-MT,$@ $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' \
 		-DKBUILD_BASENAME='"$(basetarget)"' -DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
-x86	:= $(addprefix arch/x86/, events/core.o \
+x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o) \
-		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o memcpy_64.o \
+		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o memcpy_64.o \
 			copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o copy_page_64.o \
 			memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
 		$(addprefix mm/, init.o init_64.o fault.o tlb.o) \
 		$(addprefix kernel/, process_64.o signal.o traps.o idt.o setup.o x86_init.o e820.o \
-			tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o head_64.o head64.o platform-quirks.o early_printk.o \
+			tsc.o io_delay.o resource.o irqflags.o static_call.o process.o head_64.o head64.o platform-quirks.o early_printk.o \
 			$(addprefix cpu/, common.o)))
 
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
