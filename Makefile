@@ -37,10 +37,8 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 			copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o copy_page_64.o \
 			memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
 		$(addprefix mm/, init.o init_64.o fault.o tlb.o) \
-		$(addprefix kernel/, process_64.o signal.o traps.o idt.o irq.o irq_64.o dumpstack_64.o time.o ioport.o dumpstack.o nmi.o setup.o x86_init.o \
-			i8259.o irqinit.o irq_work.o probe_roms.o sys_x86_64.o e820.o quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o \
-			tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o ptrace.o step.o stacktrace.o reboot.o early-quirks.o \
-			tsc_sync.o hpet.o perf_regs.o unwind_orc.o head_64.o head64.o platform-quirks.o early_printk.o \
+		$(addprefix kernel/, process_64.o signal.o traps.o idt.o setup.o x86_init.o e820.o \
+			tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o head_64.o head64.o platform-quirks.o early_printk.o \
 			$(addprefix cpu/, common.o)))
 
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
@@ -54,15 +52,15 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
 		$(addprefix entry/, common.o))
 
-lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bitmap.o \
-		uuid.o iov_iter.o find_bit.o string_helpers.o hexdump.o kstrtox.o \
+lib	:= $(addprefix lib/, bcd.o sort.o parser.o random32.o bitmap.o \
+		iov_iter.o find_bit.o string_helpers.o hexdump.o kstrtox.o \
 		ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o sym.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
 
-mm	:= $(addprefix mm/, memory.o mmu_gather.o mremap.o page_vma_mapped.o pgtable-generic.o \
-		vmalloc.o filemap.o mempool.o oom_kill.o maccess.o folio-compat.o readahead.o swap.o truncate.o vmscan.o \
-		util.o mmzone.o vmstat.o mm_init.o percpu.o slab_common.o vmacache.o interval_tree.o list_lru.o workingset.o \
-		debug.o gup.o page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o secretmem.o)
+mm	:= $(addprefix mm/, memory.o \
+		vmalloc.o filemap.o mempool.o swap.o truncate.o vmscan.o \
+		util.o mmzone.o mm_init.o percpu.o slab_common.o vmacache.o interval_tree.o list_lru.o \
+		page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o)
 
 objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm) drivers/tty/tty_io.o)
 export objs

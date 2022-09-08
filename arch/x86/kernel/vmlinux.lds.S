@@ -483,7 +483,6 @@ SECTIONS
 #define INIT_PER_CPU(x) init_per_cpu__##x = ABSOLUTE(x) + __per_cpu_load
 INIT_PER_CPU(gdt_page);
 INIT_PER_CPU(fixed_percpu_data);
-INIT_PER_CPU(irq_stack_backing_store);
 
 #ifdef CONFIG_SMP
 . = ASSERT((fixed_percpu_data == 0),
