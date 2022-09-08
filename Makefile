@@ -61,8 +61,7 @@ lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 		nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o \
 		timerqueue.o xarray.o idr.o extable.o sha1.o irq_regs.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o plist.o \
 		kobject_uevent.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o dump_stack.o kobject.o klist.o bug.o sym.o \
-		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
-		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o))
+		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
 
 mm	:= $(addprefix mm/, memory.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o \
 		vmalloc.o filemap.o mempool.o oom_kill.o maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o \
