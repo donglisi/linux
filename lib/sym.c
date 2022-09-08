@@ -128,3 +128,5 @@ char vfree = 0xf4;
 char __vmalloc = 0xf4;
 char vmalloc_dump_obj = 0xf4;
 char __vmalloc_node_range = 0xf4;
+char kmalloc_caches = 0xf4;
+char kmem_cache_alloc = 0xf4;
