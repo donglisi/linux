@@ -37,6 +37,8 @@
  */
 void kfree_const(const void *x)
 {
+	if (!is_kernel_rodata((unsigned long)x))
+		kfree(x);
 }
 EXPORT_SYMBOL(kfree_const);
 
@@ -56,6 +58,7 @@ char *kstrdup(const char *s, gfp_t gfp)
 		return NULL;
 
 	len = strlen(s) + 1;
+	buf = kmalloc_track_caller(len, gfp);
 	if (buf)
 		memcpy(buf, s, len);
 	return buf;
@@ -101,6 +104,7 @@ char *kstrndup(const char *s, size_t max, gfp_t gfp)
 		return NULL;
 
 	len = strnlen(s, max);
+	buf = kmalloc_track_caller(len+1, gfp);
 	if (buf) {
 		memcpy(buf, s, len);
 		buf[len] = '\0';
@@ -122,6 +126,9 @@ void *kmemdup(const void *src, size_t len, gfp_t gfp)
 {
 	void *p;
 
+	p = kmalloc_track_caller(len, gfp);
+	if (p)
+		memcpy(p, src, len);
 	return p;
 }
 EXPORT_SYMBOL(kmemdup);
@@ -142,6 +149,7 @@ char *kmemdup_nul(const char *s, size_t len, gfp_t gfp)
 	if (!s)
 		return NULL;
 
+	buf = kmalloc_track_caller(len + 1, gfp);
 	if (buf) {
 		memcpy(buf, s, len);
 		buf[len] = '\0';
@@ -163,10 +171,12 @@ void *memdup_user(const void __user *src, size_t len)
 {
 	void *p;
 
+	p = kmalloc_track_caller(len, GFP_USER | __GFP_NOWARN);
 	if (!p)
 		return ERR_PTR(-ENOMEM);
 
 	if (copy_from_user(p, src, len)) {
+		kfree(p);
 		return ERR_PTR(-EFAULT);
 	}
 
@@ -187,6 +197,7 @@ void *vmemdup_user(const void __user *src, size_t len)
 {
 	void *p;
 
+	p = kvmalloc(len, GFP_USER);
 	if (!p)
 		return ERR_PTR(-ENOMEM);
 
@@ -247,10 +258,12 @@ void *memdup_user_nul(const void __user *src, size_t len)
 	 * cause pagefault, which makes it pointless to use GFP_NOFS
 	 * or GFP_ATOMIC.
 	 */
+	p = kmalloc_track_caller(len + 1, GFP_KERNEL);
 	if (!p)
 		return ERR_PTR(-ENOMEM);
 
 	if (copy_from_user(p, src, len)) {
+		kfree(p);
 		return ERR_PTR(-EFAULT);
 	}
 	p[len] = '\0';
@@ -296,7 +309,7 @@ int vma_is_stack_for_current(struct vm_area_struct *vma)
 {
 	struct task_struct * __maybe_unused t = current;
 
-	return 0;
+	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
 }
 
 /*
@@ -597,6 +610,8 @@ void *kvmalloc_node(size_t size, gfp_t flags, int node)
 		kmalloc_flags &= ~__GFP_NOFAIL;
 	}
 
+	ret = kmalloc_node(size, kmalloc_flags, node);
+
 	/*
 	 * It doesn't really make sense to fallback to vmalloc for sub page
 	 * requests
@@ -616,7 +631,9 @@ void *kvmalloc_node(size_t size, gfp_t flags, int node)
 	 * about the resulting pointer, and cannot play
 	 * protection games.
 	 */
-	return 0;
+	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
+			flags, PAGE_KERNEL, VM_ALLOW_HUGE_VMAP,
+			node, __builtin_return_address(0));
 }
 EXPORT_SYMBOL(kvmalloc_node);
 
@@ -632,6 +649,10 @@ EXPORT_SYMBOL(kvmalloc_node);
  */
 void kvfree(const void *addr)
 {
+	if (is_vmalloc_addr(addr))
+		vfree(addr);
+	else
+		kfree(addr);
 }
 EXPORT_SYMBOL(kvfree);
 
@@ -659,6 +680,7 @@ void *kvrealloc(const void *p, size_t oldsize, size_t newsize, gfp_t flags)
 
 	if (oldsize >= newsize)
 		return (void *)p;
+	newp = kvmalloc(newsize, flags);
 	if (!newp)
 		return NULL;
 	memcpy(newp, p, oldsize);
@@ -679,7 +701,7 @@ void *__vmalloc_array(size_t n, size_t size, gfp_t flags)
 
 	if (unlikely(check_mul_overflow(n, size, &bytes)))
 		return NULL;
-	return 0;
+	return __vmalloc(bytes, flags);
 }
 EXPORT_SYMBOL(__vmalloc_array);
 
@@ -690,7 +712,7 @@ EXPORT_SYMBOL(__vmalloc_array);
  */
 void *vmalloc_array(size_t n, size_t size)
 {
-	return 0;
+	return __vmalloc_array(n, size, GFP_KERNEL);
 }
 EXPORT_SYMBOL(vmalloc_array);
 
@@ -702,7 +724,7 @@ EXPORT_SYMBOL(vmalloc_array);
  */
 void *__vcalloc(size_t n, size_t size, gfp_t flags)
 {
-	return 0;
+	return __vmalloc_array(n, size, flags | __GFP_ZERO);
 }
 EXPORT_SYMBOL(__vcalloc);
 
@@ -713,7 +735,7 @@ EXPORT_SYMBOL(__vcalloc);
  */
 void *vcalloc(size_t n, size_t size)
 {
-	return 0;
+	return __vmalloc_array(n, size, GFP_KERNEL | __GFP_ZERO);
 }
 EXPORT_SYMBOL(vcalloc);
 
@@ -861,6 +883,7 @@ void folio_copy(struct folio *dst, struct folio *src)
 		copy_highpage(folio_page(dst, i), folio_page(src, i));
 		if (++i == nr)
 			break;
+		cond_resched();
 	}
 }
 
@@ -1121,6 +1144,14 @@ int __weak memcmp_pages(struct page *page1, struct page *page2)
 void mem_dump_obj(void *object)
 {
 	const char *type;
+
+	if (kmem_valid_obj(object)) {
+		kmem_dump_obj(object);
+		return;
+	}
+
+	if (vmalloc_dump_obj(object))
+		return;
 
 	if (virt_addr_valid(object))
 		type = "non-slab/vmalloc memory";
