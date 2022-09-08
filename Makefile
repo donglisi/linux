@@ -9,12 +9,7 @@ else
         E := @echo
 endif
 
-$(shell bash -c "mkdir -p \
-	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{proc,ext2,ramfs}} \
-	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed} \
-	      build/drivers/{base/power,pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
-	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
-	      build/kernel/{events,sched,entry,bpf,locking,futex,printk,dma,irq,rcu,time}")
+$(shell bash -c "mkdir -p build/{{drivers/tty,mm,init,lib/math},arch/x86/{entry,kernel/cpu,mm,lib},kernel/{sched,locking,printk}}")
 
 all: build/vmlinux.bin
 
@@ -33,25 +28,19 @@ CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -
 
 x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o) \
-		$(addprefix lib/, hweight.o cmdline.o cpu.o memcpy_64.o inat.o clear_page_64.o \
-			memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
+		$(addprefix lib/, hweight.o cmdline.o cpu.o memcpy_64.o inat.o clear_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
 		$(addprefix mm/, init.o init_64.o fault.o tlb.o) \
-		$(addprefix kernel/, process_64.o idt.o setup.o x86_init.o e820.o tsc.o process.o head_64.o head64.o early_printk.o \
-			$(addprefix cpu/, common.o)))
+		$(addprefix kernel/, process_64.o idt.o setup.o x86_init.o e820.o tsc.o process.o head_64.o head64.o early_printk.o $(addprefix cpu/, common.o)))
 
 init	:= $(addprefix init/, main.o init_task.o)
 
-kernel	:= $(addprefix kernel/, fork.o cpu.o resource.o params.o range.o \
-		$(addprefix sched/, core.o build_policy.o build_utility.o) \
-		$(addprefix locking/, mutex.o semaphore.o) \
-		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
+kernel	:= $(addprefix kernel/, fork.o cpu.o resource.o params.o range.o $(addprefix sched/, core.o build_policy.o build_utility.o) \
+		$(addprefix locking/, mutex.o semaphore.o) $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
 
 lib	:= $(addprefix lib/, sort.o parser.o bitmap.o find_bit.o string_helpers.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o rbtree.o sym.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
 
-mm	:= $(addprefix mm/, vmalloc.o mempool.o swap.o truncate.o \
-		util.o mmzone.o mm_init.o percpu.o slab_common.o \
-		page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o)
+mm	:= $(addprefix mm/, vmalloc.o mempool.o swap.o truncate.o util.o mmzone.o mm_init.o percpu.o slab_common.o page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o)
 
 objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm) drivers/tty/tty_io.o)
 export objs
