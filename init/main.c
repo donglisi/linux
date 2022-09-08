@@ -893,7 +893,6 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 
 	setup_arch(&command_line);
 	build_all_zonelists(NULL);
-	page_alloc_init();
 
 	mm_init();
 
@@ -1249,7 +1248,6 @@ static int __ref kernel_init(void *unused)
 	 */
 	wait_for_completion(&kthreadd_done);
 
-	kernel_init_freeable();
 	/* need to finish all async __init code before freeing the memory */
 	async_synchronize_full();
 
@@ -1328,61 +1326,4 @@ void __init console_on_rootfs(void)
 	init_dup(file);
 	init_dup(file);
 	fput(file);
-}
-
-static noinline void __init kernel_init_freeable(void)
-{
-	/* Now the scheduler is fully set up and can do blocking allocations */
-	gfp_allowed_mask = __GFP_BITS_MASK;
-
-	/*
-	 * init can allocate pages on any node
-	 */
-	set_mems_allowed(node_states[N_MEMORY]);
-
-	cad_pid = get_pid(task_pid(current));
-
-	smp_prepare_cpus(setup_max_cpus);
-
-	workqueue_init();
-
-	init_mm_internals();
-
-	rcu_init_tasks_generic();
-	do_pre_smp_initcalls();
-	lockup_detector_init();
-
-	smp_init();
-
-	padata_init();
-	page_alloc_init_late();
-	/* Initialize page ext after all struct pages are initialized. */
-	page_ext_init();
-
-	do_basic_setup();
-
-	kunit_run_all_tests();
-
-	wait_for_initramfs();
-	console_on_rootfs();
-
-	/*
-	 * check if there is an early userspace init.  If yes, let it do all
-	 * the work
-	 */
-	if (init_eaccess(ramdisk_execute_command) != 0) {
-		ramdisk_execute_command = NULL;
-		prepare_namespace();
-	}
-
-	/*
-	 * Ok, we have completed the initial bootup, and
-	 * we're essentially up and running. Get rid of the
-	 * initmem segments and start the user-mode stuff..
-	 *
-	 * rootfs is available now, try loading the public keys
-	 * and default modules
-	 */
-
-	integrity_load_keys();
 }
