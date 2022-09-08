@@ -43,10 +43,8 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 			i8259.o irqinit.o irq_work.o probe_roms.o sys_x86_64.o e820.o quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o \
 			tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o ptrace.o step.o stacktrace.o reboot.o early-quirks.o \
 			tsc_sync.o hpet.o perf_regs.o unwind_orc.o head_64.o head64.o platform-quirks.o early_printk.o \
-			$(addprefix fpu/, init.o core.o regset.o signal.o xstate.o) \
 			$(addprefix cpu/, topology.o common.o match.o bugs.o aperfmperf.o cpuid-deps.o \
-				proc.o capflags.o perfctr-watchdog.o hypervisor.o) \
-			$(addprefix apic/, apic.o apic_common.o ipi.o vector.o hw_nmi.o io_apic.o apic_flat_64.o probe_64.o msi.o)))
+				proc.o capflags.o perfctr-watchdog.o hypervisor.o)))
 
 block	:= $(addprefix block/, bdev.o fops.o bio.o elevator.o blk-core.o blk-sysfs.o blk-flush.o blk-settings.o blk-ioc.o blk-map.o blk-merge.o \
 		blk-timeout.o blk-lib.o blk-mq.o blk-mq-tag.o blk-stat.o blk-mq-sysfs.o blk-mq-cpumap.o blk-mq-sched.o ioctl.o genhd.o badblocks.o \
