@@ -45,5 +45,3 @@
 # include "pelt.c"
 #endif
 
-#include "deadline.c"
-

@@ -77,7 +77,6 @@
 # include "stats.c"
 #endif
 
-#include "wait_bit.c"
 #include "wait.c"
 
 #ifdef CONFIG_SMP
