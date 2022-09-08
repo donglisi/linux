@@ -197,7 +197,6 @@ void *vmemdup_user(const void __user *src, size_t len)
 {
 	void *p;
 
-	p = kvmalloc(len, GFP_USER);
 	if (!p)
 		return ERR_PTR(-ENOMEM);
 
@@ -631,9 +630,7 @@ void *kvmalloc_node(size_t size, gfp_t flags, int node)
 	 * about the resulting pointer, and cannot play
 	 * protection games.
 	 */
-	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
-			flags, PAGE_KERNEL, VM_ALLOW_HUGE_VMAP,
-			node, __builtin_return_address(0));
+	return 0;
 }
 EXPORT_SYMBOL(kvmalloc_node);
 
@@ -649,10 +646,6 @@ EXPORT_SYMBOL(kvmalloc_node);
  */
 void kvfree(const void *addr)
 {
-	if (is_vmalloc_addr(addr))
-		vfree(addr);
-	else
-		kfree(addr);
 }
 EXPORT_SYMBOL(kvfree);
 
@@ -680,7 +673,6 @@ void *kvrealloc(const void *p, size_t oldsize, size_t newsize, gfp_t flags)
 
 	if (oldsize >= newsize)
 		return (void *)p;
-	newp = kvmalloc(newsize, flags);
 	if (!newp)
 		return NULL;
 	memcpy(newp, p, oldsize);
@@ -701,7 +693,7 @@ void *__vmalloc_array(size_t n, size_t size, gfp_t flags)
 
 	if (unlikely(check_mul_overflow(n, size, &bytes)))
 		return NULL;
-	return __vmalloc(bytes, flags);
+	return 0;
 }
 EXPORT_SYMBOL(__vmalloc_array);
 
@@ -712,7 +704,7 @@ EXPORT_SYMBOL(__vmalloc_array);
  */
 void *vmalloc_array(size_t n, size_t size)
 {
-	return __vmalloc_array(n, size, GFP_KERNEL);
+	return 0;
 }
 EXPORT_SYMBOL(vmalloc_array);
 
@@ -724,7 +716,7 @@ EXPORT_SYMBOL(vmalloc_array);
  */
 void *__vcalloc(size_t n, size_t size, gfp_t flags)
 {
-	return __vmalloc_array(n, size, flags | __GFP_ZERO);
+	return 0;
 }
 EXPORT_SYMBOL(__vcalloc);
 
@@ -735,7 +727,7 @@ EXPORT_SYMBOL(__vcalloc);
  */
 void *vcalloc(size_t n, size_t size)
 {
-	return __vmalloc_array(n, size, GFP_KERNEL | __GFP_ZERO);
+	return 0;
 }
 EXPORT_SYMBOL(vcalloc);
 
@@ -1149,9 +1141,6 @@ void mem_dump_obj(void *object)
 		kmem_dump_obj(object);
 		return;
 	}
-
-	if (vmalloc_dump_obj(object))
-		return;
 
 	if (virt_addr_valid(object))
 		type = "non-slab/vmalloc memory";

@@ -847,7 +847,6 @@ static void __init mm_init(void)
 	kmemleak_init();
 	pgtable_init();
 	debug_objects_mem_init();
-	vmalloc_init();
 	/* Should be run before the first non-init thread is created */
 	init_espfix_bsp();
 	/* Should be run after espfix64 is set up. */

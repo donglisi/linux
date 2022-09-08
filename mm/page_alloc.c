@@ -8937,7 +8937,6 @@ void *__init alloc_large_system_hash(const char *tablename,
 				table = memblock_alloc_raw(size,
 							   SMP_CACHE_BYTES);
 		} else if (get_order(size) >= MAX_ORDER || hashdist) {
-			table = vmalloc_huge(size, gfp_flags);
 			virt = true;
 			if (table)
 				huge = is_vm_area_hugepages(table);

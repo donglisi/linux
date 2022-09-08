@@ -510,10 +510,6 @@ static void *pcpu_mem_zalloc(size_t size, gfp_t gfp)
 	if (WARN_ON_ONCE(!slab_is_available()))
 		return NULL;
 
-	if (size <= PAGE_SIZE)
-		return kzalloc(size, gfp);
-	else
-		return __vmalloc(size, gfp | __GFP_ZERO);
 }
 
 /**
@@ -2408,11 +2404,6 @@ phys_addr_t per_cpu_ptr_to_phys(void *addr)
 	}
 
 	if (in_first_chunk) {
-		if (!is_vmalloc_addr(addr))
-			return __pa(addr);
-		else
-			return page_to_phys(vmalloc_to_page(addr)) +
-			       offset_in_page(addr);
 	} else
 		return page_to_phys(pcpu_addr_to_page(addr)) +
 		       offset_in_page(addr);
