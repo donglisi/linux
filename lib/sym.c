@@ -721,3 +721,8 @@ int get_random_u32;
 int get_random_u64;
 int rng_is_initialized;
 
+int idt_invalidate;
+int idt_setup_apic_and_irq_gates;
+int idt_setup_traps;
+int load_current_idt;
+
