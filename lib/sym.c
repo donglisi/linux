@@ -731,3 +731,8 @@ int e820__reallocate_tables;
 int e820__update_table;
 int cpu_init;
 int cpu_init_exception_handling;
+
+int kernel_set_to_readonly;
+int mark_rodata_ro;
+int set_pte_vaddr;
+
