@@ -40,7 +40,7 @@ kernel	:= $(addprefix kernel/, fork.o cpu.o resource.o params.o range.o $(addpre
 lib	:= $(addprefix lib/, sort.o parser.o bitmap.o find_bit.o string_helpers.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o rbtree.o sym.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
 
-mm	:= $(addprefix mm/, vmalloc.o mempool.o swap.o truncate.o util.o mmzone.o mm_init.o percpu.o slab_common.o page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o)
+mm	:= $(addprefix mm/, vmalloc.o mempool.o swap.o util.o mmzone.o mm_init.o percpu.o slab_common.o page_alloc.o init-mm.o memblock.o sparse.o slub.o)
 
 objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm) drivers/tty/tty_io.o)
 export objs
