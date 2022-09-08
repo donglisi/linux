@@ -736,3 +736,8 @@ int kernel_set_to_readonly;
 int mark_rodata_ro;
 int set_pte_vaddr;
 
+int asm_load_gs_index;
+int ret_from_fork;
+int rewind_stack_and_make_dead;
+int __switch_to_asm;
+
