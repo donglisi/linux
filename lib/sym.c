@@ -130,3 +130,7 @@ char vmalloc_dump_obj = 0xf4;
 char __vmalloc_node_range = 0xf4;
 char kmalloc_caches = 0xf4;
 char kmem_cache_alloc = 0xf4;
+char __bitmap_complement = 0xf4;
+char siphash_1u64 = 0xf4;
+char skip_spaces = 0xf4;
+char string_escape_mem = 0xf4;

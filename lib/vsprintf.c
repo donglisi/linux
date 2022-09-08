@@ -783,6 +783,7 @@ static inline int __ptr_to_hashval(const void *ptr, unsigned long *hashval_out)
 
 
 #ifdef CONFIG_64BIT
+	hashval = (unsigned long)siphash_1u64((u64)ptr, &ptr_key);
 	/*
 	 * Mask off the first 32 bits, this makes explicit that we have
 	 * modified the address (and 32 bits is plenty for a unique ID).
@@ -1656,6 +1657,13 @@ char *escaped_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
 		flags = ESCAPE_ANY_NP;
 
 	len = spec.field_width < 0 ? 1 : spec.field_width;
+
+	/*
+	 * string_escape_mem() writes as many characters as it can to
+	 * the given buffer, and returns the total size of the output
+	 * had the buffer been big enough.
+	 */
+	buf += string_escape_mem(addr, len, buf, buf < end ? end - buf : 0, flags, NULL);
 
 	return buf;
 }
@@ -3406,6 +3414,8 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 		 * white space, including none, in the input.
 		 */
 		if (isspace(*fmt)) {
+			fmt = skip_spaces(++fmt);
+			str = skip_spaces(str);
 		}
 
 		/* anything that is not a conversion must match exactly */
@@ -3493,6 +3503,8 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 			char *s = (char *)va_arg(args, char *);
 			if (field_width == -1)
 				field_width = SHRT_MAX;
+			/* first, skip leading white space in buffer */
+			str = skip_spaces(str);
 
 			/* now copy until next white space */
 			while (*str && !isspace(*str) && field_width--)
@@ -3539,6 +3551,7 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 			++fmt;
 
 			if (negate) {
+				bitmap_complement(set, set, 256);
 				/* exclude null '\0' byte */
 				__clear_bit(0, set);
 			}
@@ -3577,6 +3590,11 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 			/* invalid format; stop here */
 			return num;
 		}
+
+		/* have some sort of integer conversion.
+		 * first, skip white space in buffer.
+		 */
+		str = skip_spaces(str);
 
 		digit = *str;
 		if (is_sign && digit == '-') {
