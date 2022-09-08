@@ -726,3 +726,7 @@ int idt_setup_apic_and_irq_gates;
 int idt_setup_traps;
 int load_current_idt;
 
+int e820__memory_setup_extended;
+int e820__reallocate_tables;
+int e820__update_table;
+
