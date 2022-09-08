@@ -721,7 +721,6 @@ noinline void __ref rest_init(void)
 	 * The boot idle thread must execute schedule()
 	 * at least once to get things moving:
 	 */
-	schedule_preempt_disabled();
 	/* Call into cpu_idle with preempt disabled */
 	cpu_startup_entry(CPUHP_ONLINE);
 }
@@ -1419,7 +1418,6 @@ static noinline void __init kernel_init_freeable(void)
 	lockup_detector_init();
 
 	smp_init();
-	sched_init_smp();
 
 	padata_init();
 	page_alloc_init_late();

@@ -156,7 +156,6 @@ struct pcpu_drain {
 	struct zone *zone;
 	struct work_struct work;
 };
-static DEFINE_MUTEX(pcpu_drain_mutex);
 static DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
 
 #ifdef CONFIG_GCC_PLUGIN_LATENT_ENTROPY
@@ -244,7 +243,6 @@ static gfp_t saved_gfp_mask;
 
 void pm_restore_gfp_mask(void)
 {
-	WARN_ON(!mutex_is_locked(&system_transition_mutex));
 	if (saved_gfp_mask) {
 		gfp_allowed_mask = saved_gfp_mask;
 		saved_gfp_mask = 0;
@@ -253,7 +251,6 @@ void pm_restore_gfp_mask(void)
 
 void pm_restrict_gfp_mask(void)
 {
-	WARN_ON(!mutex_is_locked(&system_transition_mutex));
 	WARN_ON(saved_gfp_mask);
 	saved_gfp_mask = gfp_allowed_mask;
 	gfp_allowed_mask &= ~(__GFP_IO | __GFP_FS);
@@ -1790,7 +1787,6 @@ void set_zone_contiguous(struct zone *zone)
 		if (!__pageblock_pfn_to_page(block_start_pfn,
 					     block_end_pfn, zone))
 			return;
-		cond_resched();
 	}
 
 	/* We confirm that there is no hole */
@@ -2011,7 +2007,6 @@ deferred_init_memmap_chunk(unsigned long start_pfn, unsigned long end_pfn,
 	 */
 	while (spfn < end_pfn) {
 		deferred_init_maxorder(&i, zone, &spfn, &epfn);
-		cond_resched();
 	}
 }
 
@@ -3208,17 +3203,6 @@ static void __drain_all_pages(struct zone *zone, bool force_all_cpus)
 		return;
 
 	/*
-	 * Do not drain if one is already in progress unless it's specific to
-	 * a zone. Such callers are primarily CMA and memory hotplug and need
-	 * the drain to be complete when the call returns.
-	 */
-	if (unlikely(!mutex_trylock(&pcpu_drain_mutex))) {
-		if (!zone)
-			return;
-		mutex_lock(&pcpu_drain_mutex);
-	}
-
-	/*
 	 * We don't care about racing with CPU hotplug event
 	 * as offline notification will cause the notified
 	 * cpu to drain that CPU pcps and on_each_cpu_mask
@@ -3264,8 +3248,6 @@ static void __drain_all_pages(struct zone *zone, bool force_all_cpus)
 	}
 	for_each_cpu(cpu, &cpus_with_pcps)
 		flush_work(&per_cpu_ptr(&pcpu_drain, cpu)->work);
-
-	mutex_unlock(&pcpu_drain_mutex);
 }
 
 /*
@@ -4312,16 +4294,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
 	*did_some_progress = 0;
 
 	/*
-	 * Acquire the oom lock.  If that fails, somebody else is
-	 * making progress for us.
-	 */
-	if (!mutex_trylock(&oom_lock)) {
-		*did_some_progress = 1;
-		schedule_timeout_uninterruptible(1);
-		return NULL;
-	}
-
-	/*
 	 * Go through the zonelist yet one more time, keep very high watermark
 	 * here, this is only to catch a parallel oom killing, we must fail if
 	 * we're still under heavy pressure. But make sure that this reclaim
@@ -4379,7 +4351,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
 					ALLOC_NO_WATERMARKS, ac);
 	}
 out:
-	mutex_unlock(&oom_lock);
 	return page;
 }
 
@@ -4445,7 +4416,6 @@ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
 	 */
 	count_vm_event(COMPACTFAIL);
 
-	cond_resched();
 
 	return NULL;
 }
@@ -4635,7 +4605,6 @@ __perform_reclaim(gfp_t gfp_mask, unsigned int order,
 	unsigned int noreclaim_flag;
 	unsigned long progress;
 
-	cond_resched();
 
 	/* We now go into synchronous reclaim */
 	cpuset_memory_pressure_bump();
@@ -4648,7 +4617,6 @@ __perform_reclaim(gfp_t gfp_mask, unsigned int order,
 	memalloc_noreclaim_restore(noreclaim_flag);
 	fs_reclaim_release(gfp_mask);
 
-	cond_resched();
 
 	return progress;
 }
@@ -4859,17 +4827,6 @@ should_reclaim_retry(gfp_t gfp_mask, unsigned order,
 		}
 	}
 
-	/*
-	 * Memory allocation/reclaim might be called from a WQ context and the
-	 * current implementation of the WQ concurrency control doesn't
-	 * recognize that a particular WQ is congested if the worker thread is
-	 * looping without ever sleeping. Therefore we have to do a short sleep
-	 * here rather than calling cond_resched().
-	 */
-	if (current->flags & PF_WQ_WORKER)
-		schedule_timeout_uninterruptible(1);
-	else
-		cond_resched();
 	return ret;
 }
 
@@ -5169,7 +5126,6 @@ nopage:
 		if (page)
 			goto got_pg;
 
-		cond_resched();
 		goto retry;
 	}
 fail:
@@ -6617,7 +6573,6 @@ void __meminit memmap_init_range(unsigned long size, int nid, unsigned long zone
 		 */
 		if (IS_ALIGNED(pfn, pageblock_nr_pages)) {
 			set_pageblock_migratetype(page, migratetype);
-			cond_resched();
 		}
 		pfn++;
 	}
@@ -6660,7 +6615,6 @@ static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
 	 */
 	if (IS_ALIGNED(pfn, pageblock_nr_pages)) {
 		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-		cond_resched();
 	}
 }
 
@@ -8798,7 +8752,6 @@ int percpu_pagelist_high_fraction_sysctl_handler(struct ctl_table *table,
 	int old_percpu_pagelist_high_fraction;
 	int ret;
 
-	mutex_lock(&pcp_batch_high_lock);
 	old_percpu_pagelist_high_fraction = percpu_pagelist_high_fraction;
 
 	ret = proc_dointvec_minmax(table, write, buffer, length, ppos);
@@ -8820,7 +8773,6 @@ int percpu_pagelist_high_fraction_sysctl_handler(struct ctl_table *table,
 	for_each_populated_zone(zone)
 		zone_set_pageset_high_and_batch(zone, 0);
 out:
-	mutex_unlock(&pcp_batch_high_lock);
 	return ret;
 }
 
@@ -9310,9 +9262,7 @@ EXPORT_SYMBOL(free_contig_range);
  */
 void zone_pcp_update(struct zone *zone, int cpu_online)
 {
-	mutex_lock(&pcp_batch_high_lock);
 	zone_set_pageset_high_and_batch(zone, cpu_online);
-	mutex_unlock(&pcp_batch_high_lock);
 }
 
 /*
@@ -9325,7 +9275,6 @@ void zone_pcp_update(struct zone *zone, int cpu_online)
  */
 void zone_pcp_disable(struct zone *zone)
 {
-	mutex_lock(&pcp_batch_high_lock);
 	__zone_set_pageset_high_and_batch(zone, 0, 1);
 	__drain_all_pages(zone, true);
 }
@@ -9333,7 +9282,6 @@ void zone_pcp_disable(struct zone *zone)
 void zone_pcp_enable(struct zone *zone)
 {
 	__zone_set_pageset_high_and_batch(zone, zone->pageset_high, zone->pageset_batch);
-	mutex_unlock(&pcp_batch_high_lock);
 }
 
 void zone_pcp_reset(struct zone *zone)

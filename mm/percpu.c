@@ -1759,22 +1759,6 @@ static void __percpu *pcpu_alloc(size_t size, size_t align, bool reserved,
 	if (unlikely(!pcpu_memcg_pre_alloc_hook(size, gfp, &objcg)))
 		return NULL;
 
-	if (!is_atomic) {
-		/*
-		 * pcpu_balance_workfn() allocates memory under this mutex,
-		 * and it may wait for memory reclaim. Allow current task
-		 * to become OOM victim, in case of memory pressure.
-		 */
-		if (gfp & __GFP_NOFAIL) {
-			mutex_lock(&pcpu_alloc_mutex);
-		} else if (mutex_lock_killable(&pcpu_alloc_mutex)) {
-			pcpu_memcg_post_alloc_hook(objcg, NULL, 0, size);
-			return NULL;
-		}
-	}
-
-	spin_lock_irqsave(&pcpu_lock, flags);
-
 	/* serve reserved allocations from the reserved chunk if available */
 	if (reserved && pcpu_reserved_chunk) {
 		chunk = pcpu_reserved_chunk;
@@ -1866,8 +1850,6 @@ area_found:
 			pcpu_chunk_populated(chunk, rs, re);
 			spin_unlock_irqrestore(&pcpu_lock, flags);
 		}
-
-		mutex_unlock(&pcpu_alloc_mutex);
 	}
 
 	if (pcpu_nr_empty_pop_pages < PCPU_EMPTY_POP_PAGES_LOW)
@@ -1904,8 +1886,6 @@ fail:
 		/* see the flag handling in pcpu_balance_workfn() */
 		pcpu_atomic_alloc_failed = true;
 		pcpu_schedule_balance_work();
-	} else {
-		mutex_unlock(&pcpu_alloc_mutex);
 	}
 
 	pcpu_memcg_post_alloc_hook(objcg, NULL, 0, size);
@@ -2016,7 +1996,6 @@ static void pcpu_balance_free(bool empty_only)
 			spin_unlock_irq(&pcpu_lock);
 		}
 		pcpu_destroy_chunk(chunk);
-		cond_resched();
 	}
 	spin_lock_irq(&pcpu_lock);
 }
@@ -2084,7 +2063,6 @@ retry_pop:
 
 			spin_unlock_irq(&pcpu_lock);
 			ret = pcpu_populate_chunk(chunk, rs, rs + nr, gfp);
-			cond_resched();
 			spin_lock_irq(&pcpu_lock);
 			if (!ret) {
 				nr_to_pop -= nr;
@@ -2102,7 +2080,6 @@ retry_pop:
 		/* ran out of chunks to populate, create a new one and retry */
 		spin_unlock_irq(&pcpu_lock);
 		chunk = pcpu_create_chunk(gfp);
-		cond_resched();
 		spin_lock_irq(&pcpu_lock);
 		if (chunk) {
 			pcpu_chunk_relocate(chunk, -1);
@@ -2187,7 +2164,6 @@ static void pcpu_reclaim_populated(void)
 
 			spin_unlock_irq(&pcpu_lock);
 			pcpu_depopulate_chunk(chunk, i + 1, end + 1);
-			cond_resched();
 			spin_lock_irq(&pcpu_lock);
 
 			pcpu_chunk_depopulated(chunk, i + 1, end + 1);
@@ -2205,7 +2181,6 @@ end_chunk:
 			pcpu_post_unmap_tlb_flush(chunk,
 						  freed_page_start,
 						  freed_page_end);
-			cond_resched();
 			spin_lock_irq(&pcpu_lock);
 		}
 
@@ -2234,16 +2209,11 @@ static void pcpu_balance_workfn(struct work_struct *work)
 	 * to move fully free chunks to the active list to be freed if
 	 * appropriate.
 	 */
-	mutex_lock(&pcpu_alloc_mutex);
-	spin_lock_irq(&pcpu_lock);
 
 	pcpu_balance_free(false);
 	pcpu_reclaim_populated();
 	pcpu_balance_populated();
 	pcpu_balance_free(true);
-
-	spin_unlock_irq(&pcpu_lock);
-	mutex_unlock(&pcpu_alloc_mutex);
 }
 
 /**

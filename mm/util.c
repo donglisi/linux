@@ -308,7 +308,7 @@ int vma_is_stack_for_current(struct vm_area_struct *vma)
 {
 	struct task_struct * __maybe_unused t = current;
 
-	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
+	return 0;
 }
 
 /*
@@ -875,7 +875,6 @@ void folio_copy(struct folio *dst, struct folio *src)
 		copy_highpage(folio_page(dst, i), folio_page(src, i));
 		if (++i == nr)
 			break;
-		cond_resched();
 	}
 }
 

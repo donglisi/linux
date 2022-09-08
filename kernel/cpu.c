@@ -287,12 +287,10 @@ EXPORT_SYMBOL_GPL(cpuhp_tasks_frozen);
  */
 void cpu_maps_update_begin(void)
 {
-	mutex_lock(&cpu_add_remove_lock);
 }
 
 void cpu_maps_update_done(void)
 {
-	mutex_unlock(&cpu_add_remove_lock);
 }
 
 /*
@@ -1982,8 +1980,6 @@ int __cpuhp_state_add_instance_cpuslocked(enum cpuhp_state state,
 	if (sp->multi_instance == false)
 		return -EINVAL;
 
-	mutex_lock(&cpuhp_state_mutex);
-
 	if (!invoke || !sp->startup.multi)
 		goto add_node;
 
@@ -2009,7 +2005,6 @@ add_node:
 	ret = 0;
 	hlist_add_head(node, &sp->list);
 unlock:
-	mutex_unlock(&cpuhp_state_mutex);
 	return ret;
 }
 
@@ -2057,8 +2052,6 @@ int __cpuhp_setup_state_cpuslocked(enum cpuhp_state state,
 	if (cpuhp_cb_check(state) || !name)
 		return -EINVAL;
 
-	mutex_lock(&cpuhp_state_mutex);
-
 	ret = cpuhp_store_callbacks(state, name, startup, teardown,
 				    multi_instance);
 
@@ -2091,7 +2084,6 @@ int __cpuhp_setup_state_cpuslocked(enum cpuhp_state state,
 		}
 	}
 out:
-	mutex_unlock(&cpuhp_state_mutex);
 	/*
 	 * If the requested state is CPUHP_AP_ONLINE_DYN, return the
 	 * dynamically allocated state in case of success.
@@ -2130,7 +2122,6 @@ int __cpuhp_state_remove_instance(enum cpuhp_state state,
 		return -EINVAL;
 
 	cpus_read_lock();
-	mutex_lock(&cpuhp_state_mutex);
 
 	if (!invoke || !cpuhp_get_teardown_cb(state))
 		goto remove;
@@ -2149,7 +2140,6 @@ int __cpuhp_state_remove_instance(enum cpuhp_state state,
 
 remove:
 	hlist_del(node);
-	mutex_unlock(&cpuhp_state_mutex);
 	cpus_read_unlock();
 
 	return 0;
@@ -2175,7 +2165,6 @@ void __cpuhp_remove_state_cpuslocked(enum cpuhp_state state, bool invoke)
 
 	lockdep_assert_cpus_held();
 
-	mutex_lock(&cpuhp_state_mutex);
 	if (sp->multi_instance) {
 		WARN(!hlist_empty(&sp->list),
 		     "Error: Removing state %d which has instances left.\n",
@@ -2200,7 +2189,6 @@ void __cpuhp_remove_state_cpuslocked(enum cpuhp_state state, bool invoke)
 	}
 remove:
 	cpuhp_store_callbacks(state, NULL, NULL, NULL, false);
-	mutex_unlock(&cpuhp_state_mutex);
 }
 EXPORT_SYMBOL(__cpuhp_remove_state_cpuslocked);
 
@@ -2317,10 +2305,8 @@ static ssize_t target_store(struct device *dev, struct device_attribute *attr,
 	if (ret)
 		return ret;
 
-	mutex_lock(&cpuhp_state_mutex);
 	sp = cpuhp_get_step(target);
 	ret = !sp->name || sp->cant_stop ? -EINVAL : 0;
-	mutex_unlock(&cpuhp_state_mutex);
 	if (ret)
 		goto out;
 
@@ -2379,11 +2365,9 @@ static ssize_t fail_store(struct device *dev, struct device_attribute *attr,
 	/*
 	 * Cannot fail anything that doesn't have callbacks.
 	 */
-	mutex_lock(&cpuhp_state_mutex);
 	sp = cpuhp_get_step(fail);
 	if (!sp->startup.single && !sp->teardown.single)
 		ret = -EINVAL;
-	mutex_unlock(&cpuhp_state_mutex);
 	if (ret)
 		return ret;
 
@@ -2421,7 +2405,6 @@ static ssize_t states_show(struct device *dev,
 	ssize_t cur, res = 0;
 	int i;
 
-	mutex_lock(&cpuhp_state_mutex);
 	for (i = CPUHP_OFFLINE; i <= CPUHP_ONLINE; i++) {
 		struct cpuhp_step *sp = cpuhp_get_step(i);
 
@@ -2431,7 +2414,6 @@ static ssize_t states_show(struct device *dev,
 			res += cur;
 		}
 	}
-	mutex_unlock(&cpuhp_state_mutex);
 	return res;
 }
 static DEVICE_ATTR_RO(states);

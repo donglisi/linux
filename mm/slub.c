@@ -1869,12 +1869,10 @@ static void __init init_freelist_randomization(void)
 {
 	struct kmem_cache *s;
 
-	mutex_lock(&slab_mutex);
 
 	list_for_each_entry(s, &slab_caches, list)
 		init_cache_random_seq(s);
 
-	mutex_unlock(&slab_mutex);
 }
 
 /* Get the next entry on the pre-computed freelist randomized */
@@ -2719,7 +2717,6 @@ static void flush_all_cpus_locked(struct kmem_cache *s)
 	unsigned int cpu;
 
 	lockdep_assert_cpus_held();
-	mutex_lock(&flush_lock);
 
 	for_each_online_cpu(cpu) {
 		sfw = &per_cpu(slub_flush, cpu);
@@ -2740,7 +2737,6 @@ static void flush_all_cpus_locked(struct kmem_cache *s)
 		flush_work(&sfw->work);
 	}
 
-	mutex_unlock(&flush_lock);
 }
 
 static void flush_all(struct kmem_cache *s)
@@ -2758,10 +2754,8 @@ static int slub_cpu_dead(unsigned int cpu)
 {
 	struct kmem_cache *s;
 
-	mutex_lock(&slab_mutex);
 	list_for_each_entry(s, &slab_caches, list)
 		__flush_cpu_slab(s, cpu);
-	mutex_unlock(&slab_mutex);
 	return 0;
 }
 
@@ -4667,12 +4661,10 @@ static int slab_mem_going_offline_callback(void *arg)
 {
 	struct kmem_cache *s;
 
-	mutex_lock(&slab_mutex);
 	list_for_each_entry(s, &slab_caches, list) {
 		flush_all_cpus_locked(s);
 		__kmem_cache_do_shrink(s);
 	}
-	mutex_unlock(&slab_mutex);
 
 	return 0;
 }
@@ -4691,14 +4683,12 @@ static void slab_mem_offline_callback(void *arg)
 	if (offline_node < 0)
 		return;
 
-	mutex_lock(&slab_mutex);
 	node_clear(offline_node, slab_nodes);
 	/*
 	 * We no longer free kmem_cache_node structures here, as it would be
 	 * racy with all get_node() users, and infeasible to protect them with
 	 * slab_mutex.
 	 */
-	mutex_unlock(&slab_mutex);
 }
 
 static int slab_mem_going_online_callback(void *arg)
@@ -4721,7 +4711,6 @@ static int slab_mem_going_online_callback(void *arg)
 	 * allocate a kmem_cache_node structure in order to bring the node
 	 * online.
 	 */
-	mutex_lock(&slab_mutex);
 	list_for_each_entry(s, &slab_caches, list) {
 		/*
 		 * The structure may already exist if the node was previously
@@ -4748,7 +4737,6 @@ static int slab_mem_going_online_callback(void *arg)
 	 */
 	node_set(nid, slab_nodes);
 out:
-	mutex_unlock(&slab_mutex);
 	return ret;
 }
 
@@ -6048,11 +6036,9 @@ static int __init slab_sysfs_init(void)
 	struct kmem_cache *s;
 	int err;
 
-	mutex_lock(&slab_mutex);
 
 	slab_kset = kset_create_and_add("slab", NULL, kernel_kobj);
 	if (!slab_kset) {
-		mutex_unlock(&slab_mutex);
 		pr_err("Cannot register slab subsystem.\n");
 		return -ENOSYS;
 	}
@@ -6077,7 +6063,6 @@ static int __init slab_sysfs_init(void)
 		kfree(al);
 	}
 
-	mutex_unlock(&slab_mutex);
 	return 0;
 }
 

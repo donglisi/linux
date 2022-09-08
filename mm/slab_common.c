@@ -323,8 +323,6 @@ kmem_cache_create_usercopy(const char *name,
 		stack_depot_init();
 #endif
 
-	mutex_lock(&slab_mutex);
-
 	err = kmem_cache_sanity_check(name, size);
 	if (err) {
 		goto out_unlock;
@@ -369,7 +367,6 @@ kmem_cache_create_usercopy(const char *name,
 	}
 
 out_unlock:
-	mutex_unlock(&slab_mutex);
 
 	if (err) {
 		if (flags & SLAB_PANIC)
@@ -434,9 +431,7 @@ static void slab_caches_to_rcu_destroy_workfn(struct work_struct *work)
 	 * is a pretty slow operation, we batch all pending destructions
 	 * asynchronously.
 	 */
-	mutex_lock(&slab_mutex);
 	list_splice_init(&slab_caches_to_rcu_destroy, &to_destroy);
-	mutex_unlock(&slab_mutex);
 
 	if (list_empty(&to_destroy))
 		return;
@@ -497,7 +492,6 @@ void kmem_cache_destroy(struct kmem_cache *s)
 		return;
 
 	cpus_read_lock();
-	mutex_lock(&slab_mutex);
 
 	s->refcount--;
 	if (s->refcount)
@@ -507,7 +501,6 @@ void kmem_cache_destroy(struct kmem_cache *s)
 	     "%s %s: Slab cache still has objects when called from %pS",
 	     __func__, s->name, (void *)_RET_IP_);
 out_unlock:
-	mutex_unlock(&slab_mutex);
 	cpus_read_unlock();
 }
 EXPORT_SYMBOL(kmem_cache_destroy);
@@ -1042,7 +1035,6 @@ static void print_slabinfo_header(struct seq_file *m)
 
 static void *slab_start(struct seq_file *m, loff_t *pos)
 {
-	mutex_lock(&slab_mutex);
 	return seq_list_start(&slab_caches, *pos);
 }
 
@@ -1053,7 +1045,6 @@ static void *slab_next(struct seq_file *m, void *p, loff_t *pos)
 
 static void slab_stop(struct seq_file *m, void *p)
 {
-	mutex_unlock(&slab_mutex);
 }
 
 static void cache_show(struct kmem_cache *s, struct seq_file *m)
@@ -1116,7 +1107,6 @@ void dump_unreclaimable_slab(void)
 				(sinfo.active_objs * s->size) / 1024,
 				(sinfo.num_objs * s->size) / 1024);
 	}
-	mutex_unlock(&slab_mutex);
 }
 
 /*

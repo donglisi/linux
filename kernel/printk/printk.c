@@ -78,12 +78,6 @@ EXPORT_SYMBOL(ignore_console_lock_warning);
 int oops_in_progress;
 EXPORT_SYMBOL(oops_in_progress);
 
-/*
- * console_sem protects the console_drivers list, and also
- * provides serialisation for access to the entire console
- * driver system.
- */
-static DEFINE_SEMAPHORE(console_sem);
 struct console *console_drivers;
 EXPORT_SYMBOL_GPL(console_drivers);
 
@@ -222,48 +216,6 @@ int devkmsg_sysctl_set_loglvl(struct ctl_table *table, int write,
 
 /* Number of registered extended console drivers. */
 static int nr_ext_console_drivers;
-
-/*
- * Helper macros to handle lockdep when locking/unlocking console_sem. We use
- * macros instead of functions so that _RET_IP_ contains useful information.
- */
-#define down_console_sem() do { \
-	down(&console_sem);\
-	mutex_acquire(&console_lock_dep_map, 0, 0, _RET_IP_);\
-} while (0)
-
-static int __down_trylock_console_sem(unsigned long ip)
-{
-	int lock_failed;
-	unsigned long flags;
-
-	/*
-	 * Here and in __up_console_sem() we need to be in safe mode,
-	 * because spindump/WARN/etc from under console ->lock will
-	 * deadlock in printk()->down_trylock_console_sem() otherwise.
-	 */
-	printk_safe_enter_irqsave(flags);
-	lock_failed = down_trylock(&console_sem);
-	printk_safe_exit_irqrestore(flags);
-
-	if (lock_failed)
-		return 1;
-	mutex_acquire(&console_lock_dep_map, 0, 1, ip);
-	return 0;
-}
-#define down_trylock_console_sem() __down_trylock_console_sem(_RET_IP_)
-
-static void __up_console_sem(unsigned long ip)
-{
-	unsigned long flags;
-
-	mutex_release(&console_lock_dep_map, ip);
-
-	printk_safe_enter_irqsave(flags);
-	up(&console_sem);
-	printk_safe_exit_irqrestore(flags);
-}
-#define up_console_sem() __up_console_sem(_RET_IP_)
 
 static bool panic_in_progress(void)
 {
@@ -809,8 +761,6 @@ static int devkmsg_open(struct inode *inode, struct file *file)
 	ratelimit_default_init(&user->rs);
 	ratelimit_set_flags(&user->rs, RATELIMIT_MSG_ON_RELEASE);
 
-	mutex_init(&user->lock);
-
 	prb_rec_init_rd(&user->record, &user->info,
 			&user->text_buf[0], sizeof(user->text_buf));
 
@@ -829,7 +779,6 @@ static int devkmsg_release(struct inode *inode, struct file *file)
 
 	ratelimit_state_exit(&user->rs);
 
-	mutex_destroy(&user->lock);
 	kvfree(user);
 	return 0;
 }
@@ -1445,8 +1394,6 @@ static int syslog_print(char __user *buf, int size)
 
 	prb_rec_init_rd(&r, &info, text, CONSOLE_LOG_MAX);
 
-	mutex_lock(&syslog_lock);
-
 	/*
 	 * Wait for the @syslog_seq record to be available. @syslog_seq may
 	 * change while waiting.
@@ -1454,7 +1401,6 @@ static int syslog_print(char __user *buf, int size)
 	do {
 		seq = syslog_seq;
 
-		mutex_unlock(&syslog_lock);
 		/*
 		 * Guarantee this task is visible on the waitqueue before
 		 * checking the wake condition.
@@ -1467,7 +1413,6 @@ static int syslog_print(char __user *buf, int size)
 		 */
 		len = wait_event_interruptible(log_wait,
 				prb_read_valid(prb, seq, NULL)); /* LMM(syslog_print:A) */
-		mutex_lock(&syslog_lock);
 
 		if (len)
 			goto out;
@@ -1515,9 +1460,7 @@ static int syslog_print(char __user *buf, int size)
 		if (!n)
 			break;
 
-		mutex_unlock(&syslog_lock);
 		err = copy_to_user(buf, text + skip, n);
-		mutex_lock(&syslog_lock);
 
 		if (err) {
 			if (!len)
@@ -1530,7 +1473,6 @@ static int syslog_print(char __user *buf, int size)
 		buf += n;
 	} while (size);
 out:
-	mutex_unlock(&syslog_lock);
 	kfree(text);
 	return len;
 }
@@ -1579,9 +1521,7 @@ static int syslog_print_all(char __user *buf, int size, bool clear)
 	}
 
 	if (clear) {
-		mutex_lock(&syslog_lock);
 		latched_seq_write(&clear_seq, seq);
-		mutex_unlock(&syslog_lock);
 	}
 
 	kfree(text);
@@ -1590,9 +1530,7 @@ static int syslog_print_all(char __user *buf, int size, bool clear)
 
 static void syslog_clear(void)
 {
-	mutex_lock(&syslog_lock);
 	latched_seq_write(&clear_seq, prb_next_seq(prb));
-	mutex_unlock(&syslog_lock);
 }
 
 int do_syslog(int type, char __user *buf, int len, int source)
@@ -1672,7 +1610,6 @@ static int console_lock_spinning_disable_and_check(void)
 	 * Hand off console_lock to waiter. The waiter will perform
 	 * the up(). After this, the waiter is the console_lock owner.
 	 */
-	mutex_release(&console_lock_dep_map, _THIS_IP_);
 	return 1;
 }
 
@@ -1745,7 +1682,6 @@ static int console_trylock_spinning(void)
 	 * this as a trylock. Otherwise lockdep will
 	 * complain.
 	 */
-	mutex_acquire(&console_lock_dep_map, 0, 1, _THIS_IP_);
 
 	return 1;
 }
@@ -2344,14 +2280,12 @@ void suspend_console(void)
 	pr_flush(1000, true);
 	console_lock();
 	console_suspended = 1;
-	up_console_sem();
 }
 
 void resume_console(void)
 {
 	if (!console_suspend_enabled)
 		return;
-	down_console_sem();
 	console_suspended = 0;
 	console_unlock();
 	pr_flush(1000, true);
@@ -2388,7 +2322,6 @@ void console_lock(void)
 {
 	might_sleep();
 
-	down_console_sem();
 	if (console_suspended)
 		return;
 	console_locked = 1;
@@ -2406,14 +2339,6 @@ EXPORT_SYMBOL(console_lock);
  */
 int console_trylock(void)
 {
-	if (down_trylock_console_sem())
-		return 0;
-	if (console_suspended) {
-		up_console_sem();
-		return 0;
-	}
-	console_locked = 1;
-	console_may_schedule = 0;
 	return 1;
 }
 EXPORT_SYMBOL(console_trylock);
@@ -2472,7 +2397,6 @@ static inline bool console_is_usable(struct console *con)
 static void __console_unlock(void)
 {
 	console_locked = 0;
-	up_console_sem();
 }
 
 /*
@@ -2632,9 +2556,6 @@ static bool console_flush_all(bool do_cond_resched, u64 *next_seq, bool *handove
 			/* Allow panic_cpu to take over the consoles safely. */
 			if (abandon_console_lock_in_panic())
 				return false;
-
-			if (do_cond_resched)
-				cond_resched();
 		}
 	} while (any_progress);
 
@@ -2661,7 +2582,6 @@ void console_unlock(void)
 	u64 next_seq;
 
 	if (console_suspended) {
-		up_console_sem();
 		return;
 	}
 
@@ -2715,8 +2635,6 @@ EXPORT_SYMBOL(console_unlock);
  */
 void __sched console_conditional_schedule(void)
 {
-	if (console_may_schedule)
-		cond_resched();
 }
 EXPORT_SYMBOL(console_conditional_schedule);
 
@@ -2729,8 +2647,6 @@ void console_unblank(void)
 	 * oops_in_progress is set to 1..
 	 */
 	if (oops_in_progress) {
-		if (down_trylock_console_sem() != 0)
-			return;
 	} else
 		console_lock();
 
@@ -3015,9 +2931,7 @@ void register_console(struct console *newcon)
 	newcon->dropped = 0;
 	if (newcon->flags & CON_PRINTBUFFER) {
 		/* Get a consistent copy of @syslog_seq. */
-		mutex_lock(&syslog_lock);
 		newcon->seq = syslog_seq;
-		mutex_unlock(&syslog_lock);
 	} else {
 		/* Begin with next message. */
 		newcon->seq = prb_next_seq(prb);
