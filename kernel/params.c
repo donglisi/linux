@@ -164,9 +164,6 @@ char *parse_args(const char *doing,
 {
 	char *param, *val, *err = NULL;
 
-	/* Chew leading spaces */
-	args = skip_spaces(args);
-
 	if (*args)
 		pr_debug("doing %s, parsing ARGS: '%s'\n", doing, args);
 

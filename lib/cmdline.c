@@ -269,7 +269,6 @@ char *next_arg(char *args, char **param, char **val)
 	} else
 		args += i;
 
-	/* Chew up trailing spaces. */
-	return skip_spaces(args);
+	return args;
 }
 EXPORT_SYMBOL(next_arg);

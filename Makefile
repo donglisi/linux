@@ -26,20 +26,18 @@ CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -
 		-Wp,-MD,$(dir $@).$(notdir $@).d -Wp,-MT,$@ $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' \
 		-DKBUILD_BASENAME='"$(basetarget)"' -DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
-x86	:= $(addprefix arch/x86/, \
-		$(addprefix entry/, entry_64.o) \
+x86	:= $(addprefix arch/x86/, entry/entry_64.o \
 		$(addprefix lib/, hweight.o cmdline.o cpu.o memcpy_64.o clear_page_64.o memmove_64.o memset_64.o) \
 		$(addprefix mm/, init.o init_64.o) \
-		$(addprefix kernel/, idt.o setup.o x86_init.o e820.o head_64.o head64.o early_printk.o $(addprefix cpu/, common.o)))
+		$(addprefix kernel/, idt.o setup.o x86_init.o e820.o head_64.o head64.o early_printk.o cpu/common.o))
 
 init	:= $(addprefix init/, main.o init_task.o)
 
 kernel	:= $(addprefix kernel/, params.o range.o $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
 
-lib	:= $(addprefix lib/, sort.o parser.o bitmap.o find_bit.o string_helpers.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o rbtree.o sym.o \
-		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
+lib	:= $(addprefix lib/, sort.o parser.o bitmap.o find_bit.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o sym.o math/int_sqrt.o)
 
-mm	:= $(addprefix mm/, swap.o util.o mmzone.o mm_init.o page_alloc.o init-mm.o memblock.o sparse.o)
+mm	:= $(addprefix mm/, util.o mmzone.o mm_init.o page_alloc.o init-mm.o memblock.o sparse.o)
 
 objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm))
 export objs
