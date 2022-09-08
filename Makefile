@@ -65,7 +65,6 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix entry/, common.o) \
 		$(addprefix time/, time.o timer.o hrtimer.o timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timeconv.o timecounter.o \
 			posix-stubs.o clockevents.o tick-common.o tick-broadcast.o tick-oneshot.o tick-sched.o) \
-		$(addprefix futex/, core.o syscalls.o pi.o requeue.o waitwake.o) \
 		$(addprefix events/, core.o ring_buffer.o callchain.o hw_breakpoint.o))
 
 lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spinlocks.o kasprintf.o bitmap.o scatterlist.o list_sort.o \

@@ -501,3 +501,8 @@ int msi_get_domain_info;
 int no_action;
 int request_threaded_irq;
 
+int do_futex;
+int futex_exec_release;
+int futex_exit_recursive;
+int futex_exit_release;
+
