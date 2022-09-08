@@ -1,3 +1,5 @@
+typedef _Bool bool;
+bool slab_is_available(void) {return 0;}
 char access_process_vm = 0xf4;
 char add_taint = 0xf4;
 char apic_intr_mode_init = 0xf4;
@@ -115,3 +117,5 @@ char mutex_unlock = 0xf4;
 char oom_lock = 0xf4;
 char schedule_timeout_uninterruptible = 0xf4;
 char vmalloc_huge = 0xf4;
+char kfree = 0xf4;
+char __kmalloc = 0xf4;
