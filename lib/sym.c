@@ -413,3 +413,28 @@ int __x64_sys_vhangup;
 int __x64_sys_vmsplice;
 int __x64_sys_write;
 int __x64_sys_writev;
+
+int pci_alloc_irq_vectors_affinity;
+int pci_bus_type;
+int pci_device_is_present;
+int pci_disable_device;
+int pci_enable_device;
+int pci_find_capability;
+int pci_find_ext_capability;
+int pci_find_next_capability;
+int pci_free_irq_vectors;
+int pci_irq_get_affinity;
+int pci_irq_vector;
+int pci_msi_ignore_mask;
+int pci_read_config_byte;
+int pci_read_config_dword;
+int __pci_register_driver;
+int pci_release_region;
+int pci_release_selected_regions;
+int pci_request_region;
+int pci_request_selected_regions;
+int pci_set_master;
+int pci_unregister_driver;
+int pci_write_config_byte;
+int pci_write_config_dword;
+

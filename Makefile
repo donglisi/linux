@@ -52,9 +52,6 @@ drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i
 			tty_jobctrl.o n_null.o hvc/hvc_console.o) \
 		$(addprefix rtc/, lib.o rtc-mc146818-lib.o) \
 		$(addprefix char/, mem.o random.o virtio_console.o) \
-		$(addprefix pci/, access.o bus.o probe.o host-bridge.o remove.o pci.o pci-driver.o search.o pci-sysfs.o rom.o setup-res.o irq.o \
-			setup-bus.o vc.o mmap.o setup-irq.o proc.o \
-			$(addprefix msi/, pcidev_msi.o msi.o irqdomain.o)) \
 		$(addprefix base/, core.o bus.o dd.o syscore.o driver.o class.o platform.o cpu.o firmware.o init.o map.o devres.o topology.o property.o \
 			cacheinfo.o swnode.o devtmpfs.o))
 
