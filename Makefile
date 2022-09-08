@@ -36,8 +36,7 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o memcpy_64.o \
 			copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o copy_page_64.o \
 			memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
-		$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o pgtable.o physaddr.o tlb.o cpu_entry_area.o pgprot.o \
-			$(addprefix pat/, set_memory.o memtype.o)) \
+		$(addprefix mm/, init.o init_64.o fault.o tlb.o) \
 		$(addprefix kernel/, process_64.o signal.o traps.o idt.o irq.o irq_64.o dumpstack_64.o time.o ioport.o dumpstack.o nmi.o setup.o x86_init.o \
 			i8259.o irqinit.o irq_work.o probe_roms.o sys_x86_64.o e820.o quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o \
 			tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o ptrace.o step.o stacktrace.o reboot.o early-quirks.o \
