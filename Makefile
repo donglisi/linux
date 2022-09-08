@@ -42,8 +42,7 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 			i8259.o irqinit.o irq_work.o probe_roms.o sys_x86_64.o e820.o quirks.o topology.o kdebugfs.o alternative.o i8253.o hw_breakpoint.o \
 			tsc.o tsc_msr.o io_delay.o rtc.o resource.o irqflags.o static_call.o process.o ptrace.o step.o stacktrace.o reboot.o early-quirks.o \
 			tsc_sync.o hpet.o perf_regs.o unwind_orc.o head_64.o head64.o platform-quirks.o early_printk.o \
-			$(addprefix cpu/, topology.o common.o match.o bugs.o aperfmperf.o cpuid-deps.o \
-				proc.o capflags.o perfctr-watchdog.o hypervisor.o)))
+			$(addprefix cpu/, common.o)))
 
 drivers := $(addprefix drivers/, \
 		$(addprefix tty/, tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o tty_mutex.o tty_ldsem.o tty_baudrate.o \

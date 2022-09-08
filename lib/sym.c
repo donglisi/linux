@@ -542,3 +542,25 @@ int do_syscall_64;
 int fixup_vdso_exception;
 int vclocks_used;
 
+int arch_scale_freq_tick;
+int clear_cpu_cap;
+int cpu_bugs_smt_update;
+int mds_idle_clear;
+int mds_user_clear;
+int release_evntsel_nmi;
+int release_perfctr_nmi;
+int reserve_evntsel_nmi;
+int reserve_perfctr_nmi;
+int setup_clear_cpu_cap;
+int switch_mm_always_ibpb;
+int switch_mm_cond_ibpb;
+int switch_mm_cond_l1d_flush;
+int update_srbds_msr;
+int write_spec_ctrl_current;
+int x86_amd_ls_cfg_base;
+int x86_amd_ls_cfg_ssbd_mask;
+int x86_cap_flags;
+int x86_match_cpu;
+int x86_spec_ctrl_base;
+int x86_spec_ctrl_setup_ap;
+
