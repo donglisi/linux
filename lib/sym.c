@@ -438,3 +438,7 @@ int pci_unregister_driver;
 int pci_write_config_byte;
 int pci_write_config_dword;
 
+int mc146818_set_time;
+int rtc_time64_to_tm;
+int rtc_valid_tm;
+
