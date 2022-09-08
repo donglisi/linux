@@ -45,8 +45,7 @@ init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.
 
 kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o \
 		workqueue.o params.o kthread.o \
-		nsproxy.o cred.o reboot.o range.o ucount.o regset.o \
-		irq_work.o static_call.o static_call_inline.o up.o \
+		nsproxy.o cred.o reboot.o range.o \
 		$(addprefix sched/, core.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
