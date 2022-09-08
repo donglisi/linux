@@ -3078,11 +3078,7 @@ static int __init printk_late_init(void)
 			unregister_console(con);
 		}
 	}
-	ret = cpuhp_setup_state_nocalls(CPUHP_PRINTK_DEAD, "printk:dead", NULL,
-					console_cpu_notify);
 	WARN_ON(ret < 0);
-	ret = cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN, "printk:online",
-					console_cpu_notify, NULL);
 	WARN_ON(ret < 0);
 	printk_sysctl_init();
 	return 0;

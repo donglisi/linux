@@ -6980,39 +6980,6 @@ static void per_cpu_pages_init(struct per_cpu_pages *pcp, struct per_cpu_zonesta
 	pcp->free_factor = 0;
 }
 
-static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high,
-		unsigned long batch)
-{
-	struct per_cpu_pages *pcp;
-	int cpu;
-
-	for_each_possible_cpu(cpu) {
-		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
-		pageset_update(pcp, high, batch);
-	}
-}
-
-/*
- * Calculate and set new high and batch values for all per-cpu pagesets of a
- * zone based on the zone's size.
- */
-static void zone_set_pageset_high_and_batch(struct zone *zone, int cpu_online)
-{
-	int new_high, new_batch;
-
-	new_batch = max(1, zone_batchsize(zone));
-	new_high = zone_highsize(zone, new_batch, cpu_online);
-
-	if (zone->pageset_high == new_high &&
-	    zone->pageset_batch == new_batch)
-		return;
-
-	zone->pageset_high = new_high;
-	zone->pageset_batch = new_batch;
-
-	__zone_set_pageset_high_and_batch(zone, new_high, new_batch);
-}
-
 void __meminit setup_zone_pageset(struct zone *zone)
 {
 	int cpu;
@@ -7030,8 +6997,6 @@ void __meminit setup_zone_pageset(struct zone *zone)
 		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, cpu);
 		per_cpu_pages_init(pcp, pzstats);
 	}
-
-	zone_set_pageset_high_and_batch(zone, 0);
 }
 
 /*
@@ -8359,9 +8324,6 @@ static int page_alloc_cpu_dead(unsigned int cpu)
 	 */
 	cpu_vm_stats_fold(cpu);
 
-	for_each_populated_zone(zone)
-		zone_pcp_update(zone, 0);
-
 	return 0;
 }
 
@@ -8369,8 +8331,6 @@ static int page_alloc_cpu_online(unsigned int cpu)
 {
 	struct zone *zone;
 
-	for_each_populated_zone(zone)
-		zone_pcp_update(zone, 1);
 	return 0;
 }
 
@@ -8396,10 +8356,6 @@ void __init page_alloc_init(void)
 		hashdist = 0;
 #endif
 
-	ret = cpuhp_setup_state_nocalls(CPUHP_PAGE_ALLOC,
-					"mm/page_alloc:pcp",
-					page_alloc_cpu_online,
-					page_alloc_cpu_dead);
 	WARN_ON(ret < 0);
 }
 
@@ -8555,13 +8511,6 @@ void setup_per_zone_wmarks(void)
 	spin_lock(&lock);
 	__setup_per_zone_wmarks();
 	spin_unlock(&lock);
-
-	/*
-	 * The watermark size have changed so update the pcpu batch
-	 * and high limits or the limits may be inappropriate.
-	 */
-	for_each_zone(zone)
-		zone_pcp_update(zone, 0);
 }
 
 /*
@@ -8770,8 +8719,6 @@ int percpu_pagelist_high_fraction_sysctl_handler(struct ctl_table *table,
 	if (percpu_pagelist_high_fraction == old_percpu_pagelist_high_fraction)
 		goto out;
 
-	for_each_populated_zone(zone)
-		zone_set_pageset_high_and_batch(zone, 0);
 out:
 	return ret;
 }
@@ -9257,15 +9204,6 @@ void free_contig_range(unsigned long pfn, unsigned long nr_pages)
 EXPORT_SYMBOL(free_contig_range);
 
 /*
- * The zone indicated has a new number of managed_pages; batch sizes and percpu
- * page high values need to be recalculated.
- */
-void zone_pcp_update(struct zone *zone, int cpu_online)
-{
-	zone_set_pageset_high_and_batch(zone, cpu_online);
-}
-
-/*
  * Effectively disable pcplists for the zone by setting the high limit to 0
  * and draining all cpus. A concurrent page freeing on another CPU that's about
  * to put the page on pcplist will either finish before the drain and the page
@@ -9275,13 +9213,7 @@ void zone_pcp_update(struct zone *zone, int cpu_online)
  */
 void zone_pcp_disable(struct zone *zone)
 {
-	__zone_set_pageset_high_and_batch(zone, 0, 1);
 	__drain_all_pages(zone, true);
-}
-
-void zone_pcp_enable(struct zone *zone)
-{
-	__zone_set_pageset_high_and_batch(zone, zone->pageset_high, zone->pageset_batch);
 }
 
 void zone_pcp_reset(struct zone *zone)
