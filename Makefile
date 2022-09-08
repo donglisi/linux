@@ -32,8 +32,7 @@ CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -
 		-DKBUILD_BASENAME='"$(basetarget)"' -DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
 x86	:= $(addprefix arch/x86/, events/core.o \
-		$(addprefix entry/, entry_64.o syscall_64.o common.o \
-		$(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
+		$(addprefix entry/, entry_64.o) \
 		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o memcpy_64.o \
 			copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o copy_page_64.o \
 			memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \

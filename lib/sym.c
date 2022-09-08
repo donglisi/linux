@@ -538,3 +538,7 @@ int register_user_hw_breakpoint;
 int sysctl_perf_event_paranoid;
 int unregister_hw_breakpoint;
 
+int do_syscall_64;
+int fixup_vdso_exception;
+int vclocks_used;
+
