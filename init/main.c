@@ -925,6 +925,25 @@ static void __init print_unknown_bootoptions(void)
 	memblock_free(unknown_options, len);
 }
 
+void lkvm_loop()
+{
+	struct page *p;
+	void *addr;
+
+	while(1) {
+		p = alloc_page(GFP_KERNEL);
+		addr = page_to_virt(p);
+		memset(addr, 97, 4096);
+		__free_page(p);
+		asm("	mov	$0x3f8, %dx; \
+			mov	$'X', %al; \
+			out	%al, (%dx); \
+			mov	$'\n', %al; \
+			out	%al, (%dx); \
+			hlt");
+	}
+}
+
 asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 {
 	char *command_line;
@@ -984,6 +1003,8 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 	sort_main_extable();
 	trap_init();
 	mm_init();
+
+	lkvm_loop();
 
 	ftrace_init();
 
@@ -1132,6 +1153,7 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 	acpi_subsystem_init();
 	arch_post_acpi_subsys_init();
 	kcsan_init();
+
 
 	/* Do the rest non-__init'ed, we're now alive */
 	arch_call_rest_init();
