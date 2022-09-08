@@ -156,7 +156,6 @@ struct pcpu_drain {
 	struct zone *zone;
 	struct work_struct work;
 };
-static DEFINE_MUTEX(pcpu_drain_mutex);
 static DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
 
 #ifdef CONFIG_GCC_PLUGIN_LATENT_ENTROPY
@@ -244,7 +243,6 @@ static gfp_t saved_gfp_mask;
 
 void pm_restore_gfp_mask(void)
 {
-	WARN_ON(!mutex_is_locked(&system_transition_mutex));
 	if (saved_gfp_mask) {
 		gfp_allowed_mask = saved_gfp_mask;
 		saved_gfp_mask = 0;
@@ -253,7 +251,6 @@ void pm_restore_gfp_mask(void)
 
 void pm_restrict_gfp_mask(void)
 {
-	WARN_ON(!mutex_is_locked(&system_transition_mutex));
 	WARN_ON(saved_gfp_mask);
 	saved_gfp_mask = gfp_allowed_mask;
 	gfp_allowed_mask &= ~(__GFP_IO | __GFP_FS);
@@ -2227,27 +2224,6 @@ void __init page_alloc_init_late(void)
 		set_zone_contiguous(zone);
 }
 
-#ifdef CONFIG_CMA
-/* Free whole pageblock and set its migration type to MIGRATE_CMA. */
-void __init init_cma_reserved_pageblock(struct page *page)
-{
-	unsigned i = pageblock_nr_pages;
-	struct page *p = page;
-
-	do {
-		__ClearPageReserved(p);
-		set_page_count(p, 0);
-	} while (++p, --i);
-
-	set_pageblock_migratetype(page, MIGRATE_CMA);
-	set_page_refcounted(page);
-	__free_pages(page, pageblock_order);
-
-	adjust_managed_page_count(page, pageblock_nr_pages);
-	page_zone(page)->cma_pages += pageblock_nr_pages;
-}
-#endif
-
 /*
  * The order of subdivision here is critical for the IO subsystem.
  * Please do not alter this order without good reasons and regression
@@ -3201,24 +3177,6 @@ static void __drain_all_pages(struct zone *zone, bool force_all_cpus)
 	static cpumask_t cpus_with_pcps;
 
 	/*
-	 * Make sure nobody triggers this path before mm_percpu_wq is fully
-	 * initialized.
-	 */
-	if (WARN_ON_ONCE(!mm_percpu_wq))
-		return;
-
-	/*
-	 * Do not drain if one is already in progress unless it's specific to
-	 * a zone. Such callers are primarily CMA and memory hotplug and need
-	 * the drain to be complete when the call returns.
-	 */
-	if (unlikely(!mutex_trylock(&pcpu_drain_mutex))) {
-		if (!zone)
-			return;
-		mutex_lock(&pcpu_drain_mutex);
-	}
-
-	/*
 	 * We don't care about racing with CPU hotplug event
 	 * as offline notification will cause the notified
 	 * cpu to drain that CPU pcps and on_each_cpu_mask
@@ -3260,12 +3218,9 @@ static void __drain_all_pages(struct zone *zone, bool force_all_cpus)
 
 		drain->zone = zone;
 		INIT_WORK(&drain->work, drain_local_pages_wq);
-		queue_work_on(cpu, mm_percpu_wq, &drain->work);
 	}
 	for_each_cpu(cpu, &cpus_with_pcps)
 		flush_work(&per_cpu_ptr(&pcpu_drain, cpu)->work);
-
-	mutex_unlock(&pcpu_drain_mutex);
 }
 
 /*
@@ -3513,100 +3468,6 @@ void free_unref_page_list(struct list_head *list)
 		}
 	}
 	local_unlock_irqrestore(&pagesets.lock, flags);
-}
-
-/*
- * split_page takes a non-compound higher-order page, and splits it into
- * n (1<<order) sub-pages: page[0..n]
- * Each sub-page must be freed individually.
- *
- * Note: this is probably too low level an operation for use in drivers.
- * Please consult with lkml before using this in your driver.
- */
-void split_page(struct page *page, unsigned int order)
-{
-	int i;
-
-	VM_BUG_ON_PAGE(PageCompound(page), page);
-	VM_BUG_ON_PAGE(!page_count(page), page);
-
-	for (i = 1; i < (1 << order); i++)
-		set_page_refcounted(page + i);
-	split_page_owner(page, 1 << order);
-	split_page_memcg(page, 1 << order);
-}
-EXPORT_SYMBOL_GPL(split_page);
-
-int __isolate_free_page(struct page *page, unsigned int order)
-{
-	unsigned long watermark;
-	struct zone *zone;
-	int mt;
-
-	BUG_ON(!PageBuddy(page));
-
-	zone = page_zone(page);
-	mt = get_pageblock_migratetype(page);
-
-	if (!is_migrate_isolate(mt)) {
-		/*
-		 * Obey watermarks as if the page was being allocated. We can
-		 * emulate a high-order watermark check with a raised order-0
-		 * watermark, because we already know our high-order page
-		 * exists.
-		 */
-		watermark = zone->_watermark[WMARK_MIN] + (1UL << order);
-		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
-			return 0;
-
-		__mod_zone_freepage_state(zone, -(1UL << order), mt);
-	}
-
-	/* Remove page from free list */
-
-	del_page_from_free_list(page, zone, order);
-
-	/*
-	 * Set the pageblock if the isolated page is at least half of a
-	 * pageblock
-	 */
-	if (order >= pageblock_order - 1) {
-		struct page *endpage = page + (1 << order) - 1;
-		for (; page < endpage; page += pageblock_nr_pages) {
-			int mt = get_pageblock_migratetype(page);
-			/*
-			 * Only change normal pageblocks (i.e., they can merge
-			 * with others)
-			 */
-			if (migratetype_is_mergeable(mt))
-				set_pageblock_migratetype(page,
-							  MIGRATE_MOVABLE);
-		}
-	}
-
-
-	return 1UL << order;
-}
-
-/**
- * __putback_isolated_page - Return a now-isolated page back where we got it
- * @page: Page that was isolated
- * @order: Order of the isolated page
- * @mt: The page's pageblock's migratetype
- *
- * This function is meant to return a page pulled from the free lists via
- * __isolate_free_page back to the free lists they were pulled from.
- */
-void __putback_isolated_page(struct page *page, unsigned int order, int mt)
-{
-	struct zone *zone = page_zone(page);
-
-	/* zone lock should be held when this function is called */
-	lockdep_assert_held(&zone->lock);
-
-	/* Return isolated page to tail of freelist. */
-	__free_one_page(page, page_to_pfn(page), zone, order, mt,
-			FPI_SKIP_REPORT_NOTIFY | FPI_TO_TAIL);
 }
 
 /*
@@ -4312,16 +4173,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
 	*did_some_progress = 0;
 
 	/*
-	 * Acquire the oom lock.  If that fails, somebody else is
-	 * making progress for us.
-	 */
-	if (!mutex_trylock(&oom_lock)) {
-		*did_some_progress = 1;
-		schedule_timeout_uninterruptible(1);
-		return NULL;
-	}
-
-	/*
 	 * Go through the zonelist yet one more time, keep very high watermark
 	 * here, this is only to catch a parallel oom killing, we must fail if
 	 * we're still under heavy pressure. But make sure that this reclaim
@@ -4379,7 +4230,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
 					ALLOC_NO_WATERMARKS, ac);
 	}
 out:
-	mutex_unlock(&oom_lock);
 	return page;
 }
 
@@ -5528,209 +5378,6 @@ void free_pages(unsigned long addr, unsigned int order)
 }
 
 EXPORT_SYMBOL(free_pages);
-
-/*
- * Page Fragment:
- *  An arbitrary-length arbitrary-offset area of memory which resides
- *  within a 0 or higher order page.  Multiple fragments within that page
- *  are individually refcounted, in the page's reference counter.
- *
- * The page_frag functions below provide a simple allocation framework for
- * page fragments.  This is used by the network stack and network device
- * drivers to provide a backing region of memory for use as either an
- * sk_buff->head, or to be used in the "frags" portion of skb_shared_info.
- */
-static struct page *__page_frag_cache_refill(struct page_frag_cache *nc,
-					     gfp_t gfp_mask)
-{
-	struct page *page = NULL;
-	gfp_t gfp = gfp_mask;
-
-#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
-	gfp_mask |= __GFP_COMP | __GFP_NOWARN | __GFP_NORETRY |
-		    __GFP_NOMEMALLOC;
-	page = alloc_pages_node(NUMA_NO_NODE, gfp_mask,
-				PAGE_FRAG_CACHE_MAX_ORDER);
-	nc->size = page ? PAGE_FRAG_CACHE_MAX_SIZE : PAGE_SIZE;
-#endif
-	if (unlikely(!page))
-		page = alloc_pages_node(NUMA_NO_NODE, gfp, 0);
-
-	nc->va = page ? page_address(page) : NULL;
-
-	return page;
-}
-
-void __page_frag_cache_drain(struct page *page, unsigned int count)
-{
-	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
-
-	if (page_ref_sub_and_test(page, count))
-		free_the_page(page, compound_order(page));
-}
-EXPORT_SYMBOL(__page_frag_cache_drain);
-
-void *page_frag_alloc_align(struct page_frag_cache *nc,
-		      unsigned int fragsz, gfp_t gfp_mask,
-		      unsigned int align_mask)
-{
-	unsigned int size = PAGE_SIZE;
-	struct page *page;
-	int offset;
-
-	if (unlikely(!nc->va)) {
-refill:
-		page = __page_frag_cache_refill(nc, gfp_mask);
-		if (!page)
-			return NULL;
-
-#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
-		/* if size can vary use size else just use PAGE_SIZE */
-		size = nc->size;
-#endif
-		/* Even if we own the page, we do not use atomic_set().
-		 * This would break get_page_unless_zero() users.
-		 */
-		page_ref_add(page, PAGE_FRAG_CACHE_MAX_SIZE);
-
-		/* reset page count bias and offset to start of new frag */
-		nc->pfmemalloc = page_is_pfmemalloc(page);
-		nc->pagecnt_bias = PAGE_FRAG_CACHE_MAX_SIZE + 1;
-		nc->offset = size;
-	}
-
-	offset = nc->offset - fragsz;
-	if (unlikely(offset < 0)) {
-		page = virt_to_page(nc->va);
-
-		if (!page_ref_sub_and_test(page, nc->pagecnt_bias))
-			goto refill;
-
-		if (unlikely(nc->pfmemalloc)) {
-			free_the_page(page, compound_order(page));
-			goto refill;
-		}
-
-#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
-		/* if size can vary use size else just use PAGE_SIZE */
-		size = nc->size;
-#endif
-		/* OK, page count is 0, we can safely set it */
-		set_page_count(page, PAGE_FRAG_CACHE_MAX_SIZE + 1);
-
-		/* reset page count bias and offset to start of new frag */
-		nc->pagecnt_bias = PAGE_FRAG_CACHE_MAX_SIZE + 1;
-		offset = size - fragsz;
-	}
-
-	nc->pagecnt_bias--;
-	offset &= align_mask;
-	nc->offset = offset;
-
-	return nc->va + offset;
-}
-EXPORT_SYMBOL(page_frag_alloc_align);
-
-/*
- * Frees a page fragment allocated out of either a compound or order 0 page.
- */
-void page_frag_free(void *addr)
-{
-	struct page *page = virt_to_head_page(addr);
-
-	if (unlikely(put_page_testzero(page)))
-		free_the_page(page, compound_order(page));
-}
-EXPORT_SYMBOL(page_frag_free);
-
-static void *make_alloc_exact(unsigned long addr, unsigned int order,
-		size_t size)
-{
-	if (addr) {
-		unsigned long alloc_end = addr + (PAGE_SIZE << order);
-		unsigned long used = addr + PAGE_ALIGN(size);
-
-		split_page(virt_to_page((void *)addr), order);
-		while (used < alloc_end) {
-			free_page(used);
-			used += PAGE_SIZE;
-		}
-	}
-	return (void *)addr;
-}
-
-/**
- * alloc_pages_exact - allocate an exact number physically-contiguous pages.
- * @size: the number of bytes to allocate
- * @gfp_mask: GFP flags for the allocation, must not contain __GFP_COMP
- *
- * This function is similar to alloc_pages(), except that it allocates the
- * minimum number of pages to satisfy the request.  alloc_pages() can only
- * allocate memory in power-of-two pages.
- *
- * This function is also limited by MAX_ORDER.
- *
- * Memory allocated by this function must be released by free_pages_exact().
- *
- * Return: pointer to the allocated area or %NULL in case of error.
- */
-void *alloc_pages_exact(size_t size, gfp_t gfp_mask)
-{
-	unsigned int order = get_order(size);
-	unsigned long addr;
-
-	if (WARN_ON_ONCE(gfp_mask & (__GFP_COMP | __GFP_HIGHMEM)))
-		gfp_mask &= ~(__GFP_COMP | __GFP_HIGHMEM);
-
-	addr = __get_free_pages(gfp_mask, order);
-	return make_alloc_exact(addr, order, size);
-}
-EXPORT_SYMBOL(alloc_pages_exact);
-
-/**
- * alloc_pages_exact_nid - allocate an exact number of physically-contiguous
- *			   pages on a node.
- * @nid: the preferred node ID where memory should be allocated
- * @size: the number of bytes to allocate
- * @gfp_mask: GFP flags for the allocation, must not contain __GFP_COMP
- *
- * Like alloc_pages_exact(), but try to allocate on node nid first before falling
- * back.
- *
- * Return: pointer to the allocated area or %NULL in case of error.
- */
-void * __meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask)
-{
-	unsigned int order = get_order(size);
-	struct page *p;
-
-	if (WARN_ON_ONCE(gfp_mask & (__GFP_COMP | __GFP_HIGHMEM)))
-		gfp_mask &= ~(__GFP_COMP | __GFP_HIGHMEM);
-
-	p = alloc_pages_node(nid, gfp_mask, order);
-	if (!p)
-		return NULL;
-	return make_alloc_exact((unsigned long)page_address(p), order, size);
-}
-
-/**
- * free_pages_exact - release memory allocated via alloc_pages_exact()
- * @virt: the value returned by alloc_pages_exact.
- * @size: size of allocation, same value as passed to alloc_pages_exact().
- *
- * Release the memory allocated by a previous call to alloc_pages_exact.
- */
-void free_pages_exact(void *virt, size_t size)
-{
-	unsigned long addr = (unsigned long)virt;
-	unsigned long end = addr + PAGE_ALIGN(size);
-
-	while (addr < end) {
-		free_page(addr);
-		addr += PAGE_SIZE;
-	}
-}
-EXPORT_SYMBOL(free_pages_exact);
 
 /**
  * nr_free_zone_pages - count number of pages beyond high watermark

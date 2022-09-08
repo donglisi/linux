@@ -769,15 +769,6 @@ static inline int __ptr_to_hashval(const void *ptr, unsigned long *hashval_out)
 		static DECLARE_WORK(enable_ptr_key_work, enable_ptr_key_workfn);
 		unsigned long flags;
 
-		if (!system_unbound_wq || !rng_is_initialized() ||
-		    !spin_trylock_irqsave(&filling, flags))
-			return -EAGAIN;
-
-		if (!filled) {
-			get_random_bytes(&ptr_key, sizeof(ptr_key));
-			queue_work(system_unbound_wq, &enable_ptr_key_work);
-			filled = true;
-		}
 		spin_unlock_irqrestore(&filling, flags);
 	}
 
@@ -1684,51 +1675,6 @@ static char *va_format(char *buf, char *end, struct va_format *va_fmt,
 }
 
 static noinline_for_stack
-char *uuid_string(char *buf, char *end, const u8 *addr,
-		  struct printf_spec spec, const char *fmt)
-{
-	char uuid[UUID_STRING_LEN + 1];
-	char *p = uuid;
-	int i;
-	const u8 *index = uuid_index;
-	bool uc = false;
-
-	if (check_pointer(&buf, end, addr, spec))
-		return buf;
-
-	switch (*(++fmt)) {
-	case 'L':
-		uc = true;
-		fallthrough;
-	case 'l':
-		index = guid_index;
-		break;
-	case 'B':
-		uc = true;
-		break;
-	}
-
-	for (i = 0; i < 16; i++) {
-		if (uc)
-			p = hex_byte_pack_upper(p, addr[index[i]]);
-		else
-			p = hex_byte_pack(p, addr[index[i]]);
-		switch (i) {
-		case 3:
-		case 5:
-		case 7:
-		case 9:
-			*p++ = '-';
-			break;
-		}
-	}
-
-	*p = 0;
-
-	return string_nocheck(buf, end, uuid, spec);
-}
-
-static noinline_for_stack
 char *netdev_bits(char *buf, char *end, const void *addr,
 		  struct printf_spec spec,  const char *fmt)
 {
@@ -2413,8 +2359,6 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
 		return ip_addr_string(buf, end, ptr, spec, fmt);
 	case 'E':
 		return escaped_string(buf, end, ptr, spec, fmt);
-	case 'U':
-		return uuid_string(buf, end, ptr, spec, fmt);
 	case 'V':
 		return va_format(buf, end, ptr, spec, fmt);
 	case 'K':
