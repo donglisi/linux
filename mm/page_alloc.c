@@ -2982,20 +2982,6 @@ __rmqueue(struct zone *zone, unsigned int order, int migratetype,
 {
 	struct page *page;
 
-	if (IS_ENABLED(CONFIG_CMA)) {
-		/*
-		 * Balance movable allocations between regular and CMA areas by
-		 * allocating from CMA when over half of the zone's free memory
-		 * is in the CMA area.
-		 */
-		if (alloc_flags & ALLOC_CMA &&
-		    zone_page_state(zone, NR_FREE_CMA_PAGES) >
-		    zone_page_state(zone, NR_FREE_PAGES) / 2) {
-			page = __rmqueue_cma_fallback(zone, order);
-			if (page)
-				return page;
-		}
-	}
 retry:
 	page = __rmqueue_smallest(zone, order, migratetype);
 	if (unlikely(!page)) {
@@ -3729,12 +3715,6 @@ static inline long __zone_watermark_unusable_free(struct zone *z,
 	 */
 	if (likely(!alloc_harder))
 		unusable_free += z->nr_reserved_highatomic;
-
-#ifdef CONFIG_CMA
-	/* If allocation can't use CMA areas don't use free CMA pages */
-	if (!(alloc_flags & ALLOC_CMA))
-		unusable_free += zone_page_state(z, NR_FREE_CMA_PAGES);
-#endif
 
 	return unusable_free;
 }
@@ -5432,98 +5412,6 @@ static inline void show_node(struct zone *zone)
 		printk("Node %d ", zone_to_nid(zone));
 }
 
-long si_mem_available(void)
-{
-	long available;
-	unsigned long pagecache;
-	unsigned long wmark_low = 0;
-	unsigned long pages[NR_LRU_LISTS];
-	unsigned long reclaimable;
-	struct zone *zone;
-	int lru;
-
-	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
-		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
-
-	for_each_zone(zone)
-		wmark_low += low_wmark_pages(zone);
-
-	/*
-	 * Estimate the amount of memory available for userspace allocations,
-	 * without causing swapping.
-	 */
-	available = global_zone_page_state(NR_FREE_PAGES) - totalreserve_pages;
-
-	/*
-	 * Not all the page cache can be freed, otherwise the system will
-	 * start swapping. Assume at least half of the page cache, or the
-	 * low watermark worth of cache, needs to stay.
-	 */
-	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
-	pagecache -= min(pagecache / 2, wmark_low);
-	available += pagecache;
-
-	/*
-	 * Part of the reclaimable slab and other kernel memory consists of
-	 * items that are in use, and cannot be freed. Cap this estimate at the
-	 * low watermark.
-	 */
-	reclaimable = global_node_page_state_pages(NR_SLAB_RECLAIMABLE_B) +
-		global_node_page_state(NR_KERNEL_MISC_RECLAIMABLE);
-	available += reclaimable - min(reclaimable / 2, wmark_low);
-
-	if (available < 0)
-		available = 0;
-	return available;
-}
-EXPORT_SYMBOL_GPL(si_mem_available);
-
-void si_meminfo(struct sysinfo *val)
-{
-	val->totalram = totalram_pages();
-	val->sharedram = global_node_page_state(NR_SHMEM);
-	val->freeram = global_zone_page_state(NR_FREE_PAGES);
-	val->bufferram = nr_blockdev_pages();
-	val->totalhigh = totalhigh_pages();
-	val->freehigh = nr_free_highpages();
-	val->mem_unit = PAGE_SIZE;
-}
-
-EXPORT_SYMBOL(si_meminfo);
-
-#ifdef CONFIG_NUMA
-void si_meminfo_node(struct sysinfo *val, int nid)
-{
-	int zone_type;		/* needs to be signed */
-	unsigned long managed_pages = 0;
-	unsigned long managed_highpages = 0;
-	unsigned long free_highpages = 0;
-	pg_data_t *pgdat = NODE_DATA(nid);
-
-	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
-		managed_pages += zone_managed_pages(&pgdat->node_zones[zone_type]);
-	val->totalram = managed_pages;
-	val->sharedram = node_page_state(pgdat, NR_SHMEM);
-	val->freeram = sum_zone_node_page_state(nid, NR_FREE_PAGES);
-#ifdef CONFIG_HIGHMEM
-	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
-		struct zone *zone = &pgdat->node_zones[zone_type];
-
-		if (is_highmem(zone)) {
-			managed_highpages += zone_managed_pages(zone);
-			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
-		}
-	}
-	val->totalhigh = managed_highpages;
-	val->freehigh = free_highpages;
-#else
-	val->totalhigh = managed_highpages;
-	val->freehigh = free_highpages;
-#endif
-	val->mem_unit = PAGE_SIZE;
-}
-#endif
-
 /*
  * Determine whether the node should be displayed or not, depending on whether
  * SHOW_MEM_FILTER_NODES was passed to show_free_areas().
@@ -6219,9 +6107,6 @@ void __meminit memmap_init_range(unsigned long size, int nid, unsigned long zone
 	unsigned long pfn, end_pfn = start_pfn + size;
 	struct page *page;
 
-	if (highest_memmap_pfn < end_pfn - 1)
-		highest_memmap_pfn = end_pfn - 1;
-
 #ifdef CONFIG_ZONE_DEVICE
 	/*
 	 * Honor reservation requested by the driver for this ZONE_DEVICE
@@ -6706,59 +6591,6 @@ static void zone_set_pageset_high_and_batch(struct zone *zone, int cpu_online)
 	__zone_set_pageset_high_and_batch(zone, new_high, new_batch);
 }
 
-void __meminit setup_zone_pageset(struct zone *zone)
-{
-	int cpu;
-
-	/* Size may be 0 on !SMP && !NUMA */
-	if (sizeof(struct per_cpu_zonestat) > 0)
-		zone->per_cpu_zonestats = alloc_percpu(struct per_cpu_zonestat);
-
-	zone->per_cpu_pageset = alloc_percpu(struct per_cpu_pages);
-	for_each_possible_cpu(cpu) {
-		struct per_cpu_pages *pcp;
-		struct per_cpu_zonestat *pzstats;
-
-		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
-		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, cpu);
-		per_cpu_pages_init(pcp, pzstats);
-	}
-
-	zone_set_pageset_high_and_batch(zone, 0);
-}
-
-/*
- * Allocate per cpu pagesets and initialize them.
- * Before this call only boot pagesets were available.
- */
-void __init setup_per_cpu_pageset(void)
-{
-	struct pglist_data *pgdat;
-	struct zone *zone;
-	int __maybe_unused cpu;
-
-	for_each_populated_zone(zone)
-		setup_zone_pageset(zone);
-
-#ifdef CONFIG_NUMA
-	/*
-	 * Unpopulated zones continue using the boot pagesets.
-	 * The numa stats for these pagesets need to be reset.
-	 * Otherwise, they will end up skewing the stats of
-	 * the nodes these zones are associated with.
-	 */
-	for_each_possible_cpu(cpu) {
-		struct per_cpu_zonestat *pzstats = &per_cpu(boot_zonestats, cpu);
-		memset(pzstats->vm_numa_event, 0,
-		       sizeof(pzstats->vm_numa_event));
-	}
-#endif
-
-	for_each_online_pgdat(pgdat)
-		pgdat->per_cpu_nodestats =
-			alloc_percpu(struct per_cpu_nodestat);
-}
-
 static __meminit void zone_pcp_init(struct zone *zone)
 {
 	/*
@@ -7196,46 +7028,6 @@ static void __meminit zone_init_internals(struct zone *zone, enum zone_type idx,
 	zone_seqlock_init(zone);
 	zone_pcp_init(zone);
 }
-
-/*
- * Set up the zone data structures
- * - init pgdat internals
- * - init all zones belonging to this node
- *
- * NOTE: this function is only called during memory hotplug
- */
-#ifdef CONFIG_MEMORY_HOTPLUG
-void __ref free_area_init_core_hotplug(struct pglist_data *pgdat)
-{
-	int nid = pgdat->node_id;
-	enum zone_type z;
-	int cpu;
-
-	pgdat_init_internals(pgdat);
-
-	if (pgdat->per_cpu_nodestats == &boot_nodestats)
-		pgdat->per_cpu_nodestats = alloc_percpu(struct per_cpu_nodestat);
-
-	/*
-	 * Reset the nr_zones, order and highest_zoneidx before reuse.
-	 * Note that kswapd will init kswapd_highest_zoneidx properly
-	 * when it starts in the near future.
-	 */
-	pgdat->nr_zones = 0;
-	pgdat->kswapd_order = 0;
-	pgdat->kswapd_highest_zoneidx = 0;
-	pgdat->node_start_pfn = 0;
-	for_each_online_cpu(cpu) {
-		struct per_cpu_nodestat *p;
-
-		p = per_cpu_ptr(pgdat->per_cpu_nodestats, cpu);
-		memset(p, 0, sizeof(*p));
-	}
-
-	for (z = 0; z < MAX_NR_ZONES; z++)
-		zone_init_internals(&pgdat->node_zones[z], z, nid, 0);
-}
-#endif
 
 /*
  * Set up the zone data structures:

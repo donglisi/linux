@@ -1962,12 +1962,6 @@ char *format_page_flags(char *buf, char *end, unsigned long flags)
 		*buf = '(';
 	buf++;
 
-	/* Page flags from the main area. */
-	if (main_flags) {
-		buf = format_flags(buf, end, main_flags, pageflag_names);
-		append = true;
-	}
-
 	/* Page flags from the fields area */
 	for (i = 0; i < ARRAY_SIZE(pff); i++) {
 		/* Skip undefined fields. */
@@ -2010,14 +2004,6 @@ char *flags_string(char *buf, char *end, void *flags_ptr,
 	switch (fmt[1]) {
 	case 'p':
 		return format_page_flags(buf, end, *(unsigned long *)flags_ptr);
-	case 'v':
-		flags = *(unsigned long *)flags_ptr;
-		names = vmaflag_names;
-		break;
-	case 'g':
-		flags = (__force unsigned long)(*(gfp_t *)flags_ptr);
-		names = gfpflag_names;
-		break;
 	default:
 		return error_string(buf, end, "(%pG?)", spec);
 	}

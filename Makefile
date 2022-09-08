@@ -30,8 +30,8 @@ x86	:= $(addprefix arch/x86/, entry/entry_64.o $(addprefix mm/, init.o init_64.o
 		$(addprefix lib/, hweight.o memcpy_64.o clear_page_64.o memmove_64.o memset_64.o) \
 		$(addprefix kernel/, idt.o setup.o x86_init.o e820.o head_64.o head64.o early_printk.o cpu/common.o))
 kernel	:= $(addprefix kernel/, params.o range.o $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
-lib	:= $(addprefix lib/, sort.o parser.o find_bit.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o sym.o)
-mm	:= $(addprefix mm/, util.o mmzone.o page_alloc.o init-mm.o memblock.o sparse.o)
+lib	:= $(addprefix lib/, sort.o parser.o find_bit.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o sym.o func.o)
+mm	:= $(addprefix mm/, util.o mmzone.o page_alloc.o init-mm.o memblock.o sparse.o vmstat.o)
 objs	:= $(addprefix build/, $(x86) $(kernel) $(lib) $(mm) init/main.o)
 
 build/%.o: %.c

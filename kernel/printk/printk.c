@@ -217,11 +217,6 @@ int devkmsg_sysctl_set_loglvl(struct ctl_table *table, int write,
 /* Number of registered extended console drivers. */
 static int nr_ext_console_drivers;
 
-static bool panic_in_progress(void)
-{
-	return unlikely(atomic_read(&panic_cpu) != PANIC_CPU_INVALID);
-}
-
 /*
  * This is used for debugging the mess that is the VT code by
  * keeping track if we have the console semaphore held. It's
@@ -1626,16 +1621,6 @@ static int console_trylock_spinning(void)
 	if (console_trylock())
 		return 1;
 
-	/*
-	 * It's unsafe to spin once a panic has begun. If we are the
-	 * panic CPU, we may have already halted the owner of the
-	 * console_sem. If we are not the panic CPU, then we should
-	 * avoid taking console_sem, so the panic CPU has a better
-	 * chance of cleanly acquiring it later.
-	 */
-	if (panic_in_progress())
-		return 0;
-
 	printk_safe_enter_irqsave(flags);
 
 	raw_spin_lock(&console_owner_lock);
@@ -1991,10 +1976,6 @@ asmlinkage int vprintk_emit(int facility, int level,
 	if (unlikely(suppress_printk))
 		return 0;
 
-	if (unlikely(suppress_panic_printk) &&
-	    atomic_read(&panic_cpu) != raw_smp_processor_id())
-		return 0;
-
 	if (level == LOGLEVEL_SCHED) {
 		level = LOGLEVEL_DEFAULT;
 		in_sched = true;
@@ -2343,25 +2324,6 @@ int is_console_locked(void)
 EXPORT_SYMBOL(is_console_locked);
 
 /*
- * Return true when this CPU should unlock console_sem without pushing all
- * messages to the console. This reduces the chance that the console is
- * locked when the panic CPU tries to use it.
- */
-static bool abandon_console_lock_in_panic(void)
-{
-	if (!panic_in_progress())
-		return false;
-
-	/*
-	 * We can use raw_smp_processor_id() here because it is impossible for
-	 * the task to be migrated to the panic_cpu, or away from it. If
-	 * panic_cpu has already been set, and we're not currently executing on
-	 * that CPU, then we never will be.
-	 */
-	return atomic_read(&panic_cpu) != raw_smp_processor_id();
-}
-
-/*
  * Check if the given console is currently capable and allowed to print
  * records.
  *
@@ -2433,10 +2395,6 @@ static bool console_emit_next_record(struct console *con, char *text, char *ext_
 	if (con->seq != r.info->seq) {
 		con->dropped += r.info->seq - con->seq;
 		con->seq = r.info->seq;
-		if (panic_in_progress() && panic_console_dropped++ > 10) {
-			suppress_panic_printk = 1;
-			pr_warn_once("Too many dropped messages. Suppress messages on non-panic CPUs to prevent livelock.\n");
-		}
 	}
 
 	/* Skip record that has level above the console loglevel. */
@@ -2545,10 +2503,6 @@ static bool console_flush_all(bool do_cond_resched, u64 *next_seq, bool *handove
 			if (!progress)
 				continue;
 			any_progress = true;
-
-			/* Allow panic_cpu to take over the consoles safely. */
-			if (abandon_console_lock_in_panic())
-				return false;
 		}
 	} while (any_progress);
 

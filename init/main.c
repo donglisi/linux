@@ -1322,8 +1322,4 @@ void __init console_on_rootfs(void)
 		pr_err("Warning: unable to open an initial console.\n");
 		return;
 	}
-	init_dup(file);
-	init_dup(file);
-	init_dup(file);
-	fput(file);
 }
