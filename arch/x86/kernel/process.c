@@ -905,8 +905,6 @@ void __init arch_post_acpi_subsys_init(void)
 
 	boot_cpu_set_bug(X86_BUG_AMD_APIC_C1E);
 
-	if (!boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
-		mark_tsc_unstable("TSC halt in AMD C1E");
 	pr_info("System has AMD C1E enabled\n");
 }
 

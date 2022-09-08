@@ -745,7 +745,6 @@ void update_rq_clock(struct rq *rq)
 	rq->clock_update_flags |= RQCF_UPDATED;
 #endif
 
-	delta = sched_clock_cpu(cpu_of(rq)) - rq->clock;
 	if (delta < 0)
 		return;
 	rq->clock += delta;
@@ -3841,7 +3840,6 @@ static bool ttwu_queue_wakelist(struct task_struct *p, int cpu, int wake_flags)
 		if (WARN_ON_ONCE(cpu == smp_processor_id()))
 			return false;
 
-		sched_clock_cpu(cpu); /* Sync clocks across CPUs */
 		__ttwu_queue_wakelist(p, cpu, wake_flags);
 		return true;
 	}
@@ -5406,7 +5404,6 @@ void scheduler_tick(void)
 	u64 resched_latency;
 
 	arch_scale_freq_tick();
-	sched_clock_tick();
 
 	rq_lock(rq, &rf);
 
@@ -8872,7 +8869,6 @@ void __init init_idle(struct task_struct *idle, int cpu)
 	raw_spin_rq_lock(rq);
 
 	idle->__state = TASK_RUNNING;
-	idle->se.exec_start = sched_clock();
 	/*
 	 * PF_KTHREAD should already be set at this point; regardless, make it
 	 * look like a proper per-CPU kthread.

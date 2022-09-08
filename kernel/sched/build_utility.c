@@ -55,8 +55,6 @@
 #include "stats.h"
 #include "autogroup.h"
 
-#include "clock.c"
-
 #ifdef CONFIG_CGROUP_CPUACCT
 # include "cpuacct.c"
 #endif

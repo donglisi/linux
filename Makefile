@@ -30,7 +30,7 @@ x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o) \
 		$(addprefix lib/, hweight.o cmdline.o cpu.o memcpy_64.o inat.o clear_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
 		$(addprefix mm/, init.o init_64.o fault.o tlb.o) \
-		$(addprefix kernel/, process_64.o idt.o setup.o x86_init.o e820.o tsc.o process.o head_64.o head64.o early_printk.o $(addprefix cpu/, common.o)))
+		$(addprefix kernel/, process_64.o idt.o setup.o x86_init.o e820.o process.o head_64.o head64.o early_printk.o $(addprefix cpu/, common.o)))
 
 init	:= $(addprefix init/, main.o init_task.o)
 
