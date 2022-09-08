@@ -60,9 +60,7 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
-		$(addprefix entry/, common.o) \
-		$(addprefix time/, time.o timer.o hrtimer.o timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timeconv.o timecounter.o \
-			posix-stubs.o clockevents.o tick-common.o tick-broadcast.o tick-oneshot.o tick-sched.o))
+		$(addprefix entry/, common.o))
 
 lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spinlocks.o kasprintf.o bitmap.o scatterlist.o list_sort.o \
 		uuid.o iov_iter.o bsearch.o find_bit.o llist.o memweight.o percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o errseq.o \

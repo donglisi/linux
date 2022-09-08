@@ -45,7 +45,7 @@ OUTPUT_ARCH(i386:x86-64)
 ENTRY(phys_startup_64)
 #endif
 
-jiffies = jiffies_64;
+jiffies = 0;
 
 #if defined(CONFIG_X86_64)
 /*
