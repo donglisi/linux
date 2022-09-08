@@ -33,17 +33,15 @@ CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -
 
 x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o) \
-		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o memcpy_64.o \
-			copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o copy_page_64.o \
+		$(addprefix lib/, hweight.o cmdline.o cpu.o usercopy_64.o memcpy_64.o copy_mc.o copy_mc_64.o insn.o inat.o clear_page_64.o \
 			memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
 		$(addprefix mm/, init.o init_64.o fault.o tlb.o) \
-		$(addprefix kernel/, process_64.o signal.o traps.o idt.o setup.o x86_init.o e820.o \
-			tsc.o resource.o irqflags.o static_call.o process.o head_64.o head64.o platform-quirks.o early_printk.o \
+		$(addprefix kernel/, process_64.o idt.o setup.o x86_init.o e820.o tsc.o resource.o process.o head_64.o head64.o early_printk.o \
 			$(addprefix cpu/, common.o)))
 
-init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
+init	:= $(addprefix init/, main.o init_task.o)
 
-kernel	:= $(addprefix kernel/, fork.o cpu.o softirq.o resource.o \
+kernel	:= $(addprefix kernel/, fork.o cpu.o resource.o \
 		workqueue.o params.o kthread.o \
 		reboot.o range.o \
 		$(addprefix sched/, core.o build_policy.o build_utility.o) \
@@ -51,14 +49,14 @@ kernel	:= $(addprefix kernel/, fork.o cpu.o softirq.o resource.o \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
 		$(addprefix entry/, common.o))
 
-lib	:= $(addprefix lib/, bcd.o sort.o parser.o random32.o bitmap.o \
-		iov_iter.o find_bit.o string_helpers.o hexdump.o kstrtox.o \
+lib	:= $(addprefix lib/, sort.o parser.o random32.o bitmap.o \
+		find_bit.o string_helpers.o hexdump.o kstrtox.o \
 		ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o sym.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
 
-mm	:= $(addprefix mm/, memory.o \
-		vmalloc.o filemap.o mempool.o swap.o truncate.o vmscan.o \
-		util.o mmzone.o mm_init.o percpu.o slab_common.o vmacache.o interval_tree.o list_lru.o \
+mm	:= $(addprefix mm/, \
+		vmalloc.o mempool.o swap.o truncate.o \
+		util.o mmzone.o mm_init.o percpu.o slab_common.o \
 		page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o)
 
 objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm) drivers/tty/tty_io.o)
