@@ -99,3 +99,4 @@ int vm_zone_stat = 0xf4;
 int wakeup_kswapd = 0xf4;
 int __warn_printk = 0xf4;
 int zone_reclaimable_pages = 0xf4;
+int init_task = 0xf4;

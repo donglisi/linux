@@ -32,7 +32,7 @@ x86	:= $(addprefix arch/x86/, entry/entry_64.o $(addprefix mm/, init.o init_64.o
 kernel	:= $(addprefix kernel/, params.o range.o $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
 lib	:= $(addprefix lib/, sort.o parser.o find_bit.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o sym.o math/int_sqrt.o)
 mm	:= $(addprefix mm/, util.o mmzone.o page_alloc.o init-mm.o memblock.o sparse.o)
-objs = $(addprefix build/, $(x86) $(kernel) $(lib) $(mm) $(addprefix init/, main.o init_task.o))
+objs	:= $(addprefix build/, $(x86) $(kernel) $(lib) $(mm) init/main.o)
 
 build/%.o: %.c
 	$(E) "  CC     " $@
