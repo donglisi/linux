@@ -44,11 +44,6 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 			tsc_sync.o hpet.o perf_regs.o unwind_orc.o head_64.o head64.o platform-quirks.o early_printk.o \
 			$(addprefix cpu/, common.o)))
 
-drivers := $(addprefix drivers/, \
-		$(addprefix tty/, tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o tty_mutex.o tty_ldsem.o tty_baudrate.o \
-			tty_jobctrl.o n_null.o hvc/hvc_console.o) \
-		$(addprefix char/, mem.o random.o virtio_console.o))
-
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
 
 kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o \
@@ -74,7 +69,7 @@ mm	:= $(addprefix mm/, memory.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o 
 		util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o vmacache.o interval_tree.o list_lru.o workingset.o \
 		debug.o gup.o page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o secretmem.o)
 
-objs = $(addprefix build/, $(x86) $(drivers) $(init) $(kernel) $(lib) $(mm))
+objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm) drivers/tty/tty_io.o)
 export objs
 
 build/%.o: %.c
