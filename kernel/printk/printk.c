@@ -3198,7 +3198,6 @@ void register_console(struct console *newcon)
 		newcon->seq = prb_next_seq(prb);
 	}
 	console_unlock();
-	console_sysfs_notify();
 
 	/*
 	 * By unregistering the bootconsoles after we enable the real console
@@ -3264,7 +3263,6 @@ int unregister_console(struct console *console)
 
 	console->flags &= ~CON_ENABLED;
 	console_unlock();
-	console_sysfs_notify();
 
 	if (console->exit)
 		res = console->exit(console);

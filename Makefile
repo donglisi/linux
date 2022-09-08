@@ -9,7 +9,7 @@ else
         E := @echo
 endif
 
-$(shell bash -c "mkdir -p build/{{drivers/tty,mm,init,lib/math},arch/x86/{entry,kernel/cpu,mm,lib},kernel/{sched,locking,printk}}")
+$(shell bash -c "mkdir -p build/{{mm,init,lib/math},arch/x86/{entry,kernel/cpu,mm,lib},kernel/{sched,locking,printk}}")
 
 all: build/vmlinux.bin
 
@@ -42,7 +42,7 @@ lib	:= $(addprefix lib/, sort.o parser.o bitmap.o find_bit.o string_helpers.o he
 
 mm	:= $(addprefix mm/, vmalloc.o mempool.o swap.o util.o mmzone.o mm_init.o percpu.o slab_common.o page_alloc.o init-mm.o memblock.o sparse.o slub.o)
 
-objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm) drivers/tty/tty_io.o)
+objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm))
 export objs
 
 build/%.o: %.c
