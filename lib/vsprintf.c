@@ -3539,7 +3539,6 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 			++fmt;
 
 			if (negate) {
-				bitmap_complement(set, set, 256);
 				/* exclude null '\0' byte */
 				__clear_bit(0, set);
 			}

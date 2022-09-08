@@ -26,21 +26,13 @@ CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -
 		-Wp,-MD,$(dir $@).$(notdir $@).d -Wp,-MT,$@ $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' \
 		-DKBUILD_BASENAME='"$(basetarget)"' -DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
-x86	:= $(addprefix arch/x86/, entry/entry_64.o \
-		$(addprefix lib/, hweight.o cmdline.o cpu.o memcpy_64.o clear_page_64.o memmove_64.o memset_64.o) \
-		$(addprefix mm/, init.o init_64.o) \
+x86	:= $(addprefix arch/x86/, entry/entry_64.o $(addprefix mm/, init.o init_64.o) \
+		$(addprefix lib/, hweight.o memcpy_64.o clear_page_64.o memmove_64.o memset_64.o) \
 		$(addprefix kernel/, idt.o setup.o x86_init.o e820.o head_64.o head64.o early_printk.o cpu/common.o))
-
-init	:= $(addprefix init/, main.o init_task.o)
-
 kernel	:= $(addprefix kernel/, params.o range.o $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
-
-lib	:= $(addprefix lib/, sort.o parser.o bitmap.o find_bit.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o sym.o math/int_sqrt.o)
-
-mm	:= $(addprefix mm/, util.o mmzone.o mm_init.o page_alloc.o init-mm.o memblock.o sparse.o)
-
-objs = $(addprefix build/, $(x86) $(init) $(kernel) $(lib) $(mm))
-export objs
+lib	:= $(addprefix lib/, sort.o parser.o find_bit.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o sym.o math/int_sqrt.o)
+mm	:= $(addprefix mm/, util.o mmzone.o page_alloc.o init-mm.o memblock.o sparse.o)
+objs = $(addprefix build/, $(x86) $(kernel) $(lib) $(mm) $(addprefix init/, main.o init_task.o))
 
 build/%.o: %.c
 	$(E) "  CC     " $@
@@ -54,11 +46,9 @@ build/%.lds: %.lds.S
 	$(E) "  LDS    " $@
 	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
-CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
-CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
-
 build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs)
-	$(Q) sh scripts/link-vmlinux.sh
+	$(E) "  LD     " $@
+	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ $(objs)
 
 build/vmlinux.bin: build/vmlinux
 	$(E) "  OBJCOPY" $@
