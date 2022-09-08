@@ -507,9 +507,7 @@ static void pcpu_next_fit_region(struct pcpu_chunk *chunk, int alloc_bits,
  */
 static void *pcpu_mem_zalloc(size_t size, gfp_t gfp)
 {
-	if (WARN_ON_ONCE(!slab_is_available()))
-		return NULL;
-
+	return NULL;
 }
 
 /**

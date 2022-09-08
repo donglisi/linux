@@ -37,8 +37,6 @@
  */
 void kfree_const(const void *x)
 {
-	if (!is_kernel_rodata((unsigned long)x))
-		kfree(x);
 }
 EXPORT_SYMBOL(kfree_const);
 
@@ -58,7 +56,6 @@ char *kstrdup(const char *s, gfp_t gfp)
 		return NULL;
 
 	len = strlen(s) + 1;
-	buf = kmalloc_track_caller(len, gfp);
 	if (buf)
 		memcpy(buf, s, len);
 	return buf;
@@ -104,7 +101,6 @@ char *kstrndup(const char *s, size_t max, gfp_t gfp)
 		return NULL;
 
 	len = strnlen(s, max);
-	buf = kmalloc_track_caller(len+1, gfp);
 	if (buf) {
 		memcpy(buf, s, len);
 		buf[len] = '\0';
@@ -126,9 +122,6 @@ void *kmemdup(const void *src, size_t len, gfp_t gfp)
 {
 	void *p;
 
-	p = kmalloc_track_caller(len, gfp);
-	if (p)
-		memcpy(p, src, len);
 	return p;
 }
 EXPORT_SYMBOL(kmemdup);
@@ -149,7 +142,6 @@ char *kmemdup_nul(const char *s, size_t len, gfp_t gfp)
 	if (!s)
 		return NULL;
 
-	buf = kmalloc_track_caller(len + 1, gfp);
 	if (buf) {
 		memcpy(buf, s, len);
 		buf[len] = '\0';
@@ -171,12 +163,10 @@ void *memdup_user(const void __user *src, size_t len)
 {
 	void *p;
 
-	p = kmalloc_track_caller(len, GFP_USER | __GFP_NOWARN);
 	if (!p)
 		return ERR_PTR(-ENOMEM);
 
 	if (copy_from_user(p, src, len)) {
-		kfree(p);
 		return ERR_PTR(-EFAULT);
 	}
 
@@ -257,12 +247,10 @@ void *memdup_user_nul(const void __user *src, size_t len)
 	 * cause pagefault, which makes it pointless to use GFP_NOFS
 	 * or GFP_ATOMIC.
 	 */
-	p = kmalloc_track_caller(len + 1, GFP_KERNEL);
 	if (!p)
 		return ERR_PTR(-ENOMEM);
 
 	if (copy_from_user(p, src, len)) {
-		kfree(p);
 		return ERR_PTR(-EFAULT);
 	}
 	p[len] = '\0';
@@ -608,8 +596,6 @@ void *kvmalloc_node(size_t size, gfp_t flags, int node)
 		/* nofail semantic is implemented by the vmalloc fallback */
 		kmalloc_flags &= ~__GFP_NOFAIL;
 	}
-
-	ret = kmalloc_node(size, kmalloc_flags, node);
 
 	/*
 	 * It doesn't really make sense to fallback to vmalloc for sub page
@@ -1135,11 +1121,6 @@ int __weak memcmp_pages(struct page *page1, struct page *page2)
 void mem_dump_obj(void *object)
 {
 	const char *type;
-
-	if (kmem_valid_obj(object)) {
-		kmem_dump_obj(object);
-		return;
-	}
 
 	if (virt_addr_valid(object))
 		type = "non-slab/vmalloc memory";

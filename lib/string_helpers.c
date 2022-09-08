@@ -603,7 +603,6 @@ char *kstrdup_quotable(const char *src, gfp_t gfp)
 	slen = strlen(src);
 
 	dlen = string_escape_mem(src, slen, NULL, 0, flags, esc);
-	dst = kmalloc(dlen + 1, gfp);
 	if (!dst)
 		return NULL;
 
@@ -624,7 +623,6 @@ char *kstrdup_quotable_cmdline(struct task_struct *task, gfp_t gfp)
 	char *buffer, *quoted;
 	int i, res;
 
-	buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
 	if (!buffer)
 		return NULL;
 
@@ -642,7 +640,6 @@ char *kstrdup_quotable_cmdline(struct task_struct *task, gfp_t gfp)
 
 	/* Make sure result is printable. */
 	quoted = kstrdup_quotable(buffer, gfp);
-	kfree(buffer);
 	return quoted;
 }
 EXPORT_SYMBOL_GPL(kstrdup_quotable_cmdline);
@@ -660,7 +657,6 @@ char *kstrdup_quotable_file(struct file *file, gfp_t gfp)
 		return kstrdup("<unknown>", gfp);
 
 	/* We add 11 spaces for ' (deleted)' to be appended */
-	temp = kmalloc(PATH_MAX + 11, GFP_KERNEL);
 	if (!temp)
 		return kstrdup("<no_memory>", gfp);
 
@@ -670,7 +666,6 @@ char *kstrdup_quotable_file(struct file *file, gfp_t gfp)
 	else
 		pathname = kstrdup_quotable(pathname, gfp);
 
-	kfree(temp);
 	return pathname;
 }
 EXPORT_SYMBOL_GPL(kstrdup_quotable_file);
@@ -690,20 +685,6 @@ EXPORT_SYMBOL_GPL(kstrdup_quotable_file);
 char **kasprintf_strarray(gfp_t gfp, const char *prefix, size_t n)
 {
 	char **names;
-	size_t i;
-
-	names = kcalloc(n + 1, sizeof(char *), gfp);
-	if (!names)
-		return NULL;
-
-	for (i = 0; i < n; i++) {
-		names[i] = kasprintf(gfp, "%s-%zu", prefix, i);
-		if (!names[i]) {
-			kfree_strarray(names, i);
-			return NULL;
-		}
-	}
-
 	return names;
 }
 EXPORT_SYMBOL_GPL(kasprintf_strarray);
@@ -720,14 +701,6 @@ EXPORT_SYMBOL_GPL(kasprintf_strarray);
  */
 void kfree_strarray(char **array, size_t n)
 {
-	unsigned int i;
-
-	if (!array)
-		return;
-
-	for (i = 0; i < n; i++)
-		kfree(array[i]);
-	kfree(array);
 }
 EXPORT_SYMBOL_GPL(kfree_strarray);
 
@@ -740,7 +713,6 @@ static void devm_kfree_strarray(struct device *dev, void *res)
 {
 	struct strarray *array = res;
 
-	kfree_strarray(array->array, array->n);
 }
 
 char **devm_kasprintf_strarray(struct device *dev, const char *prefix, size_t n)

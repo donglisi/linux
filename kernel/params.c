@@ -47,13 +47,10 @@ static void *kmalloc_parameter(unsigned int size)
 {
 	struct kmalloced_param *p;
 
-	p = kmalloc(sizeof(*p) + size, GFP_KERNEL);
 	if (!p)
 		return NULL;
 
-	spin_lock(&kmalloced_params_lock);
 	list_add(&p->list, &kmalloced_params);
-	spin_unlock(&kmalloced_params_lock);
 
 	return p->val;
 }
@@ -63,15 +60,12 @@ static void maybe_kfree_parameter(void *param)
 {
 	struct kmalloced_param *p;
 
-	spin_lock(&kmalloced_params_lock);
 	list_for_each_entry(p, &kmalloced_params, list) {
 		if (p->val == param) {
 			list_del(&p->list);
-			kfree(p);
 			break;
 		}
 	}
-	spin_unlock(&kmalloced_params_lock);
 }
 
 static char dash2underscore(char c)
@@ -268,18 +262,6 @@ int param_set_charp(const char *val, const struct kernel_param *kp)
 		return -ENOSPC;
 	}
 
-	maybe_kfree_parameter(*(char **)kp->arg);
-
-	/* This is a hack.  We can't kmalloc in early boot, and we
-	 * don't need to; this mangled commandline is preserved. */
-	if (slab_is_available()) {
-		*(char **)kp->arg = kmalloc_parameter(strlen(val)+1);
-		if (!*(char **)kp->arg)
-			return -ENOMEM;
-		strcpy(*(char **)kp->arg, val);
-	} else
-		*(const char **)kp->arg = val;
-
 	return 0;
 }
 EXPORT_SYMBOL(param_set_charp);
@@ -292,7 +274,6 @@ EXPORT_SYMBOL(param_get_charp);
 
 void param_free_charp(void *arg)
 {
-	maybe_kfree_parameter(*((char **)arg));
 }
 EXPORT_SYMBOL(param_free_charp);
 
@@ -688,9 +669,6 @@ static __modinit int add_sysfs_param(struct module_kobject *mk,
 #ifdef CONFIG_MODULES
 static void free_module_param_attrs(struct module_kobject *mk)
 {
-	if (mk->mp)
-		kfree(mk->mp->grp.attrs);
-	kfree(mk->mp);
 	mk->mp = NULL;
 }
 

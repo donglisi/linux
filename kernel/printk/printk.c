@@ -630,13 +630,11 @@ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
 			return ret;
 	}
 
-	buf = kmalloc(len+1, GFP_KERNEL);
 	if (buf == NULL)
 		return -ENOMEM;
 
 	buf[len] = '\0';
 	if (!copy_from_iter_full(buf, len, from)) {
-		kfree(buf);
 		return -EFAULT;
 	}
 
@@ -665,7 +663,6 @@ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
 	}
 
 	devkmsg_emit(facility, level, "%s", line);
-	kfree(buf);
 	return ret;
 }
 
@@ -1388,7 +1385,6 @@ static int syslog_print(char __user *buf, int size)
 	int len = 0;
 	u64 seq;
 
-	text = kmalloc(CONSOLE_LOG_MAX, GFP_KERNEL);
 	if (!text)
 		return -ENOMEM;
 
@@ -1473,7 +1469,6 @@ static int syslog_print(char __user *buf, int size)
 		buf += n;
 	} while (size);
 out:
-	kfree(text);
 	return len;
 }
 
@@ -1486,7 +1481,6 @@ static int syslog_print_all(char __user *buf, int size, bool clear)
 	u64 seq;
 	bool time;
 
-	text = kmalloc(CONSOLE_LOG_MAX, GFP_KERNEL);
 	if (!text)
 		return -ENOMEM;
 
@@ -1524,7 +1518,6 @@ static int syslog_print_all(char __user *buf, int size, bool clear)
 		latched_seq_write(&clear_seq, seq);
 	}
 
-	kfree(text);
 	return len;
 }
 

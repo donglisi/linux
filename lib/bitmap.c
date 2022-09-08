@@ -456,7 +456,6 @@ int bitmap_parse_user(const char __user *ubuf,
 
 	ret = bitmap_parse(buf, UINT_MAX, maskp, nmaskbits);
 
-	kfree(buf);
 	return ret;
 }
 EXPORT_SYMBOL(bitmap_parse_user);
@@ -510,7 +509,6 @@ static int bitmap_print_to_buf(bool list, char *buf, const unsigned long *maskp,
 		return -ENOMEM;
 
 	size = memory_read_from_buffer(buf, count, &off, data, strlen(data) + 1);
-	kfree(data);
 
 	return size;
 }
@@ -847,7 +845,6 @@ int bitmap_parselist_user(const char __user *ubuf,
 
 	ret = bitmap_parselist(buf, maskp, nmaskbits);
 
-	kfree(buf);
 	return ret;
 }
 EXPORT_SYMBOL(bitmap_parselist_user);
@@ -1404,8 +1401,7 @@ EXPORT_SYMBOL(bitmap_copy_le);
 
 unsigned long *bitmap_alloc(unsigned int nbits, gfp_t flags)
 {
-	return kmalloc_array(BITS_TO_LONGS(nbits), sizeof(unsigned long),
-			     flags);
+	return 0;
 }
 EXPORT_SYMBOL(bitmap_alloc);
 
@@ -1417,8 +1413,7 @@ EXPORT_SYMBOL(bitmap_zalloc);
 
 unsigned long *bitmap_alloc_node(unsigned int nbits, gfp_t flags, int node)
 {
-	return kmalloc_array_node(BITS_TO_LONGS(nbits), sizeof(unsigned long),
-				  flags, node);
+	return 0;
 }
 EXPORT_SYMBOL(bitmap_alloc_node);
 
@@ -1430,7 +1425,6 @@ EXPORT_SYMBOL(bitmap_zalloc_node);
 
 void bitmap_free(const unsigned long *bitmap)
 {
-	kfree(bitmap);
 }
 EXPORT_SYMBOL(bitmap_free);
 

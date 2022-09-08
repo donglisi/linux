@@ -145,7 +145,6 @@ static int match_number(substring_t *s, int *result, int base)
 		ret = -ERANGE;
 	else
 		*result = (int) val;
-	kfree(buf);
 	return ret;
 }
 
@@ -174,7 +173,6 @@ static int match_u64int(substring_t *s, u64 *result, int base)
 	ret = kstrtoull(buf, base, &val);
 	if (!ret)
 		*result = val;
-	kfree(buf);
 	return ret;
 }
 
@@ -211,7 +209,6 @@ int match_uint(substring_t *s, unsigned int *result)
 
 	if (buf) {
 		err = kstrtouint(buf, 10, result);
-		kfree(buf);
 	}
 	return err;
 }

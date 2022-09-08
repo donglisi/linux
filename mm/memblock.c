@@ -366,20 +366,14 @@ void __init memblock_discard(void)
 		addr = __pa(memblock.reserved.regions);
 		size = PAGE_ALIGN(sizeof(struct memblock_region) *
 				  memblock.reserved.max);
-		if (memblock_reserved_in_slab)
-			kfree(memblock.reserved.regions);
-		else
-			memblock_free_late(addr, size);
+		memblock_free_late(addr, size);
 	}
 
 	if (memblock.memory.regions != memblock_memory_init_regions) {
 		addr = __pa(memblock.memory.regions);
 		size = PAGE_ALIGN(sizeof(struct memblock_region) *
 				  memblock.memory.max);
-		if (memblock_memory_in_slab)
-			kfree(memblock.memory.regions);
-		else
-			memblock_free_late(addr, size);
+		memblock_free_late(addr, size);
 	}
 
 	memblock_memory = NULL;
@@ -408,7 +402,7 @@ static int __init_memblock memblock_double_array(struct memblock_type *type,
 	struct memblock_region *new_array, *old_array;
 	phys_addr_t old_alloc_size, new_alloc_size;
 	phys_addr_t old_size, new_size, addr, new_end;
-	int use_slab = slab_is_available();
+	int use_slab = 0;
 	int *in_slab;
 
 	/* We don't allow resizing until we know about the reserved regions
@@ -435,7 +429,6 @@ static int __init_memblock memblock_double_array(struct memblock_type *type,
 
 	/* Try to find some space for it */
 	if (use_slab) {
-		new_array = kmalloc(new_size, GFP_KERNEL);
 		addr = new_array ? __pa(new_array) : 0;
 	} else {
 		/* only exclude range when trying to double reserved.regions */
@@ -473,10 +466,7 @@ static int __init_memblock memblock_double_array(struct memblock_type *type,
 	type->regions = new_array;
 	type->max <<= 1;
 
-	/* Free old array. We needn't free it if the array is the static one */
-	if (*in_slab)
-		kfree(old_array);
-	else if (old_array != memblock_memory_init_regions &&
+	if (old_array != memblock_memory_init_regions &&
 		 old_array != memblock_reserved_init_regions)
 		memblock_free(old_array, old_alloc_size);
 
@@ -1477,14 +1467,6 @@ static void * __init memblock_alloc_internal(
 				int nid, bool exact_nid)
 {
 	phys_addr_t alloc;
-
-	/*
-	 * Detect any accidental use of these APIs after slab is ready, as at
-	 * this moment memblock may be deinitialized already and its
-	 * internal data may be destroyed (after execution of memblock_free_all)
-	 */
-	if (WARN_ON_ONCE(slab_is_available()))
-		return kzalloc_node(size, GFP_NOWAIT, nid);
 
 	if (max_addr > memblock.current_limit)
 		max_addr = memblock.current_limit;
