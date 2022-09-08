@@ -1,0 +1,12 @@
+int early_pci_allowed;
+int noioapicquirk;
+int noioapicreroute;
+int pcibios_assign_all_busses;
+int pcibios_fixup_irqs;
+int pcibios_irq_init;
+int pci_legacy_init;
+int read_pci_config;
+int read_pci_config_16;
+int read_pci_config_byte;
+int write_pci_config;
+int write_pci_config_16;
