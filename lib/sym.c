@@ -442,3 +442,16 @@ int mc146818_set_time;
 int rtc_time64_to_tm;
 int rtc_valid_tm;
 
+int clockevent_i8253_init;
+int i8253_clockevent;
+int register_virtio_driver;
+int unregister_virtio_driver;
+int virtio_break_device;
+int virtio_check_driver_offered_feature;
+int virtio_reset_device;
+int virtqueue_add_inbuf;
+int virtqueue_add_outbuf;
+int virtqueue_detach_unused_buf;
+int virtqueue_get_buf;
+int virtqueue_is_broken;
+int virtqueue_kick;

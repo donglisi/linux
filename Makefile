@@ -46,8 +46,7 @@ x86	:= $(addprefix arch/x86/, events/core.o \
 			$(addprefix cpu/, topology.o common.o match.o bugs.o aperfmperf.o cpuid-deps.o \
 				proc.o capflags.o perfctr-watchdog.o hypervisor.o)))
 
-drivers := $(addprefix drivers/, block/virtio_blk.o net/loopback.o clocksource/i8253.o \
-		$(addprefix virtio/, virtio.o virtio_ring.o virtio_pci_modern_dev.o virtio_pci_modern.o virtio_pci_common.o) \
+drivers := $(addprefix drivers/, \
 		$(addprefix tty/, tty_io.o n_tty.o tty_ioctl.o tty_ldisc.o tty_buffer.o tty_port.o tty_mutex.o tty_ldsem.o tty_baudrate.o \
 			tty_jobctrl.o n_null.o hvc/hvc_console.o) \
 		$(addprefix char/, mem.o random.o virtio_console.o) \
