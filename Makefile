@@ -55,10 +55,9 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
 		$(addprefix entry/, common.o))
 
-lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spinlocks.o kasprintf.o bitmap.o scatterlist.o list_sort.o \
-		uuid.o iov_iter.o bsearch.o find_bit.o string_helpers.o hexdump.o kstrtox.o \
-		nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o \
-		seq_buf.o dec_and_lock.o nmi_backtrace.o dump_stack.o klist.o bug.o sym.o \
+lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bitmap.o \
+		uuid.o iov_iter.o find_bit.o string_helpers.o hexdump.o kstrtox.o \
+		ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o sym.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
 
 mm	:= $(addprefix mm/, memory.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o \
