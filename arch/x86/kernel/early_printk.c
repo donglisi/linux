@@ -26,50 +26,8 @@
 static int max_ypos = 25, max_xpos = 80;
 static int current_ypos = 25, current_xpos;
 
-static void early_vga_write(struct console *con, const char *str, unsigned n)
-{
-	char c;
-	int  i, k, j;
-
-	while ((c = *str++) != '\0' && n-- > 0) {
-		if (current_ypos >= max_ypos) {
-			/* scroll 1 line up */
-			for (k = 1, j = 0; k < max_ypos; k++, j++) {
-				for (i = 0; i < max_xpos; i++) {
-					writew(readw(VGABASE+2*(max_xpos*k+i)),
-					       VGABASE + 2*(max_xpos*j + i));
-				}
-			}
-			for (i = 0; i < max_xpos; i++)
-				writew(0x720, VGABASE + 2*(max_xpos*j + i));
-			current_ypos = max_ypos-1;
-		}
-#ifdef CONFIG_KGDB_KDB
-		if (c == '\b') {
-			if (current_xpos > 0)
-				current_xpos--;
-		} else if (c == '\r') {
-			current_xpos = 0;
-		} else
-#endif
-		if (c == '\n') {
-			current_xpos = 0;
-			current_ypos++;
-		} else if (c != '\r')  {
-			writew(((0x7 << 8) | (unsigned short) c),
-			       VGABASE + 2*(max_xpos*current_ypos +
-						current_xpos++));
-			if (current_xpos >= max_xpos) {
-				current_xpos = 0;
-				current_ypos++;
-			}
-		}
-	}
-}
-
 static struct console early_vga_console = {
 	.name =		"earlyvga",
-	.write =	early_vga_write,
 	.flags =	CON_PRINTBUFFER,
 	.index =	-1,
 };
@@ -216,104 +174,6 @@ static unsigned int mem32_serial_in(unsigned long addr, int offset)
  */
 static __init void early_pci_serial_init(char *s)
 {
-	unsigned divisor;
-	unsigned long baud = DEFAULT_BAUD;
-	u8 bus, slot, func;
-	u32 classcode, bar0;
-	u16 cmdreg;
-	char *e;
-	int force = 0;
-
-	if (*s == ',')
-		++s;
-
-	if (*s == 0)
-		return;
-
-	/* Force the use of an UART device with wrong class code */
-	if (!strncmp(s, "force,", 6)) {
-		force = 1;
-		s += 6;
-	}
-
-	/*
-	 * Part the param to get the BDF values
-	 */
-	bus = (u8)simple_strtoul(s, &e, 16);
-	s = e;
-	if (*s != ':')
-		return;
-	++s;
-	slot = (u8)simple_strtoul(s, &e, 16);
-	s = e;
-	if (*s != '.')
-		return;
-	++s;
-	func = (u8)simple_strtoul(s, &e, 16);
-	s = e;
-
-	/* A baud might be following */
-	if (*s == ',')
-		s++;
-
-	/*
-	 * Find the device from the BDF
-	 */
-	cmdreg = read_pci_config(bus, slot, func, PCI_COMMAND);
-	classcode = read_pci_config(bus, slot, func, PCI_CLASS_REVISION);
-	bar0 = read_pci_config(bus, slot, func, PCI_BASE_ADDRESS_0);
-
-	/*
-	 * Verify it is a UART type device
-	 */
-	if (((classcode >> 16 != PCI_CLASS_COMMUNICATION_MODEM) &&
-	     (classcode >> 16 != PCI_CLASS_COMMUNICATION_SERIAL)) ||
-	   (((classcode >> 8) & 0xff) != 0x02)) /* 16550 I/F at BAR0 */ {
-		if (!force)
-			return;
-	}
-
-	/*
-	 * Determine if it is IO or memory mapped
-	 */
-	if (bar0 & 0x01) {
-		/* it is IO mapped */
-		serial_in = io_serial_in;
-		serial_out = io_serial_out;
-		early_serial_base = bar0&0xfffffffc;
-		write_pci_config(bus, slot, func, PCI_COMMAND,
-						cmdreg|PCI_COMMAND_IO);
-	} else {
-		/* It is memory mapped - assume 32-bit alignment */
-		serial_in = mem32_serial_in;
-		serial_out = mem32_serial_out;
-		/* WARNING! assuming the address is always in the first 4G */
-		early_serial_base =
-			(unsigned long)early_ioremap(bar0 & 0xfffffff0, 0x10);
-		write_pci_config(bus, slot, func, PCI_COMMAND,
-						cmdreg|PCI_COMMAND_MEMORY);
-	}
-
-	/*
-	 * Initialize the hardware
-	 */
-	if (*s) {
-		if (strcmp(s, "nocfg") == 0)
-			/* Sometimes, we want to leave the UART alone
-			 * and assume the BIOS has set it up correctly.
-			 * "nocfg" tells us this is the case, and we
-			 * should do no more setup.
-			 */
-			return;
-		if (kstrtoul(s, 0, &baud) < 0 || baud == 0)
-			baud = DEFAULT_BAUD;
-	}
-
-	/* Convert from baud to divisor value */
-	divisor = 115200 / baud;
-
-	/* Set up the HW */
-	early_serial_hw_init(divisor);
 }
 #endif
 
@@ -363,13 +223,6 @@ static int __init setup_early_printk(char *buf)
 			early_serial_init(buf + 4);
 			early_console_register(&early_serial_console, keep);
 		}
-#ifdef CONFIG_PCI
-		if (!strncmp(buf, "pciserial", 9)) {
-			early_pci_serial_init(buf + 9);
-			early_console_register(&early_serial_console, keep);
-			buf += 9; /* Keep from match the above "serial" */
-		}
-#endif
 		if (!strncmp(buf, "vga", 3) &&
 		    boot_params.screen_info.orig_video_isVGA == 1) {
 			max_xpos = boot_params.screen_info.orig_video_cols;
