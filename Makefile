@@ -46,12 +46,9 @@ kernel	:= $(addprefix kernel/, fork.o cpu.o resource.o \
 		reboot.o range.o \
 		$(addprefix sched/, core.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
-		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
-		$(addprefix entry/, common.o))
+		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
 
-lib	:= $(addprefix lib/, sort.o parser.o random32.o bitmap.o \
-		find_bit.o string_helpers.o hexdump.o kstrtox.o \
-		ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o sym.o \
+lib	:= $(addprefix lib/, sort.o parser.o bitmap.o find_bit.o string_helpers.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o cmdline.o rbtree.o sym.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
 
 mm	:= $(addprefix mm/, \

@@ -1243,3 +1243,5 @@ int __put_user_4;
 int __put_user_8;
 int csum_partial_copy_generic;
 int insn_get_addr_ref;
+int irqentry_enter;
+int irqentry_exit;
