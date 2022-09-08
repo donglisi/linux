@@ -38,14 +38,14 @@ x86	:= $(addprefix arch/x86/, \
 			memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
 		$(addprefix mm/, init.o init_64.o fault.o tlb.o) \
 		$(addprefix kernel/, process_64.o signal.o traps.o idt.o setup.o x86_init.o e820.o \
-			tsc.o io_delay.o resource.o irqflags.o static_call.o process.o head_64.o head64.o platform-quirks.o early_printk.o \
+			tsc.o resource.o irqflags.o static_call.o process.o head_64.o head64.o platform-quirks.o early_printk.o \
 			$(addprefix cpu/, common.o)))
 
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
 
-kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o \
-		ptrace.o user.o signal.o sys.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
-		sys_ni.o nsproxy.o notifier.o cred.o reboot.o async.o range.o ucount.o regset.o \
+kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o \
+		workqueue.o params.o kthread.o \
+		nsproxy.o cred.o reboot.o range.o ucount.o regset.o \
 		irq_work.o static_call.o static_call_inline.o up.o \
 		$(addprefix sched/, core.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
