@@ -772,7 +772,6 @@ void __init init_mem_mapping(void)
 #endif
 
 	load_cr3(swapper_pg_dir);
-	__flush_tlb_all();
 
 	x86_init.hyper.init_mem_mapping();
 
