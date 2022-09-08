@@ -3159,8 +3159,6 @@ static int tty_cdev_add(struct tty_driver *driver, dev_t dev,
 	driver->cdevs[index]->ops = &tty_fops;
 	driver->cdevs[index]->owner = driver->owner;
 	err = cdev_add(driver->cdevs[index], dev, count);
-	if (err)
-		kobject_put(&driver->cdevs[index]->kobj);
 	return err;
 }
 
@@ -3271,7 +3269,6 @@ struct device *tty_register_device_attr(struct tty_driver *driver,
 	}
 
 	dev_set_uevent_suppress(dev, 0);
-	kobject_uevent(&dev->kobj, KOBJ_ADD);
 
 	return dev;
 

@@ -783,7 +783,6 @@ static inline int __ptr_to_hashval(const void *ptr, unsigned long *hashval_out)
 
 
 #ifdef CONFIG_64BIT
-	hashval = (unsigned long)siphash_1u64((u64)ptr, &ptr_key);
 	/*
 	 * Mask off the first 32 bits, this makes explicit that we have
 	 * modified the address (and 32 bits is plenty for a unique ID).

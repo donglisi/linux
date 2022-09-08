@@ -48,19 +48,19 @@ init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.
 
 kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o \
 		ptrace.o user.o signal.o sys.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
-		sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o ucount.o regset.o \
-		groups.o irq_work.o bpf/core.o static_call.o static_call_inline.o iomem.o up.o kallsyms.o \
+		sys_ni.o nsproxy.o notifier.o cred.o reboot.o async.o range.o ucount.o regset.o \
+		groups.o irq_work.o static_call.o static_call_inline.o iomem.o up.o kallsyms.o \
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
 		$(addprefix entry/, common.o))
 
 lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spinlocks.o kasprintf.o bitmap.o scatterlist.o list_sort.o \
-		uuid.o iov_iter.o bsearch.o find_bit.o llist.o memweight.o percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o errseq.o \
+		uuid.o iov_iter.o bsearch.o find_bit.o llist.o memweight.o percpu-refcount.o rhashtable.o refcount.o usercopy.o errseq.o \
 		generic-radix-tree.o lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o syscall.o \
-		nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o \
+		nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o \
 		timerqueue.o xarray.o idr.o extable.o sha1.o irq_regs.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o plist.o \
-		kobject_uevent.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o dump_stack.o kobject.o klist.o bug.o sym.o \
+		seq_buf.o dec_and_lock.o nmi_backtrace.o dump_stack.o klist.o bug.o sym.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o))
 
 mm	:= $(addprefix mm/, memory.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o \
