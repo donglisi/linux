@@ -46,7 +46,7 @@ build/%.lds: %.lds.S
 	$(E) "  LDS    " $@
 	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
-build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs)
+build/vmlinux: arch/x86/kernel/vmlinux.lds $(objs)
 	$(E) "  LD     " $@
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ $(objs)
 
