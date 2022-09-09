@@ -108,7 +108,6 @@ secondary_startup_64:
 	movq	%rsi, %rdi
 
 .Ljump_to_C_code:
-	pushq	$.Lafter_lret # put return address on stack for unwinder
 	xorl	%ebp, %ebp # clear frame pointer
 	movq	initial_code(%rip), %rax
 	pushq	$(2*8) # set correct cs
