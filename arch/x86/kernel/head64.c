@@ -4,7 +4,6 @@
 #include <asm/desc.h>
 #include <asm/tlbflush.h>
 #include <asm/sections.h>
-#include <asm/e820/api.h>
 
 /*
  * Manage page tables very early on.
