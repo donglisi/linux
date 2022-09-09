@@ -35,9 +35,8 @@ static __init void set_intr_gate(unsigned int n, const void *addr)
  */
 void __init idt_setup_early_handler(void)
 {
-	int i;
+	int i = 14;
 
-	for (i = 0; i < NUM_EXCEPTION_VECTORS; i++)
-		set_intr_gate(i, early_idt_handler_array[i]);
+	set_intr_gate(i, early_idt_handler_array[i]);
 	load_idt(&idt_descr);
 }
