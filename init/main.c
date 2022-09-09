@@ -767,20 +767,17 @@ void lkvm_loop()
 	struct page *p;
 	void *addr;
 	int order = 10;
+	int i = 0;
 
 	while(1) {
 		p = alloc_pages(GFP_KERNEL, order);
 		addr = page_to_virt(p);
-		printk("addr %llu\n", virt_to_phys(addr));
-		asm("hlt;");
-		memset(addr, 97, 4096 << order);
-		// __free_pages(p, 4);
-		asm("	mov	$0x3f8, %dx; \
-			mov	$'X', %al; \
-			out	%al, (%dx); \
-			mov	$'\n', %al; \
-			out	%al, (%dx); \
-			hlt");
+		printk("addr %llu %d\n", virt_to_phys(addr), i++);
+		// asm("hlt;");
+		//memset(addr, 0xf4, 4096 << order);
+		// __free_pages(p, order);
+		printk("mset %llu\n", virt_to_phys(addr));
+		// asm("hlt;");
 	}
 }
 
