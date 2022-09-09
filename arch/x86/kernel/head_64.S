@@ -243,12 +243,6 @@ early_gdt_descr_base:
 phys_base:
 	.quad	0x0
 
-	.section ".bss..page_aligned", "aw"
-	.globl empty_zero_page
-	.balign (1 << 12)
-empty_zero_page:
-	.skip	(1 << 12)
-
 i:
 	.long	0
 
