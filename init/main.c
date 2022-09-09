@@ -1,128 +1,7 @@
-// SPDX-License-Identifier: GPL-2.0-only
-/*
- *  linux/init/main.c
- *
- *  Copyright (C) 1991, 1992  Linus Torvalds
- *
- *  GK 2/5/95  -  Changed to support mounting root fs via NFS
- *  Added initrd & change_root: Werner Almesberger & Hans Lermen, Feb '96
- *  Moan early if gcc is old, avoiding bogus kernels - Paul Gortmaker, May '96
- *  Simplified starting of init:  Michael A. Griffith <grif@acm.org>
- */
-
-#define DEBUG		/* Enable initcall_debug */
-
-#include <linux/types.h>
-#include <linux/extable.h>
-#include <linux/module.h>
-#include <linux/proc_fs.h>
-#include <linux/binfmts.h>
-#include <linux/kernel.h>
 #include <linux/syscalls.h>
-#include <linux/stackprotector.h>
-#include <linux/string.h>
-#include <linux/ctype.h>
-#include <linux/delay.h>
-#include <linux/ioport.h>
-#include <linux/init.h>
-#include <linux/initrd.h>
 #include <linux/memblock.h>
-#include <linux/acpi.h>
-#include <linux/bootconfig.h>
-#include <linux/console.h>
-#include <linux/nmi.h>
-#include <linux/percpu.h>
-#include <linux/kmod.h>
-#include <linux/kprobes.h>
-#include <linux/vmalloc.h>
-#include <linux/kernel_stat.h>
-#include <linux/start_kernel.h>
-#include <linux/security.h>
-#include <linux/smp.h>
-#include <linux/profile.h>
-#include <linux/kfence.h>
-#include <linux/rcupdate.h>
-#include <linux/srcu.h>
-#include <linux/moduleparam.h>
-#include <linux/kallsyms.h>
-#include <linux/buildid.h>
-#include <linux/writeback.h>
-#include <linux/cpu.h>
-#include <linux/cpuset.h>
-#include <linux/cgroup.h>
-#include <linux/efi.h>
-#include <linux/tick.h>
-#include <linux/sched/isolation.h>
-#include <linux/interrupt.h>
-#include <linux/taskstats_kern.h>
-#include <linux/delayacct.h>
-#include <linux/unistd.h>
-#include <linux/utsname.h>
-#include <linux/rmap.h>
-#include <linux/mempolicy.h>
-#include <linux/key.h>
-#include <linux/page_ext.h>
-#include <linux/debug_locks.h>
-#include <linux/debugobjects.h>
-#include <linux/lockdep.h>
-#include <linux/kmemleak.h>
-#include <linux/padata.h>
-#include <linux/pid_namespace.h>
-#include <linux/device/driver.h>
-#include <linux/kthread.h>
-#include <linux/sched.h>
-#include <linux/sched/init.h>
-#include <linux/signal.h>
-#include <linux/idr.h>
-#include <linux/kgdb.h>
-#include <linux/ftrace.h>
-#include <linux/async.h>
-#include <linux/shmem_fs.h>
-#include <linux/slab.h>
-#include <linux/perf_event.h>
-#include <linux/ptrace.h>
-#include <linux/pti.h>
-#include <linux/blkdev.h>
-#include <linux/sched/clock.h>
-#include <linux/sched/task.h>
-#include <linux/sched/task_stack.h>
-#include <linux/context_tracking.h>
-#include <linux/random.h>
-#include <linux/list.h>
-#include <linux/integrity.h>
-#include <linux/proc_ns.h>
-#include <linux/io.h>
-#include <linux/cache.h>
-#include <linux/rodata_test.h>
-#include <linux/jump_label.h>
-#include <linux/mem_encrypt.h>
-#include <linux/kcsan.h>
-#include <linux/init_syscalls.h>
-#include <linux/stackdepot.h>
-#include <net/net_namespace.h>
 
-#include <asm/io.h>
-#include <asm/bugs.h>
 #include <asm/setup.h>
-#include <asm/sections.h>
-#include <asm/cacheflush.h>
-
-#define CREATE_TRACE_POINTS
-#include <trace/events/initcall.h>
-
-#include <kunit/test.h>
-
-extern void init_IRQ(void);
-extern void radix_tree_init(void);
-
-/*
- * Debug helper: via this flag we know that we are in 'early bootup code'
- * where only the boot processor is running with IRQ disabled.  This means
- * two things - IRQ must not be enabled before the flag is cleared and some
- * operations which are not allowed with IRQ disabled are allowed while the
- * flag is set.
- */
-bool early_boot_irqs_disabled __read_mostly;
 
 enum system_states system_state __read_mostly;
 EXPORT_SYMBOL(system_state);
@@ -322,21 +201,9 @@ static void __init report_meminit(void)
  */
 static void __init mm_init(void)
 {
-	/*
-	 * page_ext requires contiguous pages,
-	 * bigger than MAX_ORDER unless SPARSEMEM.
-	 */
-	page_ext_init_flatmem();
-	kfence_alloc_pool();
 	report_meminit();
 	mem_init();
 	mem_init_print_info();
-	/*
-	 * page_owner must be initialized after buddy is ready, and also after
-	 * slab is ready so that stack_depot_init() works properly
-	 */
-	page_ext_init_flatmem_late();
-	kmemleak_init();
 }
 
 void lkvm_loop()

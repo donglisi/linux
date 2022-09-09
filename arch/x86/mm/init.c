@@ -27,12 +27,6 @@
 #include <asm/text-patching.h>
 #include <asm/memtype.h>
 
-/*
- * We need to define the tracepoints somewhere, and tlb.c
- * is only compiled when SMP=y.
- */
-#include <trace/events/tlb.h>
-
 #include "mm_internal.h"
 
 static unsigned long __initdata pgt_buf_start;
