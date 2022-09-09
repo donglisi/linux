@@ -1,10 +1,4 @@
-#include <linux/crash_dump.h>
 #include <linux/memblock.h>
-#include <linux/suspend.h>
-#include <linux/acpi.h>
-#include <linux/firmware-map.h>
-#include <linux/sort.h>
-#include <linux/memory_hotplug.h>
 
 #include <asm/e820/api.h>
 #include <asm/setup.h>
