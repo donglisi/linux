@@ -133,14 +133,6 @@ unsigned long __head __startup_64(unsigned long physaddr,
 	return 0;
 }
 
-/* Wipe all early page tables except for the kernel symbol map */
-static void __init reset_early_page_tables(void)
-{
-	memset(early_top_pgt, 0, sizeof(pgd_t)*(PTRS_PER_PGD-1));
-	next_early_pgt = 0;
-	write_cr3(__pa_nodebug(early_top_pgt));
-}
-
 /* Create a new PMD entry */
 bool __init __early_make_pgtable(unsigned long address, pmdval_t pmd)
 {
@@ -212,13 +204,6 @@ static void __init copy_bootdata(char *real_mode_data)
 
 asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)
 {
-	cr4_init_shadow();
-
-	/* Kill off the identity-map trampoline */
-	reset_early_page_tables();
-
-	clear_bss();
-
 	/*
 	 * This needs to happen *before* kasan_early_init() because latter maps stuff
 	 * into that page.
@@ -254,15 +239,6 @@ static struct desc_ptr bringup_idt_descr = {
 	.address	= 0, /* Set at runtime */
 };
 
-/* This runs while still in the direct mapping */
-static void startup_64_load_idt(unsigned long physbase)
-{
-	struct desc_ptr *desc = fixup_pointer(&bringup_idt_descr, physbase);
-	gate_desc *idt = fixup_pointer(bringup_idt_table, physbase);
-	desc->address = (unsigned long)idt;
-	native_load_idt(desc);
-}
-
 /* This is used when running on kernel addresses */
 void early_setup_idt(void)
 {
@@ -283,6 +259,4 @@ void __head startup_64_setup_env(unsigned long physbase)
 	asm volatile("movl %%eax, %%ds\n"
 		     "movl %%eax, %%ss\n"
 		     "movl %%eax, %%es\n" : : "a"(__KERNEL_DS) : "memory");
-
-	startup_64_load_idt(physbase);
 }
