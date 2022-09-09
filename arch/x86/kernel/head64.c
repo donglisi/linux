@@ -1,43 +1,10 @@
-// SPDX-License-Identifier: GPL-2.0
-/*
- *  prepare to run common code
- *
- *  Copyright (C) 2000 Andrea Arcangeli <andrea@suse.de> SuSE
- */
-
-#define DISABLE_BRANCH_PROFILING
-
-#include <linux/init.h>
-#include <linux/linkage.h>
-#include <linux/types.h>
-#include <linux/kernel.h>
-#include <linux/string.h>
-#include <linux/percpu.h>
 #include <linux/start_kernel.h>
-#include <linux/io.h>
-#include <linux/memblock.h>
-#include <linux/cc_platform.h>
-#include <linux/pgtable.h>
 
-#include <asm/processor.h>
-#include <asm/proto.h>
-#include <asm/smp.h>
 #include <asm/setup.h>
 #include <asm/desc.h>
 #include <asm/tlbflush.h>
 #include <asm/sections.h>
-#include <asm/kdebug.h>
 #include <asm/e820/api.h>
-#include <asm/bios_ebda.h>
-#include <asm/bootparam_utils.h>
-#include <asm/microcode.h>
-#include <asm/kasan.h>
-#include <asm/fixmap.h>
-#include <asm/realmode.h>
-#include <asm/extable.h>
-#include <asm/trapnr.h>
-#include <asm/sev.h>
-#include <asm/tdx.h>
 
 /*
  * Manage page tables very early on.
@@ -237,7 +204,6 @@ static void __init copy_bootdata(char *real_mode_data)
 	unsigned long cmd_line_ptr;
 
 	memcpy(&boot_params, real_mode_data, sizeof(boot_params));
-	sanitize_boot_params(&boot_params);
 	cmd_line_ptr = get_cmd_line_ptr();
 	if (cmd_line_ptr) {
 		command_line = __va(cmd_line_ptr);
@@ -260,49 +226,16 @@ asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)
 	 */
 	clear_page(init_top_pgt);
 
-	kasan_early_init();
-
-	/*
-	 * Flush global TLB entries which could be left over from the trampoline page
-	 * table.
-	 *
-	 * This needs to happen *after* kasan_early_init() as KASAN-enabled .configs
-	 * instrument native_write_cr4() so KASAN must be initialized for that
-	 * instrumentation to work.
-	 */
-	__native_tlb_flush_global(this_cpu_read(cpu_tlbstate.cr4));
-
 	idt_setup_early_handler();
 
-	/* Needed before cc_platform_has() can be used for TDX */
-	tdx_early_init();
-
 	copy_bootdata(__va(real_mode_data));
-
-	/*
-	 * Load microcode early on BSP.
-	 */
-	load_ucode_bsp();
 
 	/* set init_top_pgt kernel high mapping*/
 	init_top_pgt[511] = early_top_pgt[511];
 
-	x86_64_start_reservations(real_mode_data);
-}
-
-void __init x86_64_start_reservations(char *real_mode_data)
-{
 	/* version is always not zero if it is copied */
 	if (!boot_params.hdr.version)
 		copy_bootdata(__va(real_mode_data));
-
-	switch (boot_params.hdr.hardware_subarch) {
-	case X86_SUBARCH_INTEL_MID:
-		x86_intel_mid_early_setup();
-		break;
-	default:
-		break;
-	}
 
 	start_kernel();
 }
