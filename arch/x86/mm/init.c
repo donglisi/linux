@@ -560,16 +560,6 @@ void free_kernel_image_pages(const char *what, void *begin, void *end)
 		set_memory_np_noalias(begin_ul, len_pages);
 }
 
-void __ref free_initmem(void)
-{
-	e820__reallocate_tables();
-
-	mem_encrypt_free_decrypted_mem();
-
-	free_kernel_image_pages("unused kernel image (initmem)",
-				&__init_begin, &__init_end);
-}
-
 void __init zone_sizes_init(void)
 {
 	unsigned long max_zone_pfns[MAX_NR_ZONES];
@@ -580,9 +570,3 @@ void __init zone_sizes_init(void)
 
 	free_area_init(max_zone_pfns);
 }
-
-__visible DEFINE_PER_CPU_ALIGNED(struct tlb_state, cpu_tlbstate) = {
-	.loaded_mm = &init_mm,
-	.next_asid = 1,
-	.cr4 = ~0UL,	/* fail hard if we screw up cr4 shadow initialization */
-};

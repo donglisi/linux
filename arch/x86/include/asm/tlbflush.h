@@ -134,7 +134,6 @@ struct tlb_state {
 	 */
 	struct tlb_context ctxs[TLB_NR_DYN_ASIDS];
 };
-DECLARE_PER_CPU_ALIGNED(struct tlb_state, cpu_tlbstate);
 
 struct tlb_state_shared {
 	/*
@@ -162,7 +161,6 @@ bool nmi_uaccess_okay(void);
 /* Initialize cr4 shadow for this CPU. */
 static inline void cr4_init_shadow(void)
 {
-	this_cpu_write(cpu_tlbstate.cr4, __read_cr4());
 }
 
 extern unsigned long mmu_cr4_features;
