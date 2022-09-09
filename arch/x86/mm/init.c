@@ -247,10 +247,12 @@ unsigned long __ref init_memory_mapping(unsigned long start,
 	memset(mr, 0, sizeof(mr));
 	nr_range = split_mem_range(mr, 0, start, end);
 
-	for (i = 0; i < nr_range; i++)
+	for (i = 0; i < nr_range; i++) {
 		ret = kernel_physical_mapping_init(mr[i].start, mr[i].end,
 						   mr[i].page_size_mask,
 						   prot);
+		printk("kernel_physical_mapping_init %d %d %d\n", i, mr[i].start, mr[i].end);
+	}
 
 	add_pfn_range_mapped(start >> PAGE_SHIFT, ret >> PAGE_SHIFT);
 
@@ -379,51 +381,6 @@ static void __init memory_map_top_down(unsigned long map_start,
 
 	if (real_end < map_end)
 		init_range_memory_mapping(real_end, map_end);
-}
-
-/**
- * memory_map_bottom_up - Map [map_start, map_end) bottom up
- * @map_start: start address of the target memory range
- * @map_end: end address of the target memory range
- *
- * This function will setup direct mapping for memory range
- * [map_start, map_end) in bottom-up. Since we have limited the
- * bottom-up allocation above the kernel, the page tables will
- * be allocated just above the kernel and we map the memory
- * in [map_start, map_end) in bottom-up.
- */
-static void __init memory_map_bottom_up(unsigned long map_start,
-					unsigned long map_end)
-{
-	unsigned long next, start;
-	unsigned long mapped_ram_size = 0;
-	/* step_size need to be small so pgt_buf from BRK could cover it */
-	unsigned long step_size = PMD_SIZE;
-
-	start = map_start;
-	min_pfn_mapped = start >> PAGE_SHIFT;
-
-	/*
-	 * We start from the bottom (@map_start) and go to the top (@map_end).
-	 * The memblock_find_in_range() gets us a block of RAM from the
-	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
-	 * for page table.
-	 */
-	while (start < map_end) {
-		if (step_size && map_end - start > step_size) {
-			next = round_up(start + 1, step_size);
-			if (next > map_end)
-				next = map_end;
-		} else {
-			next = map_end;
-		}
-
-		mapped_ram_size += init_range_memory_mapping(start, next);
-		start = next;
-
-		if (mapped_ram_size >= step_size)
-			step_size = get_new_step_size(step_size);
-	}
 }
 
 void __init init_mem_mapping(void)
