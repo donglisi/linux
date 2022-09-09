@@ -70,25 +70,7 @@ __ref void *alloc_low_pages(unsigned int num)
 	return __va(pfn << PAGE_SHIFT);
 }
 
-#define INIT_PGD_PAGE_TABLES    3
-#define INIT_PGD_PAGE_COUNT      (2 * INIT_PGD_PAGE_TABLES)
-#define INIT_PGT_BUF_SIZE	(INIT_PGD_PAGE_COUNT * PAGE_SIZE)
-RESERVE_BRK(early_pgt_alloc, INIT_PGT_BUF_SIZE);
-void  __init early_alloc_pgt_buf(void)
-{
-	unsigned long tables = INIT_PGT_BUF_SIZE;
-	phys_addr_t base;
-
-	base = __pa(extend_brk(tables, PAGE_SIZE));
-
-	pgt_buf_start = base >> PAGE_SHIFT;
-	pgt_buf_end = pgt_buf_start;
-	pgt_buf_top = pgt_buf_start + (tables >> PAGE_SHIFT);
-}
-
 int after_bootmem;
-
-early_param_on_off("gbpages", "nogbpages", direct_gbpages, CONFIG_X86_DIRECT_GBPAGES);
 
 struct map_range {
 	unsigned long start;
@@ -107,8 +89,6 @@ static void __init probe_page_size_mask(void)
 	 */
 	if (boot_cpu_has(X86_FEATURE_PSE) && !debug_pagealloc_enabled())
 		page_size_mask |= 1 << PG_LEVEL_2M;
-	else
-		direct_gbpages = 0;
 
 	/* Enable PGE if available */
 	__supported_pte_mask &= ~_PAGE_GLOBAL;
@@ -482,82 +462,6 @@ void __init init_mem_mapping(void)
 	load_cr3(swapper_pg_dir);
 
 	early_memtest(0, max_pfn_mapped << PAGE_SHIFT);
-}
-
-void free_init_pages(const char *what, unsigned long begin, unsigned long end)
-{
-	unsigned long begin_aligned, end_aligned;
-
-	/* Make sure boundaries are page aligned */
-	begin_aligned = PAGE_ALIGN(begin);
-	end_aligned   = end & PAGE_MASK;
-
-	if (WARN_ON(begin_aligned != begin || end_aligned != end)) {
-		begin = begin_aligned;
-		end   = end_aligned;
-	}
-
-	if (begin >= end)
-		return;
-
-	/*
-	 * If debugging page accesses then do not free this memory but
-	 * mark them not present - any buggy init-section access will
-	 * create a kernel page fault:
-	 */
-	if (debug_pagealloc_enabled()) {
-		pr_info("debug: unmapping init [mem %#010lx-%#010lx]\n",
-			begin, end - 1);
-		/*
-		 * Inform kmemleak about the hole in the memory since the
-		 * corresponding pages will be unmapped.
-		 */
-		kmemleak_free_part((void *)begin, end - begin);
-		set_memory_np(begin, (end - begin) >> PAGE_SHIFT);
-	} else {
-		/*
-		 * We just marked the kernel text read only above, now that
-		 * we are going to free part of that, we need to make that
-		 * writeable and non-executable first.
-		 */
-		set_memory_nx(begin, (end - begin) >> PAGE_SHIFT);
-		set_memory_rw(begin, (end - begin) >> PAGE_SHIFT);
-
-		free_reserved_area((void *)begin, (void *)end,
-				   POISON_FREE_INITMEM, what);
-	}
-}
-
-/*
- * begin/end can be in the direct map or the "high kernel mapping"
- * used for the kernel image only.  free_init_pages() will do the
- * right thing for either kind of address.
- */
-void free_kernel_image_pages(const char *what, void *begin, void *end)
-{
-	unsigned long begin_ul = (unsigned long)begin;
-	unsigned long end_ul = (unsigned long)end;
-	unsigned long len_pages = (end_ul - begin_ul) >> PAGE_SHIFT;
-
-	free_init_pages(what, begin_ul, end_ul);
-
-	/*
-	 * PTI maps some of the kernel into userspace.  For performance,
-	 * this includes some kernel areas that do not contain secrets.
-	 * Those areas might be adjacent to the parts of the kernel image
-	 * being freed, which may contain secrets.  Remove the "high kernel
-	 * image mapping" for these freed areas, ensuring they are not even
-	 * potentially vulnerable to Meltdown regardless of the specific
-	 * optimizations PTI is currently using.
-	 *
-	 * The "noalias" prevents unmapping the direct map alias which is
-	 * needed to access the freed pages.
-	 *
-	 * This is only valid for 64bit kernels. 32bit has only one mapping
-	 * which can't be treated in this way for obvious reasons.
-	 */
-	if (IS_ENABLED(CONFIG_X86_64) && cpu_feature_enabled(X86_FEATURE_PTI))
-		set_memory_np_noalias(begin_ul, len_pages);
 }
 
 void __init zone_sizes_init(void)
