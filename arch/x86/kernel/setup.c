@@ -1,52 +1,8 @@
-// SPDX-License-Identifier: GPL-2.0-only
-/*
- *  Copyright (C) 1995  Linus Torvalds
- *
- * This file contains the setup_arch() code, which handles the architecture-dependent
- * parts of early kernel initialization.
- */
-#include <linux/acpi.h>
-#include <linux/console.h>
-#include <linux/crash_dump.h>
-#include <linux/dma-map-ops.h>
-#include <linux/dmi.h>
-#include <linux/efi.h>
-#include <linux/init_ohci1394_dma.h>
-#include <linux/initrd.h>
-#include <linux/iscsi_ibft.h>
 #include <linux/memblock.h>
-#include <linux/panic_notifier.h>
 #include <linux/pci.h>
-#include <linux/root_dev.h>
-#include <linux/hugetlb.h>
-#include <linux/tboot.h>
-#include <linux/usb/xhci-dbgp.h>
-#include <linux/static_call.h>
-#include <linux/swiotlb.h>
-
-#include <asm/apic.h>
-#include <asm/numa.h>
-#include <asm/bios_ebda.h>
-#include <asm/bugs.h>
-#include <asm/cpu.h>
-#include <asm/efi.h>
 #include <asm/gart.h>
-#include <asm/hypervisor.h>
-#include <asm/io_apic.h>
-#include <asm/kasan.h>
-#include <asm/kaslr.h>
-#include <asm/mce.h>
-#include <asm/memtype.h>
-#include <asm/mtrr.h>
-#include <asm/realmode.h>
-#include <asm/olpc_ofw.h>
-#include <asm/pci-direct.h>
+
 #include <asm/prom.h>
-#include <asm/proto.h>
-#include <asm/thermal.h>
-#include <asm/unwind.h>
-#include <asm/vsyscall.h>
-#include <linux/vmalloc.h>
 
 /*
  * max_low_pfn_mapped: highest directly mapped pfn < 4 GB
@@ -91,8 +47,6 @@ void __init setup_arch(char **cmdline_p)
 {
 	printk(KERN_INFO "Command line: %s\n", boot_command_line);
 
-	jump_label_init();
-
 	memblock_reserve(0, (1024 << 10) * 16);
 
 	e820__memory_setup();
@@ -103,8 +57,6 @@ void __init setup_arch(char **cmdline_p)
 	parse_early_param();
 
 	max_pfn = e820__end_of_ram_pfn();
-
-	max_possible_pfn = max_pfn;
 
 	e820__memblock_setup();
 
