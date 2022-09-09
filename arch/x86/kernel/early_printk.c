@@ -1,27 +1,6 @@
-// SPDX-License-Identifier: GPL-2.0
 #include <linux/console.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/string.h>
-#include <linux/screen_info.h>
-#include <linux/usb/ch9.h>
-#include <linux/pci_regs.h>
-#include <linux/pci_ids.h>
-#include <linux/errno.h>
-#include <linux/pgtable.h>
 #include <asm/io.h>
-#include <asm/processor.h>
-#include <asm/fcntl.h>
 #include <asm/setup.h>
-#include <xen/hvc-console.h>
-#include <asm/pci-direct.h>
-#include <asm/fixmap.h>
-#include <linux/usb/ehci_def.h>
-#include <linux/usb/xhci-dbgp.h>
-#include <asm/pci_x86.h>
-
-/* Simple VGA output */
-#define VGABASE		(__ISA_IO_base + 0xb8000)
 
 static int max_ypos = 25, max_xpos = 80;
 static int current_ypos = 25, current_xpos;
