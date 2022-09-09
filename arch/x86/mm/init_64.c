@@ -239,20 +239,6 @@ phys_pud_init(pud_t *pud_page, unsigned long paddr, unsigned long paddr_end,
 }
 
 static unsigned long __meminit
-phys_p4d_init(p4d_t *p4d_page, unsigned long paddr, unsigned long paddr_end,
-	      unsigned long page_size_mask, pgprot_t prot, bool init)
-{
-	unsigned long vaddr, vaddr_end, vaddr_next, paddr_next, paddr_last;
-
-	paddr_last = paddr_end;
-	vaddr = (unsigned long)__va(paddr);
-	vaddr_end = (unsigned long)__va(paddr_end);
-
-	return phys_pud_init((pud_t *) p4d_page, paddr, paddr_end,
-				     page_size_mask, prot, init);
-}
-
-static unsigned long __meminit
 __kernel_physical_mapping_init(unsigned long paddr_start,
 			       unsigned long paddr_end,
 			       unsigned long page_size_mask,
