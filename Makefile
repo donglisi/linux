@@ -1,5 +1,4 @@
 MAKEFLAGS := -rR --no-print-directory
-Q = @
 
 ifeq ("$(origin V)", "command line")
 	Q :=
