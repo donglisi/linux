@@ -1,17 +1,16 @@
 MAKEFLAGS := -rR --no-print-directory
-Q = @
 
 ifeq ("$(origin V)", "command line")
 	Q :=
-	E = @\#
+	E := @\#
 else
 	Q := @
 	E := @echo
 endif
 
 $(shell bash -c "mkdir -p \
-	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,nls,proc,ext2,ramfs,exportfs}} \
-	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed,realmode/rm} \
+	      build/{mm,block/partitions,init,security,lib/{math,crypto},fs/{iomap,proc,ext2,ramfs}} \
+	      build/arch/x86/{entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed,realmode/rm} \
 	      build/drivers/{base,pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
 	      build/kernel/{events,sched,entry,bpf,locking,futex,power,printk,dma,irq,rcu,time}")
@@ -88,24 +87,21 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
-		$(addprefix irq/, irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o autoprobe.o \
-			irqdomain.o proc.o matrix.o msi.o) \
+		$(addprefix irq/, irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o autoprobe.o irqdomain.o proc.o matrix.o msi.o) \
 		$(addprefix rcu/, update.o sync.o srcutiny.o tiny.o) \
 		$(addprefix dma/, mapping.o direct.o swiotlb.o remap.o) \
 		$(addprefix entry/, common.o syscall_user_dispatch.o) \
-		$(addprefix time/, time.o timer.o hrtimer.o timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timeconv.o \
-			timecounter.o alarmtimer.o posix-stubs.o clockevents.o \
-			tick-common.o tick-broadcast.o tick-oneshot.o tick-sched.o vsyscall.o) \
+		$(addprefix time/, time.o timer.o hrtimer.o timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timeconv.o timecounter.o \
+			alarmtimer.o posix-stubs.o clockevents.o tick-common.o tick-broadcast.o tick-oneshot.o tick-sched.o vsyscall.o) \
 		$(addprefix futex/, core.o syscalls.o pi.o requeue.o waitwake.o) \
 		$(addprefix events/, core.o ring_buffer.o callchain.o hw_breakpoint.o))
 
-lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spinlocks.o kasprintf.o bitmap.o scatterlist.o list_sort.o uuid.o \
-		iov_iter.o clz_ctz.o bsearch.o find_bit.o llist.o memweight.o kfifo.o percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o \
-		errseq.o generic-radix-tree.o lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o \
-		crc32.o syscall.o nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o ctype.o string.o vsprintf.o cmdline.o rbtree.o \
-		radix-tree.o timerqueue.o xarray.o idr.o extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o \
-		is_single_threaded.o plist.o decompress.o kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o buildid.o \
-		dump_stack.o kobject.o klist.o bug.o\
+lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spinlocks.o kasprintf.o bitmap.o scatterlist.o list_sort.o uuid.o buildid.o \
+		clz_ctz.o bsearch.o find_bit.o llist.o memweight.o kfifo.o percpu-refcount.o rhashtable.o once.o refcount.o usercopy.o errseq.o iov_iter.o \
+		generic-radix-tree.o lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o crc32.o syscall.o \
+		nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o timerqueue.o \
+		xarray.o idr.o extable.o sha1.o irq_regs.o argv_split.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o plist.o decompress.o \
+		kobject_uevent.o earlycpio.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o dump_stack.o kobject.o klist.o bug.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
 		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o blake2s-selftest.o))
 
@@ -125,7 +121,7 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
-objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
+objs	:= $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
 $(objs): c_flags = $(vmlinux_cflags)
 export objs
 
@@ -145,8 +141,8 @@ build/%.lds: %.lds.S
 
 build/arch/x86/realmode/rmpiggy.o: arch/x86/realmode/rm/realmode.bin
 
-realmode_objs = $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
-$(realmode_objs): c_flags = $(realmode_cflags) -D_WAKEUP -Iarch/x86/boot
+realmode_objs := $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
+$(realmode_objs): c_flags := $(realmode_cflags) -D_WAKEUP -Iarch/x86/boot
 
 build/arch/x86/realmode/rm/pasyms.h: $(realmode_objs)
 	@echo "  PASYMS " $@
@@ -171,7 +167,7 @@ CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
 
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o \
 			memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags = $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables
+$(setup_objs): c_flags := $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables
 
 build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
 	$(E) "  BUILD  " $@
@@ -201,9 +197,9 @@ build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
 
 build/arch/x86/boot/compressed/misc.o: build/arch/x86/boot/compressed/../voffset.h
 
-vmlinux_objs = $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
+vmlinux_objs := $(addprefix build/arch/x86/boot/compressed/, vmlinux.lds kernel_info.o head_64.o misc.o string.o cmdline.o error.o \
 			piggy.o cpuflags.o early_serial_console.o ident_map_64.o idt_64.o pgtable_64.o mem_encrypt.o idt_handlers_64.o)
-$(vmlinux_objs): c_flags = -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
+$(vmlinux_objs): c_flags := -m64 -O2 -fno-strict-aliasing -fPIE -Wundef -mno-mmx -mno-sse -ffreestanding -fshort-wchar -fno-stack-protector \
 			-Wno-address-of-packed-member -Wno-gnu -Wno-pointer-sign -fmacro-prefix-map== -fno-asynchronous-unwind-tables \
 			-D__DISABLE_EXPORTS -include include/linux/hidden.h
 
