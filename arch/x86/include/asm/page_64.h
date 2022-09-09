@@ -10,7 +10,6 @@
 
 /* duplicated to the one in bootmem.h */
 extern unsigned long max_pfn;
-extern unsigned long phys_base;
 
 extern unsigned long page_offset_base;
 extern unsigned long vmalloc_base;
@@ -21,19 +20,14 @@ static __always_inline unsigned long __phys_addr_nodebug(unsigned long x)
 	unsigned long y = x - __START_KERNEL_map;
 
 	/* use the carry flag to determine if x was < __START_KERNEL_map */
-	x = y + ((x > y) ? phys_base : (__START_KERNEL_map - PAGE_OFFSET));
+	x = y + ((x > y) ? 0 : (__START_KERNEL_map - PAGE_OFFSET));
 
 	return x;
 }
 
-#ifdef CONFIG_DEBUG_VIRTUAL
-extern unsigned long __phys_addr(unsigned long);
-extern unsigned long __phys_addr_symbol(unsigned long);
-#else
 #define __phys_addr(x)		__phys_addr_nodebug(x)
 #define __phys_addr_symbol(x) \
-	((unsigned long)(x) - __START_KERNEL_map + phys_base)
-#endif
+	((unsigned long)(x) - __START_KERNEL_map)
 
 #define __phys_reloc_hide(x)	(x)
 

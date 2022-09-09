@@ -50,7 +50,6 @@ secondary_startup_64:
 	orl	$(((1) << (5)) | ((1) << (7))), %ecx
 	movq	%rcx, %cr4
 
-	addq	phys_base(%rip), %rax
 	movq	%rax, %cr3
 
 	movq	%cr4, %rcx
@@ -113,7 +112,6 @@ secondary_startup_64:
 	pushq	$(2*8) # set correct cs
 	pushq	%rax # target address in negative space
 	lretq
-.Lafter_lret:
 
 	.section ".ref.data", "aw"
 	.balign 8
@@ -128,14 +126,6 @@ initial_gs:
 	.globl initial_stack
 initial_stack:
 	.quad	init_thread_union + ((1 << 12) << (2 + 0)) - 168
-
-	.code64
-	.section .entry.text, "ax"
-	.globl restore_regs_and_return_to_kernel
-restore_regs_and_return_to_kernel:
-	POP_REGS
-	addq $8, %rsp
-	iretq
 
 	.section ".init.text","ax"
 
@@ -171,11 +161,16 @@ early_idt_handler_common:
 	pushq	%r14
 	pushq	%r15
 
-	movq	%rsp,%rdi
+	movq	%rsp, %rdi
+	movq	count, %rax
+	addq	$2, %rax
+	movq	%rax, count
 	call	do_early_exception
 
 	decl	early_recursion_flag(%rip)
-	jmp	restore_regs_and_return_to_kernel
+	POP_REGS
+	addq $8, %rsp
+	iretq
 
 	.section ".init.data","aw",%progbits
 
@@ -247,12 +242,10 @@ early_gdt_descr_base:
 	.quad	gdt_page
 
 	.align 16
-	.globl phys_base
-phys_base:
-	.quad	0x0
-
 i:
 	.long	0
 
 pgtno:
 	.long	0
+count:
+	.quad	0

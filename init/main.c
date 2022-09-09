@@ -147,7 +147,8 @@ void lkvm_loop()
 		//memset(addr, 0xf4, 4096 << order);
 		// __free_pages(p, order);
 		printk("mset %llu\n", virt_to_phys(addr));
-		// asm("hlt;");
+		if(i == 8074)
+			asm("hlt;");
 	}
 }
 
