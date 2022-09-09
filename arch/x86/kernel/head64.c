@@ -232,10 +232,6 @@ asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)
 	/* set init_top_pgt kernel high mapping*/
 	init_top_pgt[511] = early_top_pgt[511];
 
-	/* version is always not zero if it is copied */
-	if (!boot_params.hdr.version)
-		copy_bootdata(__va(real_mode_data));
-
 	start_kernel();
 }
 
