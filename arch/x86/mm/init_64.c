@@ -248,37 +248,8 @@ phys_p4d_init(p4d_t *p4d_page, unsigned long paddr, unsigned long paddr_end,
 	vaddr = (unsigned long)__va(paddr);
 	vaddr_end = (unsigned long)__va(paddr_end);
 
-	if (!pgtable_l5_enabled())
-		return phys_pud_init((pud_t *) p4d_page, paddr, paddr_end,
+	return phys_pud_init((pud_t *) p4d_page, paddr, paddr_end,
 				     page_size_mask, prot, init);
-
-	for (; vaddr < vaddr_end; vaddr = vaddr_next) {
-		p4d_t *p4d = p4d_page + p4d_index(vaddr);
-		pud_t *pud;
-
-		vaddr_next = (vaddr & P4D_MASK) + P4D_SIZE;
-		paddr = __pa(vaddr);
-
-		if (paddr >= paddr_end) {
-			paddr_next = __pa(vaddr_next);
-			continue;
-		}
-
-		if (!p4d_none(*p4d)) {
-			pud = pud_offset(p4d, 0);
-			paddr_last = phys_pud_init(pud, paddr, __pa(vaddr_end),
-					page_size_mask, prot, init);
-			continue;
-		}
-
-		pud = alloc_low_page();
-		paddr_last = phys_pud_init(pud, paddr, __pa(vaddr_end),
-					   page_size_mask, prot, init);
-
-		p4d_populate_init(&init_mm, p4d, pud, init);
-	}
-
-	return paddr_last;
 }
 
 static unsigned long __meminit
@@ -296,13 +267,13 @@ __kernel_physical_mapping_init(unsigned long paddr_start,
 
 	for (; vaddr < vaddr_end; vaddr = vaddr_next) {
 		pgd_t *pgd = pgd_offset_k(vaddr);
-		p4d_t *p4d;
+		pud_t *p4d;
 
 		vaddr_next = (vaddr & PGDIR_MASK) + PGDIR_SIZE;
 
 		if (pgd_val(*pgd)) {
-			p4d = (p4d_t *)pgd_page_vaddr(*pgd);
-			paddr_last = phys_p4d_init(p4d, __pa(vaddr),
+			p4d = (pud_t *)pgd_page_vaddr(*pgd);
+			paddr_last = phys_pud_init(p4d, __pa(vaddr),
 						   __pa(vaddr_end),
 						   page_size_mask,
 						   prot, init);
@@ -310,7 +281,7 @@ __kernel_physical_mapping_init(unsigned long paddr_start,
 		}
 
 		p4d = alloc_low_page();
-		paddr_last = phys_p4d_init(p4d, __pa(vaddr), __pa(vaddr_end),
+		paddr_last = phys_pud_init(p4d, __pa(vaddr), __pa(vaddr_end),
 					   page_size_mask, prot, init);
 
 		p4d_populate_init(&init_mm, p4d_offset(pgd, vaddr), (pud_t *) p4d, init);
