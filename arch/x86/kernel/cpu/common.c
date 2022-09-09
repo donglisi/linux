@@ -64,26 +64,6 @@
 
 #include "cpu.h"
 
-u32 elf_hwcap2 __read_mostly;
-
-/* all of these masks are initialized in setup_cpu_local_masks() */
-cpumask_var_t cpu_initialized_mask;
-cpumask_var_t cpu_callout_mask;
-cpumask_var_t cpu_callin_mask;
-
-/* representing cpus for which sibling maps can be computed */
-cpumask_var_t cpu_sibling_setup_mask;
-
-/* Number of siblings per CPU package */
-int smp_num_siblings = 1;
-EXPORT_SYMBOL(smp_num_siblings);
-
-/* Last level cache ID of each logical CPU */
-DEFINE_PER_CPU_READ_MOSTLY(u16, cpu_llc_id) = BAD_APICID;
-
-/* L2 cache ID of each logical CPU */
-DEFINE_PER_CPU_READ_MOSTLY(u16, cpu_l2c_id) = BAD_APICID;
-
 DEFINE_PER_CPU_PAGE_ALIGNED(struct gdt_page, gdt_page) = { .gdt = {
 	/*
 	 * We need valid kernel segments for data and code in long mode too
@@ -146,37 +126,6 @@ set_register:
 			  bits_changed);
 	}
 }
-#if IS_MODULE(CONFIG_LKDTM)
-EXPORT_SYMBOL_GPL(native_write_cr4);
-#endif
-
-void cr4_update_irqsoff(unsigned long set, unsigned long clear)
-{
-	unsigned long newval, cr4 = this_cpu_read(cpu_tlbstate.cr4);
-
-	lockdep_assert_irqs_disabled();
-
-	newval = (cr4 & ~clear) | set;
-	if (newval != cr4) {
-		this_cpu_write(cpu_tlbstate.cr4, newval);
-		__write_cr4(newval);
-	}
-}
-EXPORT_SYMBOL(cr4_update_irqsoff);
-
-/* Read the CR4 shadow. */
-unsigned long cr4_read_shadow(void)
-{
-	return this_cpu_read(cpu_tlbstate.cr4);
-}
-EXPORT_SYMBOL_GPL(cr4_read_shadow);
-
-__u32 cpu_caps_set[NCAPINTS + NBUGINTS] __aligned(sizeof(unsigned long));
-
-#ifdef CONFIG_X86_32
-/* The 32-bit entry code needs to find cpu_entry_area. */
-DEFINE_PER_CPU(struct cpu_entry_area *, cpu_entry_area);
-#endif
 
 DEFINE_PER_CPU_FIRST(struct fixed_percpu_data,
 		     fixed_percpu_data) __aligned(PAGE_SIZE) __visible;
