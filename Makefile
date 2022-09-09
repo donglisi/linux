@@ -9,7 +9,7 @@ else
         E := @echo
 endif
 
-$(shell bash -c "mkdir -p build/{{mm,init,lib/math},arch/x86/{entry,kernel/cpu,mm,lib},kernel/{sched,locking,printk}}")
+$(shell bash -c "mkdir -p build/{{mm,init,lib/math},arch/x86/{kernel/cpu,mm,lib},kernel/{sched,locking,printk}}")
 
 all: build/vmlinux.bin
 
@@ -26,7 +26,7 @@ CFLAGS = -D__KERNEL__ -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -
 		-Wp,-MD,$(dir $@).$(notdir $@).d -Wp,-MT,$@ $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' \
 		-DKBUILD_BASENAME='"$(basetarget)"' -DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 
-x86	:= $(addprefix arch/x86/, entry/entry_64.o $(addprefix mm/, init.o init_64.o) \
+x86	:= $(addprefix arch/x86/, $(addprefix mm/, init.o init_64.o) \
 		$(addprefix lib/, hweight.o memcpy_64.o clear_page_64.o memmove_64.o memset_64.o) \
 		$(addprefix kernel/, idt.o setup.o x86_init.o e820.o head_64.o head64.o early_printk.o cpu/common.o))
 kernel	:= $(addprefix kernel/, params.o range.o $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))

@@ -1,3 +1,21 @@
+.macro POP_REGS
+	popq %r15
+	popq %r14
+	popq %r13
+	popq %r12
+	popq %rbp
+	popq %rbx
+	popq %r11
+	popq %r10
+	popq %r9
+	popq %r8
+	popq %rax
+	popq %rcx
+	popq %rdx
+	popq %rsi
+	popq %rdi
+.endm
+
 	.text
 	.section ".head.text","ax"
 	.code64
@@ -6,15 +24,6 @@
 startup_64:
 	leaq	(__end_init_task - 168)(%rip), %rsp
 	leaq	_text(%rip), %rdi
-
-	movl	$0xc0000101, %ecx
-	movq	initial_gs(%rip), %rax
-	movq	$_text, %rdx
-	subq	%rdx, %rax
-	addq	%rdi, %rax
-	movq	%rax, %rdx
-	shrq	$32, %rdx
-	wrmsr
 
 	pushq	%rsi
 	call	startup_64_setup_env
@@ -62,11 +71,6 @@ secondary_startup_64:
 	movl	%eax,%es
 	movl	%eax,%fs
 	movl	%eax,%gs
-
-	movl	$0xc0000101,%ecx
-	movl	initial_gs(%rip),%eax
-	movl	initial_gs+4(%rip),%edx
-	wrmsr
 
 	movq	initial_stack(%rip), %rsp
 
@@ -126,19 +130,24 @@ initial_gs:
 initial_stack:
 	.quad	init_thread_union + ((1 << 12) << (2 + 0)) - 168
 
+	.code64
+	.section .entry.text, "ax"
+	.globl restore_regs_and_return_to_kernel
+restore_regs_and_return_to_kernel:
+	POP_REGS
+	addq $8, %rsp
+	iretq
+
 	.section ".init.text","ax"
 
 	.globl early_idt_handler_array
 early_idt_handler_array:
 	i = 0
 	.rept 32
-	.if ((0x20027d00 >> i) & 1) == 0
-		pushq	$0 # Dummy error code, to make stack frame uniform
-	.endif
-	pushq	$i # 72(%rsp) Vector number
-	jmp	early_idt_handler_common
-	i = i + 1
-	.fill	early_idt_handler_array + i*(9 + (4*0)) - ., 1, 0xcc
+		pushq	$i # 72(%rsp) Vector number
+		jmp	early_idt_handler_common
+		i = i + 1
+		.fill	early_idt_handler_array + i*(9 + (4*0)) - ., 1, 0xcc
 	.endr
 
 early_idt_handler_common:
