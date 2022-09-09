@@ -2,17 +2,6 @@
 #include <asm/io.h>
 #include <asm/setup.h>
 
-static int max_ypos = 25, max_xpos = 80;
-static int current_ypos = 25, current_xpos;
-
-static struct console early_vga_console = {
-	.name =		"earlyvga",
-	.flags =	CON_PRINTBUFFER,
-	.index =	-1,
-};
-
-/* Serial functions loosely based on a similar package from Klaus P. Gerlicher */
-
 static unsigned long early_serial_base = 0x3f8;  /* ttyS0 */
 
 #define XMTRDY          0x20
@@ -128,34 +117,6 @@ static __init void early_serial_init(char *s)
 	early_serial_hw_init(divisor);
 }
 
-#ifdef CONFIG_PCI
-static void mem32_serial_out(unsigned long addr, int offset, int value)
-{
-	u32 __iomem *vaddr = (u32 __iomem *)addr;
-	/* shift implied by pointer type */
-	writel(value, vaddr + offset);
-}
-
-static unsigned int mem32_serial_in(unsigned long addr, int offset)
-{
-	u32 __iomem *vaddr = (u32 __iomem *)addr;
-	/* shift implied by pointer type */
-	return readl(vaddr + offset);
-}
-
-/*
- * early_pci_serial_init()
- *
- * This function is invoked when the early_printk param starts with "pciserial"
- * The rest of the param should be "[force],B:D.F,baud", where B, D & F describe
- * the location of a PCI device that must be a UART device. "force" is optional
- * and overrides the use of an UART device with a wrong PCI class code.
- */
-static __init void early_pci_serial_init(char *s)
-{
-}
-#endif
-
 static struct console early_serial_console = {
 	.name =		"earlyser",
 	.write =	early_serial_write,
@@ -202,26 +163,6 @@ static int __init setup_early_printk(char *buf)
 			early_serial_init(buf + 4);
 			early_console_register(&early_serial_console, keep);
 		}
-		if (!strncmp(buf, "vga", 3) &&
-		    boot_params.screen_info.orig_video_isVGA == 1) {
-			max_xpos = boot_params.screen_info.orig_video_cols;
-			max_ypos = boot_params.screen_info.orig_video_lines;
-			current_ypos = boot_params.screen_info.orig_y;
-			early_console_register(&early_vga_console, keep);
-		}
-#ifdef CONFIG_EARLY_PRINTK_DBGP
-		if (!strncmp(buf, "dbgp", 4) && !early_dbgp_init(buf + 4))
-			early_console_register(&early_dbgp_console, keep);
-#endif
-#ifdef CONFIG_HVC_XEN
-		if (!strncmp(buf, "xen", 3))
-			early_console_register(&xenboot_console, keep);
-#endif
-#ifdef CONFIG_EARLY_PRINTK_USB_XDBC
-		if (!strncmp(buf, "xdbc", 4))
-			early_xdbc_parse_parameter(buf + 4, keep);
-#endif
-
 		buf++;
 	}
 	return 0;
