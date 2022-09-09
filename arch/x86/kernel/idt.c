@@ -1,16 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-only
-/*
- * Interrupt descriptor table related code
- */
-#include <linux/interrupt.h>
-
-#include <asm/cpu_entry_area.h>
-#include <asm/set_memory.h>
-#include <asm/traps.h>
-#include <asm/proto.h>
 #include <asm/desc.h>
-#include <asm/hw_irq.h>
-#include <asm/idtentry.h>
 
 #define IDT_TABLE_SIZE		(IDT_ENTRIES * sizeof(gate_desc))
 
