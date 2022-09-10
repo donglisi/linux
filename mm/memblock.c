@@ -1519,121 +1519,10 @@ void __init memblock_free_late(phys_addr_t base, phys_addr_t size)
 	}
 }
 
-/*
- * Remaining API functions
- */
-
-phys_addr_t __init_memblock memblock_phys_mem_size(void)
-{
-	return memblock.memory.total_size;
-}
-
-phys_addr_t __init_memblock memblock_reserved_size(void)
-{
-	return memblock.reserved.total_size;
-}
-
 /* lowest address */
 phys_addr_t __init_memblock memblock_start_of_DRAM(void)
 {
 	return memblock.memory.regions[0].base;
-}
-
-phys_addr_t __init_memblock memblock_end_of_DRAM(void)
-{
-	int idx = memblock.memory.cnt - 1;
-
-	return (memblock.memory.regions[idx].base + memblock.memory.regions[idx].size);
-}
-
-static phys_addr_t __init_memblock __find_max_addr(phys_addr_t limit)
-{
-	phys_addr_t max_addr = PHYS_ADDR_MAX;
-	struct memblock_region *r;
-
-	/*
-	 * translate the memory @limit size into the max address within one of
-	 * the memory memblock regions, if the @limit exceeds the total size
-	 * of those regions, max_addr will keep original value PHYS_ADDR_MAX
-	 */
-	for_each_mem_region(r) {
-		if (limit <= r->size) {
-			max_addr = r->base + limit;
-			break;
-		}
-		limit -= r->size;
-	}
-
-	return max_addr;
-}
-
-void __init memblock_enforce_memory_limit(phys_addr_t limit)
-{
-	phys_addr_t max_addr;
-
-	if (!limit)
-		return;
-
-	max_addr = __find_max_addr(limit);
-
-	/* @limit exceeds the total size of the memory, do nothing */
-	if (max_addr == PHYS_ADDR_MAX)
-		return;
-
-	/* truncate both memory and reserved regions */
-	memblock_remove_range(&memblock.memory, max_addr,
-			      PHYS_ADDR_MAX);
-	memblock_remove_range(&memblock.reserved, max_addr,
-			      PHYS_ADDR_MAX);
-}
-
-void __init memblock_cap_memory_range(phys_addr_t base, phys_addr_t size)
-{
-	int start_rgn, end_rgn;
-	int i, ret;
-
-	if (!size)
-		return;
-
-	if (!memblock_memory->total_size) {
-		pr_warn("%s: No memory registered yet\n", __func__);
-		return;
-	}
-
-	ret = memblock_isolate_range(&memblock.memory, base, size,
-						&start_rgn, &end_rgn);
-	if (ret)
-		return;
-
-	/* remove all the MAP regions */
-	for (i = memblock.memory.cnt - 1; i >= end_rgn; i--)
-		if (!memblock_is_nomap(&memblock.memory.regions[i]))
-			memblock_remove_region(&memblock.memory, i);
-
-	for (i = start_rgn - 1; i >= 0; i--)
-		if (!memblock_is_nomap(&memblock.memory.regions[i]))
-			memblock_remove_region(&memblock.memory, i);
-
-	/* truncate the reserved regions */
-	memblock_remove_range(&memblock.reserved, 0, base);
-	memblock_remove_range(&memblock.reserved,
-			base + size, PHYS_ADDR_MAX);
-}
-
-void __init memblock_mem_limit_remove_map(phys_addr_t limit)
-{
-	phys_addr_t max_addr;
-
-	if (!limit)
-		return;
-
-	max_addr = __find_max_addr(limit);
-
-	/* @limit exceeds the total size of the memory, do nothing */
-	if (max_addr == PHYS_ADDR_MAX)
-		return;
-
-	memblock_cap_memory_range(0, max_addr);
 }
 
 static int __init_memblock memblock_search(struct memblock_type *type, phys_addr_t addr)
@@ -1652,40 +1541,6 @@ static int __init_memblock memblock_search(struct memblock_type *type, phys_addr
 			return mid;
 	} while (left < right);
 	return -1;
-}
-
-bool __init_memblock memblock_is_reserved(phys_addr_t addr)
-{
-	return memblock_search(&memblock.reserved, addr) != -1;
-}
-
-bool __init_memblock memblock_is_memory(phys_addr_t addr)
-{
-	return memblock_search(&memblock.memory, addr) != -1;
-}
-
-bool __init_memblock memblock_is_map_memory(phys_addr_t addr)
-{
-	int i = memblock_search(&memblock.memory, addr);
-
-	if (i == -1)
-		return false;
-	return !memblock_is_nomap(&memblock.memory.regions[i]);
-}
-
-int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
-			 unsigned long *start_pfn, unsigned long *end_pfn)
-{
-	struct memblock_type *type = &memblock.memory;
-	int mid = memblock_search(type, PFN_PHYS(pfn));
-
-	if (mid == -1)
-		return -1;
-
-	*start_pfn = PFN_DOWN(type->regions[mid].base);
-	*end_pfn = PFN_DOWN(type->regions[mid].base + type->regions[mid].size);
-
-	return memblock_get_region_node(&type->regions[mid]);
 }
 
 /**
@@ -1707,22 +1562,6 @@ bool __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t siz
 		return false;
 	return (memblock.memory.regions[idx].base +
 		 memblock.memory.regions[idx].size) >= end;
-}
-
-/**
- * memblock_is_region_reserved - check if a region intersects reserved memory
- * @base: base of region to check
- * @size: size of region to check
- *
- * Check if the region [@base, @base + @size) intersects a reserved
- * memory block.
- *
- * Return:
- * True if they intersect, false if not.
- */
-bool __init_memblock memblock_is_region_reserved(phys_addr_t base, phys_addr_t size)
-{
-	return memblock_overlaps_region(&memblock.reserved, base, size);
 }
 
 void __init_memblock memblock_trim_memory(phys_addr_t align)
