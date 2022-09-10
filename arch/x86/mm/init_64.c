@@ -50,6 +50,10 @@ EXPORT_SYMBOL_GPL(__supported_pte_mask);
 /* Used in PAGE_KERNEL_* macros which are reasonably used out-of-tree: */
 EXPORT_SYMBOL(__default_kernel_pte_mask);
 
+struct mm_struct init_mm = {
+	.pgd		= swapper_pg_dir,
+};
+
 /*
  * Create PTE level page table mapping for physical addresses.
  * It returns the last physical address mapped.

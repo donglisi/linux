@@ -145,7 +145,7 @@ struct mem_cgroup;
  * struct kmem_cache related prototypes
  */
 void __init kmem_cache_init(void);
-bool slab_is_available(void);
+static inline bool slab_is_available(void) {return false;}
 
 struct kmem_cache *kmem_cache_create(const char *name, unsigned int size,
 			unsigned int align, slab_flags_t flags,

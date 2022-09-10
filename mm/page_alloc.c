@@ -7692,35 +7692,6 @@ static int __init cmdline_parse_core(char *p, unsigned long *core,
 	return 0;
 }
 
-/*
- * kernelcore=size sets the amount of memory for use for allocations that
- * cannot be reclaimed or migrated.
- */
-static int __init cmdline_parse_kernelcore(char *p)
-{
-	/* parse kernelcore=mirror */
-	if (parse_option_str(p, "mirror")) {
-		mirrored_kernelcore = true;
-		return 0;
-	}
-
-	return cmdline_parse_core(p, &required_kernelcore,
-				  &required_kernelcore_percent);
-}
-
-/*
- * movablecore=size sets the amount of memory for use for allocations that
- * can be reclaimed or migrated.
- */
-static int __init cmdline_parse_movablecore(char *p)
-{
-	return cmdline_parse_core(p, &required_movablecore,
-				  &required_movablecore_percent);
-}
-
-early_param("kernelcore", cmdline_parse_kernelcore);
-early_param("movablecore", cmdline_parse_movablecore);
-
 void adjust_managed_page_count(struct page *page, long count)
 {
 	atomic_long_add(count, &page_zone(page)->managed_pages);
