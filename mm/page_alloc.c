@@ -195,20 +195,9 @@ EXPORT_SYMBOL(init_on_free);
 
 static bool _init_on_alloc_enabled_early __read_mostly
 				= IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON);
-static int __init early_init_on_alloc(char *buf)
-{
-
-	return kstrtobool(buf, &_init_on_alloc_enabled_early);
-}
-early_param("init_on_alloc", early_init_on_alloc);
 
 static bool _init_on_free_enabled_early __read_mostly
 				= IS_ENABLED(CONFIG_INIT_ON_FREE_DEFAULT_ON);
-static int __init early_init_on_free(char *buf)
-{
-	return kstrtobool(buf, &_init_on_free_enabled_early);
-}
-early_param("init_on_free", early_init_on_free);
 
 /*
  * A cached value of the page's pageblock's migratetype, used when the page is
@@ -283,34 +272,11 @@ static void __free_pages_ok(struct page *page, unsigned int order,
  * don't need any ZONE_NORMAL reservation
  */
 int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES] = {
-#ifdef CONFIG_ZONE_DMA
-	[ZONE_DMA] = 256,
-#endif
-#ifdef CONFIG_ZONE_DMA32
-	[ZONE_DMA32] = 256,
-#endif
 	[ZONE_NORMAL] = 32,
-#ifdef CONFIG_HIGHMEM
-	[ZONE_HIGHMEM] = 0,
-#endif
-	[ZONE_MOVABLE] = 0,
 };
 
 static char * const zone_names[MAX_NR_ZONES] = {
-#ifdef CONFIG_ZONE_DMA
-	 "DMA",
-#endif
-#ifdef CONFIG_ZONE_DMA32
-	 "DMA32",
-#endif
 	 "Normal",
-#ifdef CONFIG_HIGHMEM
-	 "HighMem",
-#endif
-	 "Movable",
-#ifdef CONFIG_ZONE_DEVICE
-	 "Device",
-#endif
 };
 
 const char * const migratetype_names[MIGRATE_TYPES] = {
@@ -318,23 +284,11 @@ const char * const migratetype_names[MIGRATE_TYPES] = {
 	"Movable",
 	"Reclaimable",
 	"HighAtomic",
-#ifdef CONFIG_CMA
-	"CMA",
-#endif
-#ifdef CONFIG_MEMORY_ISOLATION
-	"Isolate",
-#endif
 };
 
 compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS] = {
 	[NULL_COMPOUND_DTOR] = NULL,
 	[COMPOUND_PAGE_DTOR] = free_compound_page,
-#ifdef CONFIG_HUGETLB_PAGE
-	[HUGETLB_PAGE_DTOR] = free_huge_page,
-#endif
-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-	[TRANSHUGE_PAGE_DTOR] = free_transhuge_page,
-#endif
 };
 
 int min_free_kbytes = 1024;
@@ -368,67 +322,6 @@ EXPORT_SYMBOL(nr_online_nodes);
 
 int page_group_by_mobility_disabled __read_mostly;
 
-#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-/*
- * During boot we initialize deferred pages on-demand, as needed, but once
- * page_alloc_init_late() has finished, the deferred pages are all initialized,
- * and we can permanently disable that path.
- */
-static DEFINE_STATIC_KEY_TRUE(deferred_pages);
-
-static inline bool deferred_pages_enabled(void)
-{
-	return static_branch_unlikely(&deferred_pages);
-}
-
-/* Returns true if the struct page for the pfn is uninitialised */
-static inline bool __meminit early_page_uninitialised(unsigned long pfn)
-{
-	int nid = early_pfn_to_nid(pfn);
-
-	if (node_online(nid) && pfn >= NODE_DATA(nid)->first_deferred_pfn)
-		return true;
-
-	return false;
-}
-
-/*
- * Returns true when the remaining initialisation should be deferred until
- * later in the boot cycle when it can be parallelised.
- */
-static bool __meminit
-defer_init(int nid, unsigned long pfn, unsigned long end_pfn)
-{
-	static unsigned long prev_end_pfn, nr_initialised;
-
-	/*
-	 * prev_end_pfn static that contains the end of previous zone
-	 * No need to protect because called very early in boot before smp_init.
-	 */
-	if (prev_end_pfn != end_pfn) {
-		prev_end_pfn = end_pfn;
-		nr_initialised = 0;
-	}
-
-	/* Always populate low zones for address-constrained allocations */
-	if (end_pfn < pgdat_end_pfn(NODE_DATA(nid)))
-		return false;
-
-	if (NODE_DATA(nid)->first_deferred_pfn != ULONG_MAX)
-		return true;
-	/*
-	 * We start only with one section of pages, more pages are added as
-	 * needed until the rest of deferred pages are initialized.
-	 */
-	nr_initialised++;
-	if ((nr_initialised > PAGES_PER_SECTION) &&
-	    (pfn & (PAGES_PER_SECTION - 1)) == 0) {
-		NODE_DATA(nid)->first_deferred_pfn = pfn;
-		return true;
-	}
-	return false;
-}
-#else
 static inline bool deferred_pages_enabled(void)
 {
 	return false;
@@ -443,7 +336,6 @@ static inline bool defer_init(int nid, unsigned long pfn, unsigned long end_pfn)
 {
 	return false;
 }
-#endif
 
 /* Return a pointer to the bitmap storing bits affecting a block of pages */
 static inline unsigned long *get_pageblock_bitmap(const struct page *page,
@@ -7509,32 +7401,6 @@ out:
 	node_states[N_MEMORY] = saved_node_state;
 }
 
-/* Any regular or high memory on that node ? */
-static void check_for_memory(pg_data_t *pgdat, int nid)
-{
-	enum zone_type zone_type;
-
-	for (zone_type = 0; zone_type <= ZONE_MOVABLE - 1; zone_type++) {
-		struct zone *zone = &pgdat->node_zones[zone_type];
-		if (populated_zone(zone)) {
-			if (IS_ENABLED(CONFIG_HIGHMEM))
-				node_set_state(nid, N_HIGH_MEMORY);
-			if (zone_type <= ZONE_NORMAL)
-				node_set_state(nid, N_NORMAL_MEMORY);
-			break;
-		}
-	}
-}
-
-/*
- * Some architectures, e.g. ARC may have ZONE_HIGHMEM below ZONE_NORMAL. For
- * such cases we allow max_zone_pfn sorted in the descending order
- */
-bool __weak arch_has_descending_max_zone_pfns(void)
-{
-	return false;
-}
-
 /**
  * free_area_init - Initialise all pg_data_t and zone data
  * @max_zone_pfn: an array of max PFNs for each zone
@@ -7552,7 +7418,6 @@ void __init free_area_init(unsigned long *max_zone_pfn)
 {
 	unsigned long start_pfn, end_pfn;
 	int i, nid, zone;
-	bool descending;
 
 	/* Record where the zone boundaries are */
 	memset(arch_zone_lowest_possible_pfn, 0,
@@ -7561,13 +7426,9 @@ void __init free_area_init(unsigned long *max_zone_pfn)
 				sizeof(arch_zone_highest_possible_pfn));
 
 	start_pfn = find_min_pfn_with_active_regions();
-	descending = arch_has_descending_max_zone_pfns();
 
 	for (i = 0; i < MAX_NR_ZONES; i++) {
-		if (descending)
-			zone = MAX_NR_ZONES - i - 1;
-		else
-			zone = i;
+		zone = i;
 
 		if (zone == ZONE_MOVABLE)
 			continue;
@@ -7659,7 +7520,6 @@ void __init free_area_init(unsigned long *max_zone_pfn)
 		/* Any memory on that node */
 		if (pgdat->node_present_pages)
 			node_set_state(nid, N_MEMORY);
-		check_for_memory(pgdat, nid);
 	}
 
 	memmap_init();
@@ -7690,53 +7550,6 @@ static int __init cmdline_parse_core(char *p, unsigned long *core,
 		*percent = 0UL;
 	}
 	return 0;
-}
-
-void adjust_managed_page_count(struct page *page, long count)
-{
-	atomic_long_add(count, &page_zone(page)->managed_pages);
-	totalram_pages_add(count);
-#ifdef CONFIG_HIGHMEM
-	if (PageHighMem(page))
-		totalhigh_pages_add(count);
-#endif
-}
-EXPORT_SYMBOL(adjust_managed_page_count);
-
-unsigned long free_reserved_area(void *start, void *end, int poison, const char *s)
-{
-	void *pos;
-	unsigned long pages = 0;
-
-	start = (void *)PAGE_ALIGN((unsigned long)start);
-	end = (void *)((unsigned long)end & PAGE_MASK);
-	for (pos = start; pos < end; pos += PAGE_SIZE, pages++) {
-		struct page *page = virt_to_page(pos);
-		void *direct_map_addr;
-
-		/*
-		 * 'direct_map_addr' might be different from 'pos'
-		 * because some architectures' virt_to_page()
-		 * work with aliases.  Getting the direct map
-		 * address ensures that we get a _writeable_
-		 * alias for the memset().
-		 */
-		direct_map_addr = page_address(page);
-		/*
-		 * Perform a kasan-unchecked memset() since this memory
-		 * has not been initialized.
-		 */
-		direct_map_addr = kasan_reset_tag(direct_map_addr);
-		if ((unsigned int)poison <= 0xFF)
-			memset(direct_map_addr, poison, PAGE_SIZE);
-
-		free_reserved_page(page);
-	}
-
-	if (pages && s)
-		pr_info("Freeing %s memory: %ldK\n", s, K(pages));
-
-	return pages;
 }
 
 void __init mem_init_print_info(void)
