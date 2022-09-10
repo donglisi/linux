@@ -322,21 +322,6 @@ EXPORT_SYMBOL(nr_online_nodes);
 
 int page_group_by_mobility_disabled __read_mostly;
 
-static inline bool deferred_pages_enabled(void)
-{
-	return false;
-}
-
-static inline bool early_page_uninitialised(unsigned long pfn)
-{
-	return false;
-}
-
-static inline bool defer_init(int nid, unsigned long pfn, unsigned long end_pfn)
-{
-	return false;
-}
-
 /* Return a pointer to the bitmap storing bits affecting a block of pages */
 static inline unsigned long *get_pageblock_bitmap(const struct page *page,
 							unsigned long pfn)
@@ -446,56 +431,6 @@ void set_pageblock_migratetype(struct page *page, int migratetype)
 	set_pfnblock_flags_mask(page, (unsigned long)migratetype,
 				page_to_pfn(page), MIGRATETYPE_MASK);
 }
-
-#ifdef CONFIG_DEBUG_VM
-static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
-{
-	int ret = 0;
-	unsigned seq;
-	unsigned long pfn = page_to_pfn(page);
-	unsigned long sp, start_pfn;
-
-	do {
-		seq = zone_span_seqbegin(zone);
-		start_pfn = zone->zone_start_pfn;
-		sp = zone->spanned_pages;
-		if (!zone_spans_pfn(zone, pfn))
-			ret = 1;
-	} while (zone_span_seqretry(zone, seq));
-
-	if (ret)
-		pr_err("page 0x%lx outside node %d zone %s [ 0x%lx - 0x%lx ]\n",
-			pfn, zone_to_nid(zone), zone->name,
-			start_pfn, start_pfn + sp);
-
-	return ret;
-}
-
-static int page_is_consistent(struct zone *zone, struct page *page)
-{
-	if (zone != page_zone(page))
-		return 0;
-
-	return 1;
-}
-/*
- * Temporary debugging check for pages not lying within a given zone.
- */
-static int __maybe_unused bad_range(struct zone *zone, struct page *page)
-{
-	if (page_outside_zone_boundaries(zone, page))
-		return 1;
-	if (!page_is_consistent(zone, page))
-		return 1;
-
-	return 0;
-}
-#else
-static inline int __maybe_unused bad_range(struct zone *zone, struct page *page)
-{
-	return 0;
-}
-#endif
 
 static void bad_page(struct page *page, const char *reason)
 {
@@ -925,7 +860,6 @@ static inline void __free_one_page(struct page *page,
 		__mod_zone_freepage_state(zone, 1 << order, migratetype);
 
 	VM_BUG_ON_PAGE(pfn & ((1 << order) - 1), page);
-	VM_BUG_ON_PAGE(bad_range(zone, page), page);
 
 	while (order < MAX_ORDER - 1) {
 		if (compaction_capture(capc, page, order, migratetype)) {
@@ -1179,8 +1113,7 @@ out:
  */
 static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
 {
-	return deferred_pages_enabled() ||
-	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
+	return (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
 		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
 	       PageSkipKASanPoison(page);
 }
@@ -1452,32 +1385,6 @@ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
 #endif
 }
 
-#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-static void __meminit init_reserved_page(unsigned long pfn)
-{
-	pg_data_t *pgdat;
-	int nid, zid;
-
-	if (!early_page_uninitialised(pfn))
-		return;
-
-	nid = early_pfn_to_nid(pfn);
-	pgdat = NODE_DATA(nid);
-
-	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-		struct zone *zone = &pgdat->node_zones[zid];
-
-		if (zone_spans_pfn(zone, pfn))
-			break;
-	}
-	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
-}
-#else
-static inline void init_reserved_page(unsigned long pfn)
-{
-}
-#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
-
 /*
  * Initialised pages do not have PageReserved set. This function is
  * called for each range allocated by the bootmem allocator and
@@ -1492,8 +1399,6 @@ void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
 	for (; start_pfn < end_pfn; start_pfn++) {
 		if (pfn_valid(start_pfn)) {
 			struct page *page = pfn_to_page(start_pfn);
-
-			init_reserved_page(start_pfn);
 
 			/* Avoid false-positive PageTail() */
 			INIT_LIST_HEAD(&page->lru);
@@ -1616,8 +1521,6 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
 void __init memblock_free_pages(struct page *page, unsigned long pfn,
 							unsigned int order)
 {
-	if (early_page_uninitialised(pfn))
-		return;
 	__free_pages_core(page, order);
 }
 
@@ -2138,7 +2041,6 @@ static inline void expand(struct zone *zone, struct page *page,
 	while (high > low) {
 		high--;
 		size >>= 1;
-		VM_BUG_ON_PAGE(bad_range(zone, &page[size]), &page[size]);
 
 		/*
 		 * Mark as guard pages (or page), that will allow to
@@ -3509,90 +3411,12 @@ out:
 		wakeup_kswapd(zone, 0, 0, zone_idx(zone));
 	}
 
-	VM_BUG_ON_PAGE(page && bad_range(zone, page), page);
 	return page;
 
 failed:
 	spin_unlock_irqrestore(&zone->lock, flags);
 	return NULL;
 }
-
-#ifdef CONFIG_FAIL_PAGE_ALLOC
-
-static struct {
-	struct fault_attr attr;
-
-	bool ignore_gfp_highmem;
-	bool ignore_gfp_reclaim;
-	u32 min_order;
-} fail_page_alloc = {
-	.attr = FAULT_ATTR_INITIALIZER,
-	.ignore_gfp_reclaim = true,
-	.ignore_gfp_highmem = true,
-	.min_order = 1,
-};
-
-static int __init setup_fail_page_alloc(char *str)
-{
-	return setup_fault_attr(&fail_page_alloc.attr, str);
-}
-__setup("fail_page_alloc=", setup_fail_page_alloc);
-
-static bool __should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
-{
-	if (order < fail_page_alloc.min_order)
-		return false;
-	if (gfp_mask & __GFP_NOFAIL)
-		return false;
-	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
-		return false;
-	if (fail_page_alloc.ignore_gfp_reclaim &&
-			(gfp_mask & __GFP_DIRECT_RECLAIM))
-		return false;
-
-	if (gfp_mask & __GFP_NOWARN)
-		fail_page_alloc.attr.no_warn = true;
-
-	return should_fail(&fail_page_alloc.attr, 1 << order);
-}
-
-#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
-
-static int __init fail_page_alloc_debugfs(void)
-{
-	umode_t mode = S_IFREG | 0600;
-	struct dentry *dir;
-
-	dir = fault_create_debugfs_attr("fail_page_alloc", NULL,
-					&fail_page_alloc.attr);
-
-	debugfs_create_bool("ignore-gfp-wait", mode, dir,
-			    &fail_page_alloc.ignore_gfp_reclaim);
-	debugfs_create_bool("ignore-gfp-highmem", mode, dir,
-			    &fail_page_alloc.ignore_gfp_highmem);
-	debugfs_create_u32("min-order", mode, dir, &fail_page_alloc.min_order);
-
-	return 0;
-}
-
-late_initcall(fail_page_alloc_debugfs);
-
-#endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
-
-#else /* CONFIG_FAIL_PAGE_ALLOC */
-
-static inline bool __should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
-{
-	return false;
-}
-
-#endif /* CONFIG_FAIL_PAGE_ALLOC */
-
-noinline bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
-{
-	return __should_fail_alloc_page(gfp_mask, order);
-}
-ALLOW_ERROR_INJECTION(should_fail_alloc_page, TRUE);
 
 static inline long __zone_watermark_unusable_free(struct zone *z,
 				unsigned int order, unsigned int alloc_flags)
@@ -4928,9 +4752,6 @@ static inline bool prepare_alloc_pages(gfp_t gfp_mask, unsigned int order,
 
 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
 
-	if (should_fail_alloc_page(gfp_mask, order))
-		return false;
-
 	*alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, *alloc_flags);
 
 	/* Dirty zone balancing only done in the fast path */
@@ -6025,8 +5846,6 @@ void __meminit memmap_init_range(unsigned long size, int nid, unsigned long zone
 		if (context == MEMINIT_EARLY) {
 			if (overlap_memmap_init(zone, &pfn))
 				continue;
-			if (defer_init(nid, pfn, zone_end_pfn))
-				break;
 		}
 
 		page = pfn_to_page(pfn);
