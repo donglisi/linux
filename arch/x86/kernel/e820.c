@@ -197,7 +197,7 @@ void __init e820__memory_setup(void)
 	/* This is a firmware interface ABI - make sure we don't break it: */
 	BUILD_BUG_ON(sizeof(struct boot_e820_entry) != 20);
 
-	who = x86_init.resources.memory_setup();
+	who = e820__memory_setup_default();
 
 	pr_info("BIOS-provided physical RAM map:\n");
 	e820__print_table(who);

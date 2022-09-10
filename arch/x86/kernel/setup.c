@@ -51,6 +51,6 @@ void __init setup_arch(char **cmdline_p)
 
 	init_mem_mapping();
 
-	x86_init.paging.pagetable_init();
+	paging_init();
 }
 
