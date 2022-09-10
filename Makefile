@@ -3,18 +3,18 @@ CC := gcc
 
 ifeq ("$(origin V)", "command line")
         Q :=
-        E = @\#
+        E := @\#
 else
         Q := @
         E := @echo
 endif
 
 $(shell bash -c "mkdir -p \
-	      build/{include,mm,block/partitions,init,security,lib/{math,crypto},fs/{proc,ext2,ramfs}} \
-	      build/arch/x86/{include,entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,kvm,lib,boot/compressed} \
-	      build/drivers/{base/power,pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc,platform/x86} \
+	      build/{mm,block/partitions,init,security,lib/{math,crypto},fs/{proc,ext2,ramfs}} \
+	      build/arch/x86/{entry/vdso,kernel/{cpu,fpu,apic},mm/pat,events,pci,lib} \
+	      build/drivers/{base,pci/{pcie,msi},clocksource,virtio,char,net,rtc,block,tty/hvc} \
 	      build/net/{ipv6,ethernet,ethtool,sched,unix,netlink,core} \
-	      build/kernel/{events,sched,entry,bpf,locking,futex,printk,dma,irq,rcu,time}")
+	      build/kernel/{events,sched,entry,bpf,locking,futex,printk,irq,rcu,time}")
 
 all: build/vmlinux.bin
 
@@ -116,7 +116,7 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
-objs = $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
+objs	:= $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
 export objs
 
 $(foreach i, x86 block drivers fs init kernel lib mm net security lib_lib lib_x86, $(eval $i: $(addprefix build/, $($i))))
