@@ -114,3 +114,5 @@ char seq_printf = 0xf4;
 char seq_putc = 0xf4;
 char seq_put_decimal_ull = 0xf4;
 char seq_puts = 0xf4;
+char vm_zone_stat = 0xf4;
+char vm_node_stat = 0xf4;
