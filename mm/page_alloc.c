@@ -2215,61 +2215,6 @@ void drain_all_pages(struct zone *zone)
 	__drain_all_pages(zone, false);
 }
 
-#ifdef CONFIG_HIBERNATION
-
-/*
- * Touch the watchdog for every WD_PAGE_COUNT pages.
- */
-#define WD_PAGE_COUNT	(128*1024)
-
-void mark_free_pages(struct zone *zone)
-{
-	unsigned long pfn, max_zone_pfn, page_count = WD_PAGE_COUNT;
-	unsigned long flags;
-	unsigned int order, t;
-	struct page *page;
-
-	if (zone_is_empty(zone))
-		return;
-
-	spin_lock_irqsave(&zone->lock, flags);
-
-	max_zone_pfn = zone_end_pfn(zone);
-	for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++)
-		if (pfn_valid(pfn)) {
-			page = pfn_to_page(pfn);
-
-			if (!--page_count) {
-				touch_nmi_watchdog();
-				page_count = WD_PAGE_COUNT;
-			}
-
-			if (page_zone(page) != zone)
-				continue;
-
-			if (!swsusp_page_is_forbidden(page))
-				swsusp_unset_page_free(page);
-		}
-
-	for_each_migratetype_order(order, t) {
-		list_for_each_entry(page,
-				&zone->free_area[order].free_list[t], lru) {
-			unsigned long i;
-
-			pfn = page_to_pfn(page);
-			for (i = 0; i < (1UL << order); i++) {
-				if (!--page_count) {
-					touch_nmi_watchdog();
-					page_count = WD_PAGE_COUNT;
-				}
-				swsusp_set_page_free(pfn_to_page(pfn + i));
-			}
-		}
-	}
-	spin_unlock_irqrestore(&zone->lock, flags);
-}
-#endif /* CONFIG_PM */
-
 static bool free_unref_page_prepare(struct page *page, unsigned long pfn,
 							unsigned int order)
 {
@@ -2450,34 +2395,6 @@ void free_unref_page_list(struct list_head *list)
 	local_unlock_irqrestore(&pagesets.lock, flags);
 }
 
-/*
- * Update NUMA hit/miss statistics
- *
- * Must be called with interrupts disabled.
- */
-static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
-				   long nr_account)
-{
-#ifdef CONFIG_NUMA
-	enum numa_stat_item local_stat = NUMA_LOCAL;
-
-	/* skip numa counters update if numa stats is disabled */
-	if (!static_branch_likely(&vm_numa_stat_key))
-		return;
-
-	if (zone_to_nid(z) != numa_node_id())
-		local_stat = NUMA_OTHER;
-
-	if (zone_to_nid(z) == zone_to_nid(preferred_zone))
-		__count_numa_events(z, NUMA_HIT, nr_account);
-	else {
-		__count_numa_events(z, NUMA_MISS, nr_account);
-		__count_numa_events(preferred_zone, NUMA_FOREIGN, nr_account);
-	}
-	__count_numa_events(z, local_stat, nr_account);
-#endif
-}
-
 /* Remove page from the per-cpu list, caller must protect the list */
 static inline
 struct page *__rmqueue_pcplist(struct zone *zone, unsigned int order,
@@ -2544,7 +2461,6 @@ static struct page *rmqueue_pcplist(struct zone *preferred_zone,
 	local_unlock_irqrestore(&pagesets.lock, flags);
 	if (page) {
 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1);
-		zone_statistics(preferred_zone, zone, 1);
 	}
 	return page;
 }
@@ -2602,7 +2518,6 @@ struct page *rmqueue(struct zone *preferred_zone,
 	} while (check_new_pages(page, order));
 
 	__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
-	zone_statistics(preferred_zone, zone, 1);
 
 out:
 	/* Separate test+clear to avoid unnecessary atomics */
@@ -2693,12 +2608,6 @@ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
 				return true;
 		}
 
-#ifdef CONFIG_CMA
-		if ((alloc_flags & ALLOC_CMA) &&
-		    !free_area_empty(area, MIGRATE_CMA)) {
-			return true;
-		}
-#endif
 		if (alloc_harder && !free_area_empty(area, MIGRATE_HIGHATOMIC))
 			return true;
 	}
@@ -2768,20 +2677,10 @@ bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
 								free_pages);
 }
 
-#ifdef CONFIG_NUMA
-int __read_mostly node_reclaim_distance = RECLAIM_DISTANCE;
-
-static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
-{
-	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <=
-				node_reclaim_distance;
-}
-#else	/* CONFIG_NUMA */
 static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
 {
 	return true;
 }
-#endif	/* CONFIG_NUMA */
 
 /*
  * The restriction on ZONE_DMA32 as being a suitable zone to use to avoid
@@ -2802,24 +2701,6 @@ alloc_flags_nofragment(struct zone *zone, gfp_t gfp_mask)
 	 */
 	alloc_flags = (__force int) (gfp_mask & __GFP_KSWAPD_RECLAIM);
 
-#ifdef CONFIG_ZONE_DMA32
-	if (!zone)
-		return alloc_flags;
-
-	if (zone_idx(zone) != ZONE_NORMAL)
-		return alloc_flags;
-
-	/*
-	 * If ZONE_DMA32 exists, assume it is the one after ZONE_NORMAL and
-	 * the pointer is within zone->zone_pgdat->node_zones[]. Also assume
-	 * on UMA that if Normal is populated then so is DMA32.
-	 */
-	BUILD_BUG_ON(ZONE_NORMAL - ZONE_DMA32 != 1);
-	if (nr_online_nodes > 1 && !populated_zone(--zone))
-		return alloc_flags;
-
-	alloc_flags |= ALLOC_NOFRAGMENT;
-#endif /* CONFIG_ZONE_DMA32 */
 	return alloc_flags;
 }
 
@@ -2827,10 +2708,6 @@ alloc_flags_nofragment(struct zone *zone, gfp_t gfp_mask)
 static inline unsigned int gfp_to_alloc_flags_cma(gfp_t gfp_mask,
 						  unsigned int alloc_flags)
 {
-#ifdef CONFIG_CMA
-	if (gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-		alloc_flags |= ALLOC_CMA;
-#endif
 	return alloc_flags;
 }
 
@@ -2915,16 +2792,6 @@ retry:
 				       gfp_mask)) {
 			int ret;
 
-#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-			/*
-			 * Watermark failed for this zone, but see if we can
-			 * grow this zone if it contains deferred pages.
-			 */
-			if (static_branch_unlikely(&deferred_pages)) {
-				if (_deferred_grow_zone(zone, order))
-					goto try_this_zone;
-			}
-#endif
 			/* Checked here to keep the fast path fast */
 			BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
 			if (alloc_flags & ALLOC_NO_WATERMARKS)
@@ -2966,14 +2833,6 @@ try_this_zone:
 				reserve_highatomic_pageblock(page, zone, order);
 
 			return page;
-		} else {
-#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-			/* Try again if zone has deferred pages */
-			if (static_branch_unlikely(&deferred_pages)) {
-				if (_deferred_grow_zone(zone, order))
-					goto try_this_zone;
-			}
-#endif
 		}
 	}
 
@@ -3135,148 +2994,6 @@ out:
  */
 #define MAX_COMPACT_RETRIES 16
 
-#ifdef CONFIG_COMPACTION
-/* Try memory compaction for high-order allocations before reclaim */
-static struct page *
-__alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
-		unsigned int alloc_flags, const struct alloc_context *ac,
-		enum compact_priority prio, enum compact_result *compact_result)
-{
-	struct page *page = NULL;
-	unsigned long pflags;
-	unsigned int noreclaim_flag;
-
-	if (!order)
-		return NULL;
-
-	psi_memstall_enter(&pflags);
-	delayacct_compact_start();
-	noreclaim_flag = memalloc_noreclaim_save();
-
-	*compact_result = try_to_compact_pages(gfp_mask, order, alloc_flags, ac,
-								prio, &page);
-
-	memalloc_noreclaim_restore(noreclaim_flag);
-	psi_memstall_leave(&pflags);
-	delayacct_compact_end();
-
-	if (*compact_result == COMPACT_SKIPPED)
-		return NULL;
-	/*
-	 * At least in one zone compaction wasn't deferred or skipped, so let's
-	 * count a compaction stall
-	 */
-	count_vm_event(COMPACTSTALL);
-
-	/* Prep a captured page if available */
-	if (page)
-		prep_new_page(page, order, gfp_mask, alloc_flags);
-
-	/* Try get a page from the freelist if available */
-	if (!page)
-		page = get_page_from_freelist(gfp_mask, order, alloc_flags, ac);
-
-	if (page) {
-		struct zone *zone = page_zone(page);
-
-		zone->compact_blockskip_flush = false;
-		compaction_defer_reset(zone, order, true);
-		count_vm_event(COMPACTSUCCESS);
-		return page;
-	}
-
-	/*
-	 * It's bad if compaction run occurs and fails. The most likely reason
-	 * is that pages exist, but not enough to satisfy watermarks.
-	 */
-	count_vm_event(COMPACTFAIL);
-
-	cond_resched();
-
-	return NULL;
-}
-
-static inline bool
-should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
-		     enum compact_result compact_result,
-		     enum compact_priority *compact_priority,
-		     int *compaction_retries)
-{
-	int max_retries = MAX_COMPACT_RETRIES;
-	int min_priority;
-	bool ret = false;
-	int retries = *compaction_retries;
-	enum compact_priority priority = *compact_priority;
-
-	if (!order)
-		return false;
-
-	if (fatal_signal_pending(current))
-		return false;
-
-	if (compaction_made_progress(compact_result))
-		(*compaction_retries)++;
-
-	/*
-	 * compaction considers all the zone as desperately out of memory
-	 * so it doesn't really make much sense to retry except when the
-	 * failure could be caused by insufficient priority
-	 */
-	if (compaction_failed(compact_result))
-		goto check_priority;
-
-	/*
-	 * compaction was skipped because there are not enough order-0 pages
-	 * to work with, so we retry only if it looks like reclaim can help.
-	 */
-	if (compaction_needs_reclaim(compact_result)) {
-		ret = compaction_zonelist_suitable(ac, order, alloc_flags);
-		goto out;
-	}
-
-	/*
-	 * make sure the compaction wasn't deferred or didn't bail out early
-	 * due to locks contention before we declare that we should give up.
-	 * But the next retry should use a higher priority if allowed, so
-	 * we don't just keep bailing out endlessly.
-	 */
-	if (compaction_withdrawn(compact_result)) {
-		goto check_priority;
-	}
-
-	/*
-	 * !costly requests are much more important than __GFP_RETRY_MAYFAIL
-	 * costly ones because they are de facto nofail and invoke OOM
-	 * killer to move on while costly can fail and users are ready
-	 * to cope with that. 1/4 retries is rather arbitrary but we
-	 * would need much more detailed feedback from compaction to
-	 * make a better decision.
-	 */
-	if (order > PAGE_ALLOC_COSTLY_ORDER)
-		max_retries /= 4;
-	if (*compaction_retries <= max_retries) {
-		ret = true;
-		goto out;
-	}
-
-	/*
-	 * Make sure there are attempts at the highest priority if we exhausted
-	 * all retries or failed at the lower priorities.
-	 */
-check_priority:
-	min_priority = (order > PAGE_ALLOC_COSTLY_ORDER) ?
-			MIN_COMPACT_COSTLY_PRIORITY : MIN_COMPACT_PRIORITY;
-
-	if (*compact_priority > min_priority) {
-		(*compact_priority)--;
-		*compaction_retries = 0;
-		ret = true;
-	}
-out:
-	trace_compact_retry(order, priority, compact_result, retries, max_retries, ret);
-	return ret;
-}
-#else
 static inline struct page *
 __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
 		unsigned int alloc_flags, const struct alloc_context *ac,
@@ -3312,66 +3029,6 @@ should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_fla
 	}
 	return false;
 }
-#endif /* CONFIG_COMPACTION */
-
-#ifdef CONFIG_LOCKDEP
-static struct lockdep_map __fs_reclaim_map =
-	STATIC_LOCKDEP_MAP_INIT("fs_reclaim", &__fs_reclaim_map);
-
-static bool __need_reclaim(gfp_t gfp_mask)
-{
-	/* no reclaim without waiting on it */
-	if (!(gfp_mask & __GFP_DIRECT_RECLAIM))
-		return false;
-
-	/* this guy won't enter reclaim */
-	if (current->flags & PF_MEMALLOC)
-		return false;
-
-	if (gfp_mask & __GFP_NOLOCKDEP)
-		return false;
-
-	return true;
-}
-
-void __fs_reclaim_acquire(unsigned long ip)
-{
-	lock_acquire_exclusive(&__fs_reclaim_map, 0, 0, NULL, ip);
-}
-
-void __fs_reclaim_release(unsigned long ip)
-{
-	lock_release(&__fs_reclaim_map, ip);
-}
-
-void fs_reclaim_acquire(gfp_t gfp_mask)
-{
-	gfp_mask = current_gfp_context(gfp_mask);
-
-	if (__need_reclaim(gfp_mask)) {
-		if (gfp_mask & __GFP_FS)
-			__fs_reclaim_acquire(_RET_IP_);
-
-#ifdef CONFIG_MMU_NOTIFIER
-		lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
-		lock_map_release(&__mmu_notifier_invalidate_range_start_map);
-#endif
-
-	}
-}
-EXPORT_SYMBOL_GPL(fs_reclaim_acquire);
-
-void fs_reclaim_release(gfp_t gfp_mask)
-{
-	gfp_mask = current_gfp_context(gfp_mask);
-
-	if (__need_reclaim(gfp_mask)) {
-		if (gfp_mask & __GFP_FS)
-			__fs_reclaim_release(_RET_IP_);
-	}
-}
-EXPORT_SYMBOL_GPL(fs_reclaim_release);
-#endif
 
 /* Perform direct synchronous page reclaim */
 static unsigned long
@@ -4109,7 +3766,6 @@ unsigned long __alloc_pages_bulk(gfp_t gfp, int preferred_nid,
 	local_unlock_irqrestore(&pagesets.lock, flags);
 
 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
-	zone_statistics(ac.preferred_zoneref->zone, zone, nr_account);
 
 out:
 	return nr_populated;
