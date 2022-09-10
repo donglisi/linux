@@ -42,10 +42,6 @@ build/%.o: %.S
 	$(E) "  AS     " $@
 	$(Q) $(CC) $(include) $(CFLAGS) -D__ASSEMBLY__ -c -o $@ $<
 
-build/%.lds: %.lds.S
-	$(E) "  LDS    " $@
-	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
-
 build/vmlinux: arch/x86/kernel/vmlinux.lds $(objs)
 	$(E) "  LD     " $@
 	$(Q) ld -m elf_x86_64 -z max-page-size=0x200000 --script=$< -o $@ $(objs)
