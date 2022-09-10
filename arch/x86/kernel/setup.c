@@ -4,14 +4,6 @@
 
 #include <asm/prom.h>
 
-/*
- * max_low_pfn_mapped: highest directly mapped pfn < 4 GB
- * max_pfn_mapped:     highest directly mapped pfn > 4 GB
- *
- * The direct mapping only covers E820_TYPE_RAM regions, so the ranges and gaps are
- * represented by pfn_mapped[].
- */
-unsigned long max_low_pfn_mapped;
 unsigned long max_pfn_mapped;
 
 unsigned long _brk_start = (unsigned long)__brk_base;
@@ -43,18 +35,15 @@ void * __init extend_brk(size_t size, size_t align)
 	return ret;
 }
 
+int __init setup_early_printk(char *buf);
+
 void __init setup_arch(char **cmdline_p)
 {
-	printk(KERN_INFO "Command line: %s\n", boot_command_line);
-
 	memblock_reserve(0, (1024 << 10) * 16);
 
 	e820__memory_setup();
 
-	strscpy(command_line, boot_command_line, COMMAND_LINE_SIZE);
-	*cmdline_p = command_line;
-
-	parse_early_param();
+	setup_early_printk("earlyprintk=serial");
 
 	max_pfn = e820__end_of_ram_pfn();
 

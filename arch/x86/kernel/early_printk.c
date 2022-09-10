@@ -139,7 +139,7 @@ static void early_console_register(struct console *con, int keep_early)
 	register_console(early_console);
 }
 
-static int __init setup_early_printk(char *buf)
+int __init setup_early_printk(char *buf)
 {
 	int keep;
 
@@ -167,5 +167,3 @@ static int __init setup_early_printk(char *buf)
 	}
 	return 0;
 }
-
-early_param("earlyprintk", setup_early_printk);

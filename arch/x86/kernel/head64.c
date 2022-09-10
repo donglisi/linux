@@ -191,15 +191,7 @@ static unsigned long get_cmd_line_ptr(void)
 
 static void __init copy_bootdata(char *real_mode_data)
 {
-	char * command_line;
-	unsigned long cmd_line_ptr;
-
 	memcpy(&boot_params, real_mode_data, sizeof(boot_params));
-	cmd_line_ptr = get_cmd_line_ptr();
-	if (cmd_line_ptr) {
-		command_line = __va(cmd_line_ptr);
-		memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
-	}
 }
 
 asmlinkage __visible void __init x86_64_start_kernel(char * real_mode_data)

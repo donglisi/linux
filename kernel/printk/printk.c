@@ -884,7 +884,6 @@ static int __init log_buf_len_setup(char *str)
 
 	return 0;
 }
-early_param("log_buf_len", log_buf_len_setup);
 
 #ifdef CONFIG_SMP
 #define __LOG_CPU_MAX_BUF_LEN (1 << CONFIG_LOG_CPU_MAX_BUF_SHIFT)
@@ -1077,11 +1076,6 @@ static int __init ignore_loglevel_setup(char *str)
 	return 0;
 }
 
-early_param("ignore_loglevel", ignore_loglevel_setup);
-module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
-MODULE_PARM_DESC(ignore_loglevel,
-		 "ignore loglevel setting (prints all kernel messages to the console)");
-
 static bool suppress_message_printing(int level)
 {
 	return (level >= console_loglevel && !ignore_loglevel);
@@ -1108,7 +1102,6 @@ static int __init boot_delay_setup(char *str)
 		boot_delay, preset_lpj, lpj, HZ, loops_per_msec);
 	return 0;
 }
-early_param("boot_delay", boot_delay_setup);
 
 static void boot_delay_msec(int level)
 {
@@ -1143,7 +1136,6 @@ static inline void boot_delay_msec(int level)
 #endif
 
 static bool printk_time = IS_ENABLED(CONFIG_PRINTK_TIME);
-module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
 
 static size_t print_syslog(unsigned int level, char *buf)
 {
@@ -2224,8 +2216,6 @@ static int __init console_suspend_disable(char *str)
 	return 1;
 }
 __setup("no_console_suspend", console_suspend_disable);
-module_param_named(console_suspend, console_suspend_enabled,
-		bool, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(console_suspend, "suspend console during suspend"
 	" and hibernate operations");
 
@@ -2238,7 +2228,6 @@ void console_verbose(void)
 }
 EXPORT_SYMBOL_GPL(console_verbose);
 
-module_param_named(console_no_auto_verbose, printk_console_no_auto_verbose, bool, 0644);
 MODULE_PARM_DESC(console_no_auto_verbose, "Disable console loglevel raise to highest on oops/panic/etc");
 
 /**
@@ -2689,8 +2678,6 @@ static int __init keep_bootcon_setup(char *str)
 
 	return 0;
 }
-
-early_param("keep_bootcon", keep_bootcon_setup);
 
 /*
  * This is called by register_console() to try to match
@@ -3283,7 +3270,6 @@ int kmsg_dump_unregister(struct kmsg_dumper *dumper)
 EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
 
 static bool always_kmsg_dump;
-module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
 
 const char *kmsg_dump_reason_str(enum kmsg_dump_reason reason)
 {
