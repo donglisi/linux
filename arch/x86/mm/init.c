@@ -203,18 +203,6 @@ static void add_pfn_range_mapped(unsigned long start_pfn, unsigned long end_pfn)
 	max_pfn_mapped = max(max_pfn_mapped, end_pfn);
 }
 
-bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn)
-{
-	int i;
-
-	for (i = 0; i < nr_pfn_mapped; i++)
-		if ((start_pfn >= pfn_mapped[i].start) &&
-		    (end_pfn <= pfn_mapped[i].end))
-			return true;
-
-	return false;
-}
-
 /*
  * Setup the direct mapping of the physical memory at PAGE_OFFSET.
  * This runs before bootmem is initialized and gets pages directly from
