@@ -116,6 +116,3 @@ char seq_put_decimal_ull = 0xf4;
 char seq_puts = 0xf4;
 char vm_zone_stat = 0xf4;
 char vm_node_stat = 0xf4;
-char hex_asc = 0xf4;
-char hex_asc_upper = 0xf4;
-char _find_next_bit = 0xf4;
