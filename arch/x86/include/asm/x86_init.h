@@ -118,7 +118,6 @@ struct x86_init_pci {
  * @x2apic_available:		X2APIC detection
  * @msi_ext_dest_id:		MSI supports 15-bit APIC IDs
  * @init_mem_mapping:		setup early mappings during init_mem_mapping()
- * @init_after_bootmem:		guest init after boot allocator is finished
  */
 struct x86_hyper_init {
 	void (*init_platform)(void);
@@ -126,7 +125,6 @@ struct x86_hyper_init {
 	bool (*x2apic_available)(void);
 	bool (*msi_ext_dest_id)(void);
 	void (*init_mem_mapping)(void);
-	void (*init_after_bootmem)(void);
 };
 
 /**

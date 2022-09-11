@@ -56,7 +56,7 @@ void lkvm_loop()
 		addr = page_to_virt(p);
 		printk("addr %llu %d\n", virt_to_phys(addr), i++);
 		// asm("hlt;");
-		// memset(addr, 0xf4, 4096 << order);
+		memset(addr, 0xf4, 4096 << order);
 		// __free_pages(p, order);
 		// printk("mset %llu\n", virt_to_phys(addr));
 	}

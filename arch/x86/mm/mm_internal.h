@@ -19,8 +19,6 @@ unsigned long kernel_physical_mapping_change(unsigned long start,
 					     unsigned long page_size_mask);
 void zone_sizes_init(void);
 
-extern int after_bootmem;
-
 void update_cache_mode_entry(unsigned entry, enum page_cache_mode cache);
 
 extern unsigned long tlb_single_page_flush_ceiling;

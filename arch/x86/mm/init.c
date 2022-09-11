@@ -63,8 +63,6 @@ __ref void *alloc_low_pages(unsigned int num)
 	return __va(pfn << PAGE_SHIFT);
 }
 
-int after_bootmem;
-
 struct map_range {
 	unsigned long start;
 	unsigned long end;
@@ -174,8 +172,7 @@ static int __meminit split_mem_range(struct map_range *mr, int nr_range,
 	end_pfn = limit_pfn;
 	nr_range = save_mr(mr, nr_range, start_pfn, end_pfn, 0);
 
-	if (!after_bootmem)
-		adjust_range_page_size_mask(mr, nr_range);
+	adjust_range_page_size_mask(mr, nr_range);
 
 	/* try to merge same page size and continuous */
 	for (i = 0; nr_range > 1 && i < nr_range - 1; i++) {
