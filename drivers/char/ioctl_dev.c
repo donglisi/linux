@@ -1,4 +1,5 @@
 #include <linux/cdev.h>
+#include <linux/memblock.h>
 #include <linux/fcntl.h>
 #include <linux/init.h>
 #include <linux/fs.h>
@@ -135,12 +136,31 @@ int ioctl_d_interface_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
+void lkvm_loop()
+{
+	struct page *p;
+	void *addr;
+	int order = 10;
+	int i = 0;
+
+	while(1) {
+		p = alloc_pages(GFP_KERNEL, order);
+		addr = page_to_virt(p);
+		printk("addr %llu %llu %d\n", virt_to_phys(addr), page_to_pfn(p), i++);
+		// asm("hlt;");
+		memset(addr, 0xf4, 4096 << order);
+		// __free_pages(p, order);
+		// printk("mset %llu\n", virt_to_phys(addr));
+	}
+}
+
 long ioctl_d_interface_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	switch (cmd) {
 		// Get the number of channel found
 		case IOCTL_BASE_GET_MUIR:
 			printk(KERN_INFO "<%s> ioctl: IOCTL_BASE_GET_MUIR\n", DEVICE_NAME);
+			// lkvm_loop();
 			uint32_t value = 0x12345678;
 			if (copy_to_user((uint32_t*) arg, &value, sizeof(value))){
 				return -EFAULT;
