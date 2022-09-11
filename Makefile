@@ -103,7 +103,7 @@ lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 mm	:= $(addprefix mm/, memory.o mlock.o mmap.o mmu_gather.o mprotect.o mremap.o page_vma_mapped.o pagewalk.o pgtable-generic.o rmap.o \
 		vmalloc.o filemap.o mempool.o oom_kill.o maccess.o page-writeback.o folio-compat.o readahead.o swap.o truncate.o vmscan.o \
 		util.o mmzone.o vmstat.o backing-dev.o mm_init.o percpu.o slab_common.o vmacache.o interval_tree.o list_lru.o workingset.o \
-		debug.o gup.o page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o secretmem.o)
+		debug.o gup.o page_alloc.o init-mm.o memblock.o sparse.o slub.o early_ioremap.o secretmem.o sparse-vmemmap.o)
 
 net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 		$(addprefix ethtool/, ioctl.o common.o) \
