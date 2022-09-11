@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC=gcc
+CC=/usr/bin/gcc
 
 remote_build ()
 {
@@ -15,13 +15,12 @@ remote_build ()
 
 make clean
 
-remote_build 192.168.1.2 12 fs mm drivers lib_lib init security lib_x86 2> /dev/null &
+remote_build 192.168.1.2 12 fs mm drivers block init 2> /dev/null &
 pid[0]=$!
 
 trap "kill ${pid[0]}; exit 1" INT
 
-make CC=$CC -j16 x86 lib kernel net block
-
+make CC=$CC -j16 x86 lib kernel net init security
 wait ${pid[0]}
 
 make CC=$CC -j16
