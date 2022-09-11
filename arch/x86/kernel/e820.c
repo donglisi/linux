@@ -223,6 +223,4 @@ void __init e820__memblock_setup(void)
 
 		memblock_add(entry->addr, entry->size);
 	}
-
-	memblock_dump_all();
 }
