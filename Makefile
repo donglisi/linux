@@ -87,7 +87,7 @@ kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
-		$(addprefix irq/, irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o autoprobe.o irqdomain.o proc.o matrix.o msi.o) \
+		$(addprefix irq/, irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o irqdomain.o proc.o matrix.o msi.o) \
 		$(addprefix rcu/, update.o sync.o srcutiny.o tiny.o) \
 		$(addprefix dma/, mapping.o direct.o swiotlb.o remap.o) \
 		$(addprefix entry/, common.o syscall_user_dispatch.o) \
@@ -115,9 +115,9 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 		$(addprefix sched/, sch_generic.o sch_mq.o) \
 		$(addprefix unix/, af_unix.o garbage.o scm.o) \
 		$(addprefix netlink/, af_netlink.o genetlink.o policy.o) \
-		$(addprefix core/, sock.o request_sock.o skbuff.o datagram.o stream.o scm.o gen_stats.o gen_estimator.o net_namespace.o secure_seq.o \
-			flow_dissector.o dev.o dev_addr_lists.o dst.o netevent.o neighbour.o rtnetlink.o utils.o link_watch.o filter.o sock_diag.o \
-			dev_ioctl.o tso.o sock_reuseport.o fib_notifier.o xdp.o flow_offload.o gro.o net-sysfs.o net-procfs.o))
+		$(addprefix core/, sock.o skbuff.o datagram.o scm.o gen_stats.o gen_estimator.o net_namespace.o flow_dissector.o dev.o dev_addr_lists.o \
+			dst.o netevent.o neighbour.o rtnetlink.o utils.o link_watch.o filter.o sock_diag.o dev_ioctl.o sock_reuseport.o fib_notifier.o \
+			xdp.o flow_offload.o gro.o net-sysfs.o net-procfs.o))
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
