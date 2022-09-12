@@ -76,14 +76,13 @@ fs	:= $(addprefix fs/, open.o read_write.o file_table.o super.o char_dev.o stat.
 
 init	:= $(addprefix init/, main.o version.o noinitramfs.o calibrate.o init_task.o do_mounts.o)
 
-kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o \
-		ptrace.o user.o signal.o sys.o workqueue.o pid.o task_work.o extable.o params.o kthread.o \
-		sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o range.o ucount.o regset.o \
-		groups.o irq_work.o bpf/core.o static_call.o static_call_inline.o iomem.o up.o kallsyms.o \
+kernel	:= $(addprefix kernel/, fork.o exec_domain.o panic.o cpu.o exit.o softirq.o resource.o sysctl.o capability.o ptrace.o user.o signal.o sys.o \
+			workqueue.o pid.o task_work.o extable.o params.o kthread.o sys_ni.o nsproxy.o notifier.o ksysfs.o cred.o reboot.o async.o \
+			range.o ucount.o regset.o groups.o irq_work.o bpf/core.o static_call.o static_call_inline.o iomem.o up.o kallsyms.o \
 		$(addprefix sched/, core.o fair.o build_policy.o build_utility.o) \
 		$(addprefix locking/, mutex.o semaphore.o rwsem.o percpu-rwsem.o rtmutex_api.o) \
 		$(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o) \
-		$(addprefix irq/, irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o autoprobe.o irqdomain.o proc.o matrix.o msi.o) \
+		$(addprefix irq/, irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o irqdomain.o proc.o matrix.o msi.o) \
 		$(addprefix rcu/, update.o sync.o srcutiny.o tiny.o) \
 		$(addprefix entry/, common.o) \
 		$(addprefix time/, time.o timer.o hrtimer.o timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o timeconv.o timecounter.o \
@@ -96,7 +95,7 @@ lib	:= $(addprefix lib/, bcd.o sort.o parser.o debug_locks.o random32.o bust_spi
 		generic-radix-tree.o lockref.o sbitmap.o string_helpers.o hexdump.o kstrtox.o iomap.o pci_iomap.o iomap_copy.o devres.o syscall.o \
 		nlattr.o strncpy_from_user.o strnlen_user.o net_utils.o sg_pool.o ctype.o string.o vsprintf.o cmdline.o rbtree.o radix-tree.o \
 		timerqueue.o xarray.o idr.o extable.o sha1.o irq_regs.o flex_proportions.o ratelimit.o show_mem.o is_single_threaded.o plist.o \
-		kobject_uevent.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o dump_stack.o kobject.o klist.o bug.o\
+		kobject_uevent.o seq_buf.o siphash.o dec_and_lock.o nmi_backtrace.o dump_stack.o kobject.o klist.o bug.o \
 		$(addprefix math/, div64.o gcd.o lcm.o int_pow.o int_sqrt.o reciprocal_div.o) \
 		$(addprefix crypto/, chacha.o blake2s.o blake2s-generic.o))
 
@@ -110,9 +109,9 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 		$(addprefix sched/, sch_generic.o sch_mq.o) \
 		$(addprefix unix/, af_unix.o garbage.o scm.o) \
 		$(addprefix netlink/, af_netlink.o genetlink.o policy.o) \
-		$(addprefix core/, sock.o request_sock.o skbuff.o datagram.o stream.o scm.o gen_stats.o gen_estimator.o net_namespace.o secure_seq.o \
-			flow_dissector.o dev.o dev_addr_lists.o dst.o netevent.o neighbour.o rtnetlink.o utils.o link_watch.o filter.o sock_diag.o \
-			dev_ioctl.o tso.o sock_reuseport.o fib_notifier.o xdp.o flow_offload.o gro.o net-sysfs.o net-procfs.o))
+		$(addprefix core/, sock.o skbuff.o datagram.o scm.o gen_stats.o gen_estimator.o net_namespace.o flow_dissector.o dev.o \
+			dev_addr_lists.o dst.o netevent.o neighbour.o rtnetlink.o utils.o link_watch.o filter.o sock_diag.o dev_ioctl.o \
+			sock_reuseport.o fib_notifier.o xdp.o flow_offload.o gro.o net-sysfs.o net-procfs.o))
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
