@@ -64,12 +64,12 @@ secondary_startup_64:
 1:
 	lgdt	early_gdt_descr(%rip)
 
-	xorl	%eax,%eax
-	movl	%eax,%ds
-	movl	%eax,%ss
-	movl	%eax,%es
-	movl	%eax,%fs
-	movl	%eax,%gs
+	xorl	%eax, %eax
+	movl	%eax, %ds
+	movl	%eax, %ss
+	movl	%eax, %es
+	movl	%eax, %fs
+	movl	%eax, %gs
 
 	movq	initial_stack(%rip), %rsp
 
@@ -86,10 +86,10 @@ secondary_startup_64:
 
 	movl	%eax, %edx
 	btsl	$0, %eax
-	btl	$20,%edi
+	btl	$20, %edi
 	jnc	1f
 	btsl	$11, %eax
-	btsq	$63,early_pmd_flags(%rip)
+	btsq	$63, early_pmd_flags(%rip)
 
 1:
 	cmpl	%edx, %eax
@@ -142,8 +142,6 @@ early_idt_handler_array:
 early_idt_handler_common:
 	cld
 
-	incl	early_recursion_flag(%rip)
-
 	pushq	%rsi
 	movq	8(%rsp), %rsi
 	movq	%rdi, 8(%rsp)
@@ -162,12 +160,8 @@ early_idt_handler_common:
 	pushq	%r15
 
 	movq	%rsp, %rdi
-	movq	count, %rax
-	addq	$2, %rax
-	movq	%rax, count
 	call	do_early_exception
 
-	decl	early_recursion_flag(%rip)
 	POP_REGS
 	addq $8, %rsp
 	iretq
@@ -179,23 +173,17 @@ early_idt_handler_common:
 	.balign (1 << 12)
 early_top_pgt:
 	.fill	512,8,0
-	.fill	0,8,0
 
 	.globl early_dynamic_pgts
 	.balign (1 << 12)
 early_dynamic_pgts:
 	.fill	512*64,8,0
 
-	.globl early_recursion_flag
-early_recursion_flag:
-	.long 0
-
 	.data
 	.globl init_top_pgt
 	.balign (1 << 12)
 init_top_pgt:
 	.fill	512,8,0
-	.fill	0,8,0
 
 	.globl level3_kernel_pgt
 	.balign (1 << 12)
@@ -241,11 +229,8 @@ early_gdt_descr:
 early_gdt_descr_base:
 	.quad	gdt_page
 
-	.align 16
 i:
 	.long	0
 
 pgtno:
 	.long	0
-count:
-	.quad	0
