@@ -1,0 +1,3 @@
+arch/x86/realmode/rm/realmode.bin
+arch/x86/realmode/rm/realmode.relocs
+build/
