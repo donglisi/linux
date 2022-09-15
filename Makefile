@@ -162,31 +162,20 @@ arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf arch/
 
 build/arch/x86/realmode/rmpiggy.o: arch/x86/realmode/rm/realmode.bin
 
-setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o \
-			memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o)
-$(setup_objs): c_flags := $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables
+build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs)
+	$(Q) sh scripts/link-vmlinux.sh
 
-build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
-	$(E) "  BUILD  " $@
-	$(Q) arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
-
-build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
+build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
 	$(E) "  OBJCOPY" $@
-	$(Q) objcopy -O binary -R .note -R .comment -S $< $@
+	$(Q) objcopy -R .comment -S $< $@
 
-build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
-	$(E) "  ZOFFSET" $@
-	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
+build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vmlinux.bin
+	$(E) "  GZIP   " $@
+	$(Q) cat $< | gzip -n -f -9 > $@
 
-build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
-
-build/arch/x86/boot/setup.elf: arch/x86/boot/setup.ld $(setup_objs)
-	$(E) "  LD     " $@
-	$(Q) ld -m elf_i386 -T $^ -o $@
-
-build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
-	$(E) "  OBJCOPY" $@
-	$(Q) objcopy -O binary $< $@
+arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz
+	$(E) "  MKPIGGY" $@
+	$(Q) arch/x86/boot/compressed/mkpiggy $< > $@
 
 build/arch/x86/boot/compressed/../voffset.h: build/vmlinux
 	$(E) "  VOFFSET" $@
@@ -204,19 +193,30 @@ build/arch/x86/boot/compressed/vmlinux: $(vmlinux_objs)
 	$(E) "  LD     " $@
 	$(Q) ld -m elf_x86_64 --no-ld-generated-unwind-info --no-dynamic-linker -T $^ -o $@
 
-build/arch/x86/boot/compressed/vmlinux.bin: build/vmlinux
+build/arch/x86/boot/vmlinux.bin: build/arch/x86/boot/compressed/vmlinux
 	$(E) "  OBJCOPY" $@
-	$(Q) objcopy -R .comment -S $< $@
+	$(Q) objcopy -O binary -R .note -R .comment -S $< $@
 
-build/arch/x86/boot/compressed/vmlinux.bin.gz: build/arch/x86/boot/compressed/vmlinux.bin
-	$(E) "  GZIP   " $@
-	$(Q) cat $< | gzip -n -f -9 > $@
+build/arch/x86/boot/zoffset.h: build/arch/x86/boot/compressed/vmlinux
+	$(E) "  ZOFFSET" $@
+	$(Q) nm $< | sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$$/\#define ZO_\2 0x\1/p' > $@
 
-arch/x86/boot/compressed/piggy.S: build/arch/x86/boot/compressed/vmlinux.bin.gz
-	$(E) "  MKPIGGY" $@
-	$(Q) arch/x86/boot/compressed/mkpiggy $< > $@
+build/arch/x86/boot/header.o: build/arch/x86/boot/zoffset.h
 
-build/vmlinux: build/arch/x86/kernel/vmlinux.lds $(objs)
-	$(Q) sh scripts/link-vmlinux.sh
+setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o \
+			memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o)
+$(setup_objs): c_flags := $(realmode_cflags) -fmacro-prefix-map== -fno-asynchronous-unwind-tables
+
+build/arch/x86/boot/setup.elf: arch/x86/boot/setup.ld $(setup_objs)
+	$(E) "  LD     " $@
+	$(Q) ld -m elf_i386 -T $^ -o $@
+
+build/arch/x86/boot/setup.bin: build/arch/x86/boot/setup.elf
+	$(E) "  OBJCOPY" $@
+	$(Q) objcopy -O binary $< $@
+
+build/arch/x86/boot/bzImage: build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/vmlinux
+	$(E) "  BUILD  " $@
+	$(Q) arch/x86/boot/tools/build build/arch/x86/boot/setup.bin build/arch/x86/boot/vmlinux.bin build/arch/x86/boot/zoffset.h $@
 
 -include $(foreach obj,$(objs) $(vmlinux_objs) $(setup_objs) $(realmode_objs),$(dir $(obj)).$(notdir $(obj)).d)
