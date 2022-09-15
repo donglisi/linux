@@ -24,16 +24,19 @@ include = -nostdinc -Iinclude -Iinclude/uapi -Iarch/x86/include -Iarch/x86/inclu
 		-Iinclude/generated/uapi -Iarch/x86/include/generated -Iarch/x86/include/generated/uapi \
 		-include include/linux/kconfig.h -include include/linux/compiler_types.h -include include/linux/compiler-version.h
 
-CFLAGS := -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -Wno-format-security -Wno-format-truncation -fno-PIE \
-		-Wno-address-of-packed-member -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized 
+depfile = $(dir $@).$(notdir $@).d
 
-basetarget = $(subst -,_,$(basename $(notdir $@)))
-vmlinux_cflags = $(CFLAGS) $(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
-			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
+build/%.o: %.c
+	@echo "  CC     " $@
+	$(Q) gcc $(include) $(c_flags) -D__KERNEL__ -Wp,-MD,$(depfile) -Wp,-MT,$@ -c -o $@ $<
 
-realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
-			-fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding \
-			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP
+build/%.o: %.S
+	@echo "  AS     " $@
+	$(Q) gcc $(include) $(c_flags) -D__KERNEL__ -Wp,-MD,$(depfile) -Wp,-MT,$@ -D__ASSEMBLY__ -c -o $@ $<
+
+build/%.lds: %.lds.S
+	@echo "  LDS    " $@
+	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 x86	:= $(addprefix arch/x86/, \
 		$(addprefix entry/, entry_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
@@ -121,25 +124,20 @@ net	:= $(addprefix net/, devres.o socket.o ipv6/addrconf_core.o ethernet/eth.o \
 
 security:= $(addprefix security/, commoncap.o min_addr.o)
 
+CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
+CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
+
 objs	:= $(addprefix build/, $(x86) $(block) $(drivers) $(fs) $(init) $(kernel) $(lib) $(mm) $(net) $(security))
-$(objs): c_flags = $(vmlinux_cflags)
+basetarget = $(subst -,_,$(basename $(notdir $@)))
+$(objs): c_flags = -fshort-wchar -O1 -mcmodel=kernel -mno-sse -mno-red-zone -fno-stack-protector -Wno-format-security -Wno-format-truncation -fno-PIE \
+		-Wno-address-of-packed-member -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-stringop-overflow -Wno-maybe-uninitialized \
+ 		$(CFLAGS_$(basename $@).o) -DKBUILD_MODFILE='"$(basename $@)"' -DKBUILD_BASENAME='"$(basetarget)"' \
+			-DKBUILD_MODNAME='"$(basetarget)"' -D__KBUILD_MODNAME=kmod_$(basetarget)
 export objs
 
-depfile = $(dir $@).$(notdir $@).d
-
-build/%.o: %.c
-	@echo "  CC     " $@
-	$(Q) gcc $(include) $(c_flags) -D__KERNEL__ -Wp,-MD,$(depfile) -Wp,-MT,$@ -c -o $@ $<
-
-build/%.o: %.S
-	@echo "  AS     " $@
-	$(Q) gcc $(include) $(c_flags) -D__KERNEL__ -Wp,-MD,$(depfile) -Wp,-MT,$@ -D__ASSEMBLY__ -c -o $@ $<
-
-build/%.lds: %.lds.S
-	@echo "  LDS    " $@
-	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
-
-build/arch/x86/realmode/rmpiggy.o: arch/x86/realmode/rm/realmode.bin
+realmode_cflags := -m16 -g -Os -DDISABLE_BRANCH_PROFILING -D__DISABLE_EXPORTS -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
+			-fno-strict-aliasing -fomit-frame-pointer -fno-pic -mno-mmx -mno-sse -fcf-protection=none -ffreestanding \
+			-fno-stack-protector -Wno-address-of-packed-member -D_SETUP
 
 realmode_objs := $(addprefix build/arch/x86/realmode/rm/, header.o trampoline_64.o stack.o reboot.o)
 $(realmode_objs): c_flags := $(realmode_cflags) -D_WAKEUP -Iarch/x86/boot
@@ -154,16 +152,15 @@ build/arch/x86/realmode/rm/realmode.elf: build/arch/x86/realmode/rm/realmode.lds
 	@echo "  LD     " $@
 	$(Q) ld -m elf_i386 --emit-relocs -T $^ -o $@
 
-arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf arch/x86/realmode/rm/realmode.relocs
-	@echo "  OBJCOPY" $@
-	$(Q) objcopy -O binary $< $@
-
 arch/x86/realmode/rm/realmode.relocs: build/arch/x86/realmode/rm/realmode.elf
 	@echo "  RELOCS " $@
 	$(Q) arch/x86/tools/relocs --realmode $< > $@
 
-CFLAGS_build/arch/x86/kernel/irq.o := -I arch/x86/kernel/../include/asm/trace
-CFLAGS_build/arch/x86/mm/fault.o := -I arch/x86/kernel/../include/asm/trace
+arch/x86/realmode/rm/realmode.bin: build/arch/x86/realmode/rm/realmode.elf arch/x86/realmode/rm/realmode.relocs
+	@echo "  OBJCOPY" $@
+	$(Q) objcopy -O binary $< $@
+
+build/arch/x86/realmode/rmpiggy.o: arch/x86/realmode/rm/realmode.bin
 
 setup_objs := $(addprefix build/arch/x86/boot/, a20.o bioscall.o cmdline.o copy.o cpu.o cpuflags.o cpucheck.o early_serial_console.o edd.o header.o main.o \
 			memory.o pm.o pmjump.o printf.o regs.o string.o tty.o video.o video-mode.o version.o video-vga.o video-vesa.o video-bios.o)
