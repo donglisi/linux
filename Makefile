@@ -38,12 +38,12 @@ build/%.lds: %.lds.S
 	@echo "  LDS    " $@
 	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
-x86	:= $(addprefix arch/x86/, \
+x86	:= $(addprefix arch/x86/, events/core.o \
 		$(addprefix entry/, entry_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
 		$(addprefix lib/, hweight.o iomem.o iomap_copy_64.o delay.o misc.o cmdline.o cpu.o usercopy_64.o usercopy.o getuser.o putuser.o \
 			memcpy_64.o copy_mc.o copy_mc_64.o insn.o inat.o insn-eval.o csum-partial_64.o csum-copy_64.o csum-wrappers_64.o clear_page_64.o \
 			copy_page_64.o memmove_64.o memset_64.o copy_user_64.o cmpxchg16b_emu.o) \
-		$(addprefix events/, core.o) $(addprefix realmode/, init.o rmpiggy.o) \
+		$(addprefix realmode/, init.o rmpiggy.o) \
 		$(addprefix mm/, init.o init_64.o fault.o ioremap.o extable.o mmap.o pgtable.o physaddr.o tlb.o cpu_entry_area.o pgprot.o \
 			$(addprefix pat/, set_memory.o memtype.o)) \
 		$(addprefix pci/, i386.o init.o direct.o fixup.o legacy.o irq.o common.o early.o bus_numa.o) \
