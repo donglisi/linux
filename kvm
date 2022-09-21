@@ -32,3 +32,10 @@ arch/x86/kvm/svm/pmu.o
 arch/x86/kvm/svm/sev.o
 arch/x86/kvm/svm/svm.o
 arch/x86/kvm/x86.o
+arch/x86/kvm/vmx/evmcs.o
+arch/x86/kvm/vmx/nested.o
+arch/x86/kvm/vmx/pmu_intel.o
+arch/x86/kvm/vmx/posted_intr.o
+arch/x86/kvm/vmx/vmcs12.o
+arch/x86/kvm/vmx/vmenter.o
+arch/x86/kvm/vmx/vmx.o

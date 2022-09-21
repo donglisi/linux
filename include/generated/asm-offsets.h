@@ -72,4 +72,6 @@
 #define TSS_sp1 12 /* offsetof(struct tss_struct, x86_tss.sp1) */
 #define TSS_sp2 20 /* offsetof(struct tss_struct, x86_tss.sp2) */
 
+#define VMX_spec_ctrl 9056 /* offsetof(struct vcpu_vmx, spec_ctrl) */
+
 #endif
