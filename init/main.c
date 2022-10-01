@@ -44,14 +44,14 @@ static void __init mm_init(void)
 	mem_init_print_info();
 }
 
-void lkvm_loop()
+void test_buddy()
 {
 	struct page *p;
 	void *addr;
 	int order = 10;
 	int i = 0;
 
-	while(1) {
+	while (1) {
 		p = alloc_pages(GFP_KERNEL, order);
 		addr = page_to_virt(p);
 		printk("addr %llu %llu %d\n", virt_to_phys(addr), page_to_pfn(p), i++);
@@ -64,13 +64,11 @@ void lkvm_loop()
 
 asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 {
-	char *command_line;
-	char *after_dashes;
+	setup_arch(NULL);
 
-	setup_arch(&command_line);
 	build_all_zonelists(NULL);
 
 	mm_init();
 
-	lkvm_loop();
+	test_buddy();
 }
