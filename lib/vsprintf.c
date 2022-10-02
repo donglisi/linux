@@ -38,9 +38,6 @@
 #include <linux/siphash.h>
 #include <linux/compiler.h>
 #include <linux/property.h>
-#ifdef CONFIG_BLOCK
-#include <linux/blkdev.h>
-#endif
 
 #include "../mm/internal.h"	/* For the trace_print_flags arrays */
 
@@ -2289,11 +2286,6 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
 		return time_and_date(buf, end, ptr, spec, fmt);
 	case 'D':
 		return file_dentry_name(buf, end, ptr, spec, fmt);
-#ifdef CONFIG_BLOCK
-	case 'g':
-		return bdev_name(buf, end, ptr, spec, fmt);
-#endif
-
 	case 'G':
 		return flags_string(buf, end, ptr, spec, fmt);
 	case 'O':
