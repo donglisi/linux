@@ -39,10 +39,6 @@
 #include <linux/wait.h>
 #include <linux/percpu_counter.h>
 
-#include <linux/dqblk_xfs.h>
-#include <linux/dqblk_v1.h>
-#include <linux/dqblk_v2.h>
-
 #include <linux/atomic.h>
 #include <linux/uidgid.h>
 #include <linux/projid.h>

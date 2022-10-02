@@ -13,7 +13,6 @@
 #define _DEVICE_H_
 
 #include <linux/dev_printk.h>
-#include <linux/energy_model.h>
 #include <linux/ioport.h>
 #include <linux/kobject.h>
 #include <linux/klist.h>

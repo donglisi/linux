@@ -3,8 +3,6 @@
  * ipv6 in net namespaces
  */
 
-#include <net/inet_frag.h>
-
 #ifndef __NETNS_IPV6_H__
 #define __NETNS_IPV6_H__
 #include <net/dst_ops.h>

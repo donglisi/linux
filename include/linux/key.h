@@ -17,7 +17,6 @@
 #include <linux/sysctl.h>
 #include <linux/rwsem.h>
 #include <linux/atomic.h>
-#include <linux/assoc_array.h>
 #include <linux/refcount.h>
 #include <linux/time64.h>
 

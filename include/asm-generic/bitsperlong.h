@@ -2,9 +2,6 @@
 #ifndef __ASM_GENERIC_BITS_PER_LONG
 #define __ASM_GENERIC_BITS_PER_LONG
 
-#include <uapi/asm-generic/bitsperlong.h>
-
-
 #ifdef CONFIG_64BIT
 #define BITS_PER_LONG 64
 #else

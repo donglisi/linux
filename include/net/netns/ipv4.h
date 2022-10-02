@@ -7,7 +7,6 @@
 #define __NETNS_IPV4_H__
 
 #include <linux/uidgid.h>
-#include <net/inet_frag.h>
 #include <linux/rcupdate.h>
 #include <linux/siphash.h>
 

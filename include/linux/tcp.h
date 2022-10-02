@@ -17,7 +17,6 @@
 #include <linux/skbuff.h>
 #include <linux/win_minmax.h>
 #include <net/sock.h>
-#include <net/inet_connection_sock.h>
 #include <net/inet_timewait_sock.h>
 #include <uapi/linux/tcp.h>
 
@@ -143,8 +142,6 @@ static inline struct tcp_request_sock *tcp_rsk(const struct request_sock *req)
 }
 
 struct tcp_sock {
-	/* inet_connection_sock has to be the first member of tcp_sock */
-	struct inet_connection_sock	inet_conn;
 	u16	tcp_header_len;	/* Bytes of tcp header to send		*/
 	u16	gso_segs;	/* Max number of segs per GSO packet	*/
 
@@ -471,10 +468,6 @@ static inline bool tcp_passive_fastopen(const struct sock *sk)
 
 static inline void fastopen_queue_tune(struct sock *sk, int backlog)
 {
-	struct request_sock_queue *queue = &inet_csk(sk)->icsk_accept_queue;
-	int somaxconn = READ_ONCE(sock_net(sk)->core.sysctl_somaxconn);
-
-	queue->fastopenq.max_qlen = min_t(unsigned int, backlog, somaxconn);
 }
 
 static inline void tcp_move_syn(struct tcp_sock *tp,

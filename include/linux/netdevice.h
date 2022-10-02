@@ -33,7 +33,6 @@
 #include <linux/percpu.h>
 #include <linux/rculist.h>
 #include <linux/workqueue.h>
-#include <linux/dynamic_queue_limits.h>
 
 #include <net/net_namespace.h>
 #ifdef CONFIG_DCB
@@ -48,7 +47,6 @@
 #include <linux/hashtable.h>
 #include <linux/rbtree.h>
 #include <net/net_trackers.h>
-#include <net/net_debug.h>
 
 struct netpoll_info;
 struct device;

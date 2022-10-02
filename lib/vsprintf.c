@@ -19,7 +19,6 @@
 
 #include <linux/stdarg.h>
 #include <linux/build_bug.h>
-#include <linux/errname.h>
 #include <linux/types.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
@@ -545,25 +544,6 @@ static char *string_nocheck(char *buf, char *end, const char *s,
 		++len;
 	}
 	return widen_string(buf, len, end, spec);
-}
-
-static char *err_ptr(char *buf, char *end, void *ptr,
-		     struct printf_spec spec)
-{
-	int err = PTR_ERR(ptr);
-	const char *sym = errname(err);
-
-	if (sym)
-		return string_nocheck(buf, end, sym, spec);
-
-	/*
-	 * Somebody passed ERR_PTR(-1234) or some other non-existing
-	 * Efoo - or perhaps CONFIG_SYMBOLIC_ERRNAME=n. Fall back to
-	 * printing it as its decimal representation.
-	 */
-	spec.flags |= SIGN;
-	spec.base = 10;
-	return number(buf, end, err, spec);
 }
 
 /* Be careful: error messages must fit into the given buffer. */
@@ -2159,11 +2139,6 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
 		return fwnode_string(buf, end, ptr, spec, fmt + 1);
 	case 'x':
 		return pointer_string(buf, end, ptr, spec);
-	case 'e':
-		/* %pe with a non-ERR_PTR gets treated as plain %p */
-		if (!IS_ERR(ptr))
-			return default_pointer(buf, end, ptr, spec);
-		return err_ptr(buf, end, ptr, spec);
 	case 'u':
 	case 'k':
 		switch (fmt[1]) {

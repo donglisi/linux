@@ -16,7 +16,6 @@
 #include <linux/jump_label.h>
 #include <linux/page_counter.h>
 #include <linux/vmpressure.h>
-#include <linux/eventfd.h>
 #include <linux/mm.h>
 #include <linux/vmstat.h>
 #include <linux/writeback.h>
