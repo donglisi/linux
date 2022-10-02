@@ -18,17 +18,8 @@
 #include "internal.h"
 #include <asm/dma.h>
 
-/*
- * Permanent SPARSEMEM data:
- *
- * 1) mem_section	- memory sections, mem_map's for valid memory
- */
-#ifdef CONFIG_SPARSEMEM_EXTREME
-struct mem_section **mem_section;
-#else
 struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT]
 	____cacheline_internodealigned_in_smp;
-#endif
 EXPORT_SYMBOL(mem_section);
 
 #ifdef NODE_NOT_IN_PAGE_FLAGS
@@ -59,55 +50,10 @@ static inline void set_section_nid(unsigned long section_nr, int nid)
 }
 #endif
 
-#ifdef CONFIG_SPARSEMEM_EXTREME
-static noinline struct mem_section __ref *sparse_index_alloc(int nid)
-{
-	struct mem_section *section = NULL;
-	unsigned long array_size = SECTIONS_PER_ROOT *
-				   sizeof(struct mem_section);
-
-	if (slab_is_available()) {
-		section = kzalloc_node(array_size, GFP_KERNEL, nid);
-	} else {
-		section = memblock_alloc_node(array_size, SMP_CACHE_BYTES,
-					      nid);
-		if (!section)
-			panic("%s: Failed to allocate %lu bytes nid=%d\n",
-			      __func__, array_size, nid);
-	}
-
-	return section;
-}
-
-static int __meminit sparse_index_init(unsigned long section_nr, int nid)
-{
-	unsigned long root = SECTION_NR_TO_ROOT(section_nr);
-	struct mem_section *section;
-
-	/*
-	 * An existing section is possible in the sub-section hotplug
-	 * case. First hot-add instantiates, follow-on hot-add reuses
-	 * the existing section.
-	 *
-	 * The mem_hotplug_lock resolves the apparent race below.
-	 */
-	if (mem_section[root])
-		return 0;
-
-	section = sparse_index_alloc(nid);
-	if (!section)
-		return -ENOMEM;
-
-	mem_section[root] = section;
-
-	return 0;
-}
-#else /* !SPARSEMEM_EXTREME */
 static inline int sparse_index_init(unsigned long section_nr, int nid)
 {
 	return 0;
 }
-#endif
 
 /*
  * During early boot, before section_mem_map is used for an actual
@@ -181,64 +127,14 @@ static inline unsigned long first_present_section_nr(void)
 	return next_present_section_nr(-1);
 }
 
-#ifdef CONFIG_SPARSEMEM_VMEMMAP
-static void subsection_mask_set(unsigned long *map, unsigned long pfn,
-		unsigned long nr_pages)
-{
-	int idx = subsection_map_index(pfn);
-	int end = subsection_map_index(pfn + nr_pages - 1);
-
-	bitmap_set(map, idx, end - idx + 1);
-}
-
-void __init subsection_map_init(unsigned long pfn, unsigned long nr_pages)
-{
-	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
-	unsigned long nr, start_sec = pfn_to_section_nr(pfn);
-
-	if (!nr_pages)
-		return;
-
-	for (nr = start_sec; nr <= end_sec; nr++) {
-		struct mem_section *ms;
-		unsigned long pfns;
-
-		pfns = min(nr_pages, PAGES_PER_SECTION
-				- (pfn & ~PAGE_SECTION_MASK));
-		ms = __nr_to_section(nr);
-		subsection_mask_set(ms->usage->subsection_map, pfn, pfns);
-
-		pr_debug("%s: sec: %lu pfns: %lu set(%d, %d)\n", __func__, nr,
-				pfns, subsection_map_index(pfn),
-				subsection_map_index(pfn + pfns - 1));
-
-		pfn += pfns;
-		nr_pages -= pfns;
-	}
-}
-#else
 void __init subsection_map_init(unsigned long pfn, unsigned long nr_pages)
 {
 }
-#endif
 
 /* Record a memory area against a node. */
 static void __init memory_present(int nid, unsigned long start, unsigned long end)
 {
 	unsigned long pfn;
-
-#ifdef CONFIG_SPARSEMEM_EXTREME
-	if (unlikely(!mem_section)) {
-		unsigned long size, align;
-
-		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
-		align = 1 << (INTERNODE_CACHE_SHIFT);
-		mem_section = memblock_alloc(size, align);
-		if (!mem_section)
-			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
-			      __func__, size, align);
-	}
-#endif
 
 	start &= PAGE_SECTION_MASK;
 	mminit_validate_memmodel_limits(&start, &end);
@@ -402,13 +298,6 @@ static void __init check_usemap_section_nr(int nid,
 }
 #endif /* CONFIG_MEMORY_HOTREMOVE */
 
-#ifdef CONFIG_SPARSEMEM_VMEMMAP
-static unsigned long __init section_map_size(void)
-{
-	return ALIGN(sizeof(struct page) * PAGES_PER_SECTION, PMD_SIZE);
-}
-
-#else
 static unsigned long __init section_map_size(void)
 {
 	return PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
@@ -432,7 +321,6 @@ struct page __init *__populate_section_memmap(unsigned long pfn,
 
 	return map;
 }
-#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
 
 static void *sparsemap_buf __meminitdata;
 static void *sparsemap_buf_end __meminitdata;
