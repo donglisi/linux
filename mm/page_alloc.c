@@ -4445,39 +4445,6 @@ static void per_cpu_pages_init(struct per_cpu_pages *pcp, struct per_cpu_zonesta
 	pcp->free_factor = 0;
 }
 
-static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high,
-		unsigned long batch)
-{
-	struct per_cpu_pages *pcp;
-	int cpu;
-
-	for_each_possible_cpu(cpu) {
-		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
-		pageset_update(pcp, high, batch);
-	}
-}
-
-/*
- * Calculate and set new high and batch values for all per-cpu pagesets of a
- * zone based on the zone's size.
- */
-static void zone_set_pageset_high_and_batch(struct zone *zone, int cpu_online)
-{
-	int new_high, new_batch;
-
-	new_batch = max(1, zone_batchsize(zone));
-	new_high = zone_highsize(zone, new_batch, cpu_online);
-
-	if (zone->pageset_high == new_high &&
-	    zone->pageset_batch == new_batch)
-		return;
-
-	zone->pageset_high = new_high;
-	zone->pageset_batch = new_batch;
-
-	__zone_set_pageset_high_and_batch(zone, new_high, new_batch);
-}
-
 static __meminit void zone_pcp_init(struct zone *zone)
 {
 	/*
