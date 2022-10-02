@@ -4627,19 +4627,6 @@ unsigned long __init __absent_pages_in_range(int nid,
 	return nr_absent;
 }
 
-/**
- * absent_pages_in_range - Return number of page frames in holes within a range
- * @start_pfn: The start PFN to start searching for holes
- * @end_pfn: The end PFN to stop searching for holes
- *
- * Return: the number of pages frames in memory holes within a range.
- */
-unsigned long __init absent_pages_in_range(unsigned long start_pfn,
-							unsigned long end_pfn)
-{
-	return __absent_pages_in_range(MAX_NUMNODES, start_pfn, end_pfn);
-}
-
 /* Return the number of page frames in holes in a zone on a node */
 static unsigned long __init zone_absent_pages_in_node(int nid,
 					unsigned long zone_type,
@@ -4947,56 +4934,6 @@ void __init setup_nr_node_ids(void)
 	nr_node_ids = highest + 1;
 }
 #endif
-
-/**
- * node_map_pfn_alignment - determine the maximum internode alignment
- *
- * This function should be called after node map is populated and sorted.
- * It calculates the maximum power of two alignment which can distinguish
- * all the nodes.
- *
- * For example, if all nodes are 1GiB and aligned to 1GiB, the return value
- * would indicate 1GiB alignment with (1 << (30 - PAGE_SHIFT)).  If the
- * nodes are shifted by 256MiB, 256MiB.  Note that if only the last node is
- * shifted, 1GiB is enough and this function will indicate so.
- *
- * This is used to test whether pfn -> nid mapping of the chosen memory
- * model has fine enough granularity to avoid incorrect mapping for the
- * populated node map.
- *
- * Return: the determined alignment in pfn's.  0 if there is no alignment
- * requirement (single node).
- */
-unsigned long __init node_map_pfn_alignment(void)
-{
-	unsigned long accl_mask = 0, last_end = 0;
-	unsigned long start, end, mask;
-	int last_nid = NUMA_NO_NODE;
-	int i, nid;
-
-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid) {
-		if (!start || last_nid < 0 || last_nid == nid) {
-			last_nid = nid;
-			last_end = end;
-			continue;
-		}
-
-		/*
-		 * Start with a mask granular enough to pin-point to the
-		 * start pfn and tick off bits one-by-one until it becomes
-		 * too coarse to separate the current node from the last.
-		 */
-		mask = ~((1 << __ffs(start)) - 1);
-		while (mask && last_end <= (start & (mask << 1)))
-			mask <<= 1;
-
-		/* accumulate all internode masks */
-		accl_mask |= mask;
-	}
-
-	/* convert mask to number of pages */
-	return ~accl_mask + 1;
-}
 
 /**
  * find_min_pfn_with_active_regions - Find the minimum PFN registered
@@ -5372,33 +5309,6 @@ void __init free_area_init(unsigned long *max_zone_pfn)
 	}
 
 	memmap_init();
-}
-
-static int __init cmdline_parse_core(char *p, unsigned long *core,
-				     unsigned long *percent)
-{
-	unsigned long long coremem;
-	char *endptr;
-
-	if (!p)
-		return -EINVAL;
-
-	/* Value may be a percentage of total memory, otherwise bytes */
-	coremem = simple_strtoull(p, &endptr, 0);
-	if (*endptr == '%') {
-		/* Paranoid check for percent values greater than 100 */
-		WARN_ON(coremem > 100);
-
-		*percent = coremem;
-	} else {
-		coremem = memparse(p, &p);
-		/* Paranoid check that UL is enough for the coremem value */
-		WARN_ON((coremem >> PAGE_SHIFT) > ULONG_MAX);
-
-		*core = coremem >> PAGE_SHIFT;
-		*percent = 0UL;
-	}
-	return 0;
 }
 
 void __init mem_init_print_info(void)

@@ -156,20 +156,6 @@ static unsigned long __init_memblock memblock_addrs_overlap(phys_addr_t base1, p
 	return ((base1 < (base2 + size2)) && (base2 < (base1 + size1)));
 }
 
-bool __init_memblock memblock_overlaps_region(struct memblock_type *type,
-					phys_addr_t base, phys_addr_t size)
-{
-	unsigned long i;
-
-	memblock_cap_size(base, &size);
-
-	for (i = 0; i < type->cnt; i++)
-		if (memblock_addrs_overlap(base, size, type->regions[i].base,
-					   type->regions[i].size))
-			break;
-	return i < type->cnt;
-}
-
 /**
  * __memblock_find_range_bottom_up - find free area utility in bottom-up
  * @start: start of candidate range
@@ -596,27 +582,6 @@ repeat:
 		memblock_merge_regions(type);
 		return 0;
 	}
-}
-
-/**
- * memblock_add_node - add new memblock region within a NUMA node
- * @base: base address of the new region
- * @size: size of the new region
- * @nid: nid of the new region
- * @flags: flags of the new region
- *
- * Add new memblock region [@base, @base + @size) to the "memory"
- * type. See memblock_add_range() description for mode details
- *
- * Return:
- * 0 on success, -errno on failure.
- */
-int __init_memblock memblock_add_node(phys_addr_t base, phys_addr_t size,
-				      int nid, enum memblock_flags flags)
-{
-	phys_addr_t end = base + size - 1;
-
-	return memblock_add_range(&memblock.memory, base, size, nid, flags);
 }
 
 /**
@@ -1367,86 +1332,6 @@ bool __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t siz
 		 memblock.memory.regions[idx].size) >= end;
 }
 
-static void __init free_memmap(unsigned long start_pfn, unsigned long end_pfn)
-{
-	struct page *start_pg, *end_pg;
-	phys_addr_t pg, pgend;
-
-	/*
-	 * Convert start_pfn/end_pfn to a struct page pointer.
-	 */
-	start_pg = pfn_to_page(start_pfn - 1) + 1;
-	end_pg = pfn_to_page(end_pfn - 1) + 1;
-
-	/*
-	 * Convert to physical addresses, and round start upwards and end
-	 * downwards.
-	 */
-	pg = PAGE_ALIGN(__pa(start_pg));
-	pgend = __pa(end_pg) & PAGE_MASK;
-
-	/*
-	 * If there are free pages between these, free the section of the
-	 * memmap array.
-	 */
-	if (pg < pgend)
-		memblock_phys_free(pg, pgend - pg);
-}
-
-/*
- * The mem_map array can get very big.  Free the unused area of the memory map.
- */
-static void __init free_unused_memmap(void)
-{
-	unsigned long start, end, prev_end = 0;
-	int i;
-
-	if (!IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) ||
-	    IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP))
-		return;
-
-	/*
-	 * This relies on each bank being in address order.
-	 * The banks are sorted previously in bootmem_init().
-	 */
-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, NULL) {
-#ifdef CONFIG_SPARSEMEM
-		/*
-		 * Take care not to free memmap entries that don't exist
-		 * due to SPARSEMEM sections which aren't present.
-		 */
-		start = min(start, ALIGN(prev_end, PAGES_PER_SECTION));
-#endif
-		/*
-		 * Align down here since many operations in VM subsystem
-		 * presume that there are no holes in the memory map inside
-		 * a pageblock
-		 */
-		start = round_down(start, pageblock_nr_pages);
-
-		/*
-		 * If we had a previous bank, and there is a space
-		 * between the current bank and the previous, free it.
-		 */
-		if (prev_end && prev_end < start)
-			free_memmap(prev_end, start);
-
-		/*
-		 * Align up here since many operations in VM subsystem
-		 * presume that there are no holes in the memory map inside
-		 * a pageblock
-		 */
-		prev_end = ALIGN(end, pageblock_nr_pages);
-	}
-
-#ifdef CONFIG_SPARSEMEM
-	if (!IS_ALIGNED(prev_end, PAGES_PER_SECTION)) {
-		prev_end = ALIGN(end, pageblock_nr_pages);
-		free_memmap(prev_end, ALIGN(prev_end, PAGES_PER_SECTION));
-	}
-#endif
-}
-
 static void __init __free_pages_memory(unsigned long start, unsigned long end)
 {
 	int order;
@@ -1550,7 +1435,6 @@ void __init memblock_free_all(void)
 {
 	unsigned long pages;
 
-	free_unused_memmap();
 	reset_all_zones_managed_pages();
 
 	pages = free_low_memory_core_early();
