@@ -41,7 +41,16 @@ static void __init mm_init(void)
 	mem_init_print_info();
 }
 
-void test_buddy(void)
+extern struct pglist_data contig_page_data;
+static void __init print_buddy_info(void)
+{
+	struct zone *zone = contig_page_data.node_zonelists[0]._zonerefs[0].zone;
+
+	printk("%px", zone);
+	printk("%u", zone->free_area[10].nr_free);
+}
+
+static void test_buddy(void)
 {
 	struct page *p;
 	void *addr;
@@ -52,8 +61,9 @@ void test_buddy(void)
 		p = alloc_pages(GFP_KERNEL, order);
 		addr = page_to_virt(p);
 		printk("addr %llx %llx %u %d\n", addr, virt_to_phys(addr), page_to_pfn(p), i++);
-		// asm("hlt;");
+		asm("hlt;");
 		memset(addr, 0xf4, 4096 << order);
+		print_buddy_info();
 		// __free_pages(p, order);
 	}
 }
