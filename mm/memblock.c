@@ -728,13 +728,6 @@ static int __init_memblock memblock_remove_range(struct memblock_type *type,
 	return 0;
 }
 
-int __init_memblock memblock_remove(phys_addr_t base, phys_addr_t size)
-{
-	phys_addr_t end = base + size - 1;
-
-	return memblock_remove_range(&memblock.memory, base, size);
-}
-
 /**
  * memblock_free - free boot memory allocation
  * @ptr: starting address of the  boot memory allocation
@@ -807,18 +800,6 @@ static int __init_memblock memblock_setclr_flag(phys_addr_t base,
 }
 
 /**
- * memblock_mark_hotplug - Mark hotpluggable memory with flag MEMBLOCK_HOTPLUG.
- * @base: the base phys addr of the region
- * @size: the size of the region
- *
- * Return: 0 on success, -errno on failure.
- */
-int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
-{
-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_HOTPLUG);
-}
-
-/**
  * memblock_clear_hotplug - Clear flag MEMBLOCK_HOTPLUG for a specified region.
  * @base: the base phys addr of the region
  * @size: the size of the region
@@ -828,52 +809,6 @@ int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
 int __init_memblock memblock_clear_hotplug(phys_addr_t base, phys_addr_t size)
 {
 	return memblock_setclr_flag(base, size, 0, MEMBLOCK_HOTPLUG);
-}
-
-/**
- * memblock_mark_mirror - Mark mirrored memory with flag MEMBLOCK_MIRROR.
- * @base: the base phys addr of the region
- * @size: the size of the region
- *
- * Return: 0 on success, -errno on failure.
- */
-int __init_memblock memblock_mark_mirror(phys_addr_t base, phys_addr_t size)
-{
-	system_has_some_mirror = true;
-
-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_MIRROR);
-}
-
-/**
- * memblock_mark_nomap - Mark a memory region with flag MEMBLOCK_NOMAP.
- * @base: the base phys addr of the region
- * @size: the size of the region
- *
- * The memory regions marked with %MEMBLOCK_NOMAP will not be added to the
- * direct mapping of the physical memory. These regions will still be
- * covered by the memory map. The struct page representing NOMAP memory
- * frames in the memory map will be PageReserved()
- *
- * Note: if the memory being marked %MEMBLOCK_NOMAP was allocated from
- * memblock, the caller must inform kmemleak to ignore that memory
- *
- * Return: 0 on success, -errno on failure.
- */
-int __init_memblock memblock_mark_nomap(phys_addr_t base, phys_addr_t size)
-{
-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_NOMAP);
-}
-
-/**
- * memblock_clear_nomap - Clear flag MEMBLOCK_NOMAP for a specified region.
- * @base: the base phys addr of the region
- * @size: the size of the region
- *
- * Return: 0 on success, -errno on failure.
- */
-int __init_memblock memblock_clear_nomap(phys_addr_t base, phys_addr_t size)
-{
-	return memblock_setclr_flag(base, size, 0, MEMBLOCK_NOMAP);
 }
 
 static bool should_skip_region(struct memblock_type *type,
@@ -1146,25 +1081,6 @@ void __init_memblock __next_mem_pfn_range(int *idx, int nid,
 }
 
 /**
- * memblock_set_node - set node ID on memblock regions
- * @base: base of area to set node ID for
- * @size: size of area to set node ID for
- * @type: memblock type to set node ID for
- * @nid: node ID to set
- *
- * Set the nid of memblock @type regions in [@base, @base + @size) to @nid.
- * Regions which cross the area boundaries are split as necessary.
- *
- * Return:
- * 0 on success, -errno on failure.
- */
-int __init_memblock memblock_set_node(phys_addr_t base, phys_addr_t size,
-				      struct memblock_type *type, int nid)
-{
-	return 0;
-}
-
-/**
  * memblock_alloc_range_nid - allocate boot memory block
  * @size: size of memory block to be allocated in bytes
  * @align: alignment of the region and block's size
@@ -1265,25 +1181,6 @@ phys_addr_t __init memblock_phys_alloc_range(phys_addr_t size,
 {
 	return memblock_alloc_range_nid(size, align, start, end, NUMA_NO_NODE,
 					false);
-}
-
-/**
- * memblock_phys_alloc_try_nid - allocate a memory block from specified NUMA node
- * @size: size of memory block to be allocated in bytes
- * @align: alignment of the region and block's size
- * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
- *
- * Allocates memory block from the specified NUMA node. If the node
- * has no available memory, attempts to allocated from any node in the
- * system.
- *
- * Return: physical address of the allocated memory block on success,
- * %0 on failure.
- */
-phys_addr_t __init memblock_phys_alloc_try_nid(phys_addr_t size, phys_addr_t align, int nid)
-{
-	return memblock_alloc_range_nid(size, align, 0,
-					MEMBLOCK_ALLOC_ACCESSIBLE, nid, false);
 }
 
 /**
@@ -1423,30 +1320,6 @@ void * __init memblock_alloc_try_nid(
 		memset(ptr, 0, size);
 
 	return ptr;
-}
-
-/**
- * memblock_free_late - free pages directly to buddy allocator
- * @base: phys starting address of the  boot memory block
- * @size: size of the boot memory block in bytes
- *
- * This is only useful when the memblock allocator has already been torn
- * down, but we are still initializing the system.  Pages are released directly
- * to the buddy allocator.
- */
-void __init memblock_free_late(phys_addr_t base, phys_addr_t size)
-{
-	phys_addr_t cursor, end;
-
-	end = base + size - 1;
-	kmemleak_free_part_phys(base, size);
-	cursor = PFN_UP(base);
-	end = PFN_DOWN(base + size);
-
-	for (; cursor < end; cursor++) {
-		memblock_free_pages(pfn_to_page(cursor), cursor, 0);
-		totalram_pages_inc();
-	}
 }
 
 /* lowest address */
