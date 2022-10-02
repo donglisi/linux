@@ -54,6 +54,23 @@ struct bpf_prog;
 #define NETDEV_HASHBITS    8
 #define NETDEV_HASHENTRIES (1 << NETDEV_HASHBITS)
 
+struct netns_core {
+    /* core sysctls */
+    struct ctl_table_header	*sysctl_hdr;
+
+    int	sysctl_somaxconn;
+    u8	sysctl_txrehash;
+
+#ifdef CONFIG_PROC_FS
+    struct prot_inuse __percpu *prot_inuse;
+#endif
+};
+
+struct netns_packet {
+    struct mutex		sklist_lock;
+    struct hlist_head	sklist;
+};
+
 struct net {
 	/* First cache line can be often dirtied.
 	 * Do not place here read-mostly fields.
@@ -118,10 +135,7 @@ struct net {
 	struct list_head	rules_ops;
 
 	struct netns_core	core;
-	struct netns_mib	mib;
 	struct netns_packet	packet;
-	struct netns_unix	unx;
-	struct netns_nexthop	nexthop;
 	struct netns_ipv4	ipv4;
 #if IS_ENABLED(CONFIG_IPV6)
 	struct netns_ipv6	ipv6;
@@ -145,9 +159,6 @@ struct net {
 	struct sk_buff_head	wext_nlevents;
 #endif
 	struct net_generic __rcu	*gen;
-
-	/* Used to store attached BPF programs */
-	struct netns_bpf	bpf;
 
 	/* Note : following structs are cache line aligned */
 #ifdef CONFIG_XFRM

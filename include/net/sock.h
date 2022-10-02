@@ -2170,7 +2170,6 @@ static inline void sock_confirm_neigh(struct sk_buff *skb, struct neighbour *n)
 
 		if (sk && READ_ONCE(sk->sk_dst_pending_confirm))
 			WRITE_ONCE(sk->sk_dst_pending_confirm, 0);
-		neigh_confirm(n);
 	}
 }
 
@@ -2881,7 +2880,6 @@ static inline bool sk_dev_equal_l3scope(struct sock *sk, int dif)
 	if (!bound_dev_if || bound_dev_if == dif)
 		return true;
 
-	mdif = l3mdev_master_ifindex_by_index(sock_net(sk), dif);
 	if (mdif && mdif == bound_dev_if)
 		return true;
 

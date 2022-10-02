@@ -741,7 +741,6 @@ bool rps_may_expire_flow(struct net_device *dev, u16 rxq_index, u32 flow_id,
 
 /* This structure contains an instance of an RX queue. */
 struct netdev_rx_queue {
-	struct xdp_rxq_info		xdp_rxq;
 #ifdef CONFIG_RPS
 	struct rps_map __rcu		*rps_map;
 	struct rps_dev_flow_table __rcu	*rps_flow_table;
@@ -1572,9 +1571,6 @@ struct net_device_ops {
 						       int needed_headroom);
 	int			(*ndo_bpf)(struct net_device *dev,
 					   struct netdev_bpf *bpf);
-	int			(*ndo_xdp_xmit)(struct net_device *dev, int n,
-						struct xdp_frame **xdp,
-						u32 flags);
 	struct net_device *	(*ndo_xdp_get_xmit_slave)(struct net_device *dev,
 							  struct xdp_buff *xdp);
 	int			(*ndo_xsk_wakeup)(struct net_device *dev,
