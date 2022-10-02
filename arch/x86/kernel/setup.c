@@ -1,6 +1,13 @@
 #include <linux/memblock.h>
-#include <linux/pci.h>
-#include <asm/gart.h>
+#include <linux/mod_devicetable.h>
+
+#include <linux/types.h>
+#include <linux/init.h>
+#include <linux/list.h>
+#include <linux/compiler.h>
+#include <linux/interrupt.h>
+#include <linux/io.h>
+#include <asm/e820/api.h>
 
 #include <asm/prom.h>
 
@@ -12,8 +19,6 @@ unsigned long _brk_end   = (unsigned long)__brk_base;
 struct boot_params boot_params;
 
 struct cpuinfo_x86 boot_cpu_data __read_mostly;
-
-static char __initdata command_line[COMMAND_LINE_SIZE];
 
 void * __init extend_brk(size_t size, size_t align)
 {

@@ -2042,7 +2042,6 @@ static inline void sock_graft(struct sock *sk, struct socket *parent)
 	parent->sk = sk;
 	sk_set_socket(sk, parent);
 	sk->sk_uid = SOCK_INODE(parent)->i_uid;
-	security_sock_graft(sk, parent);
 	write_unlock_bh(&sk->sk_callback_lock);
 }
 

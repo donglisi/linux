@@ -9,7 +9,14 @@
 #include <linux/sched/mm.h>
 #include <linux/sched/signal.h>
 #include <linux/sched/task_stack.h>
-#include <linux/security.h>
+#include <linux/kernel_read_file.h>
+#include <linux/key.h>
+#include <linux/capability.h>
+#include <linux/fs.h>
+#include <linux/slab.h>
+#include <linux/err.h>
+#include <linux/string.h>
+#include <linux/mm.h>
 #include <linux/swap.h>
 #include <linux/swapops.h>
 #include <linux/mman.h>
@@ -461,116 +468,6 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
 	mm->get_unmapped_area = arch_get_unmapped_area;
 }
 #endif
-
-/**
- * __account_locked_vm - account locked pages to an mm's locked_vm
- * @mm:          mm to account against
- * @pages:       number of pages to account
- * @inc:         %true if @pages should be considered positive, %false if not
- * @task:        task used to check RLIMIT_MEMLOCK
- * @bypass_rlim: %true if checking RLIMIT_MEMLOCK should be skipped
- *
- * Assumes @task and @mm are valid (i.e. at least one reference on each), and
- * that mmap_lock is held as writer.
- *
- * Return:
- * * 0       on success
- * * -ENOMEM if RLIMIT_MEMLOCK would be exceeded.
- */
-int __account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc,
-			struct task_struct *task, bool bypass_rlim)
-{
-	unsigned long locked_vm, limit;
-	int ret = 0;
-
-	mmap_assert_write_locked(mm);
-
-	locked_vm = mm->locked_vm;
-	if (inc) {
-		if (!bypass_rlim) {
-			limit = task_rlimit(task, RLIMIT_MEMLOCK) >> PAGE_SHIFT;
-			if (locked_vm + pages > limit)
-				ret = -ENOMEM;
-		}
-		if (!ret)
-			mm->locked_vm = locked_vm + pages;
-	} else {
-		WARN_ON_ONCE(pages > locked_vm);
-		mm->locked_vm = locked_vm - pages;
-	}
-
-	pr_debug("%s: [%d] caller %ps %c%lu %lu/%lu%s\n", __func__, task->pid,
-		 (void *)_RET_IP_, (inc) ? '+' : '-', pages << PAGE_SHIFT,
-		 locked_vm << PAGE_SHIFT, task_rlimit(task, RLIMIT_MEMLOCK),
-		 ret ? " - exceeded" : "");
-
-	return ret;
-}
-EXPORT_SYMBOL_GPL(__account_locked_vm);
-
-/**
- * account_locked_vm - account locked pages to an mm's locked_vm
- * @mm:          mm to account against, may be NULL
- * @pages:       number of pages to account
- * @inc:         %true if @pages should be considered positive, %false if not
- *
- * Assumes a non-NULL @mm is valid (i.e. at least one reference on it).
- *
- * Return:
- * * 0       on success, or if mm is NULL
- * * -ENOMEM if RLIMIT_MEMLOCK would be exceeded.
- */
-int account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc)
-{
-	int ret;
-
-	if (pages == 0 || !mm)
-		return 0;
-
-	mmap_write_lock(mm);
-	ret = __account_locked_vm(mm, pages, inc, current,
-				  capable(CAP_IPC_LOCK));
-	mmap_write_unlock(mm);
-
-	return ret;
-}
-EXPORT_SYMBOL_GPL(account_locked_vm);
-
-unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
-	unsigned long len, unsigned long prot,
-	unsigned long flag, unsigned long pgoff)
-{
-	unsigned long ret;
-	struct mm_struct *mm = current->mm;
-	unsigned long populate;
-	LIST_HEAD(uf);
-
-	ret = security_mmap_file(file, prot, flag);
-	if (!ret) {
-		if (mmap_write_lock_killable(mm))
-			return -EINTR;
-		ret = do_mmap(file, addr, len, prot, flag, pgoff, &populate,
-			      &uf);
-		mmap_write_unlock(mm);
-		userfaultfd_unmap_complete(mm, &uf);
-		if (populate)
-			mm_populate(ret, populate);
-	}
-	return ret;
-}
-
-unsigned long vm_mmap(struct file *file, unsigned long addr,
-	unsigned long len, unsigned long prot,
-	unsigned long flag, unsigned long offset)
-{
-	if (unlikely(offset + PAGE_ALIGN(len) < offset))
-		return -EINVAL;
-	if (unlikely(offset_in_page(offset)))
-		return -EINVAL;
-
-	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
-}
-EXPORT_SYMBOL(vm_mmap);
 
 /**
  * kvmalloc_node - attempt to allocate physically contiguous memory, but upon

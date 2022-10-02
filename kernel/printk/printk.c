@@ -465,35 +465,6 @@ static int syslog_action_restricted(int type)
 	       type != SYSLOG_ACTION_SIZE_BUFFER;
 }
 
-static int check_syslog_permissions(int type, int source)
-{
-	/*
-	 * If this is from /proc/kmsg and we've already opened it, then we've
-	 * already done the capabilities checks at open time.
-	 */
-	if (source == SYSLOG_FROM_PROC && type != SYSLOG_ACTION_OPEN)
-		goto ok;
-
-	if (syslog_action_restricted(type)) {
-		if (capable(CAP_SYSLOG))
-			goto ok;
-		/*
-		 * For historical reasons, accept CAP_SYS_ADMIN too, with
-		 * a warning.
-		 */
-		if (capable(CAP_SYS_ADMIN)) {
-			pr_warn_once("%s (%d): Attempt to access syslog with "
-				     "CAP_SYS_ADMIN but no CAP_SYSLOG "
-				     "(deprecated).\n",
-				 current->comm, task_pid_nr(current));
-			goto ok;
-		}
-		return -EPERM;
-	}
-ok:
-	return security_syslog(type);
-}
-
 static void append_char(char **pp, char *e, char c)
 {
 	if (*pp < e)
@@ -729,60 +700,6 @@ static __poll_t devkmsg_poll(struct file *file, poll_table *wait)
 
 	return ret;
 }
-
-static int devkmsg_open(struct inode *inode, struct file *file)
-{
-	struct devkmsg_user *user;
-	int err;
-
-	if (devkmsg_log & DEVKMSG_LOG_MASK_OFF)
-		return -EPERM;
-
-	/* write-only does not need any file context */
-	if ((file->f_flags & O_ACCMODE) != O_WRONLY) {
-		err = check_syslog_permissions(SYSLOG_ACTION_READ_ALL,
-					       SYSLOG_FROM_READER);
-		if (err)
-			return err;
-	}
-
-	user = kvmalloc(sizeof(struct devkmsg_user), GFP_KERNEL);
-	if (!user)
-		return -ENOMEM;
-
-	ratelimit_default_init(&user->rs);
-	ratelimit_set_flags(&user->rs, RATELIMIT_MSG_ON_RELEASE);
-
-	prb_rec_init_rd(&user->record, &user->info,
-			&user->text_buf[0], sizeof(user->text_buf));
-
-	atomic64_set(&user->seq, prb_first_valid_seq(prb));
-
-	file->private_data = user;
-	return 0;
-}
-
-static int devkmsg_release(struct inode *inode, struct file *file)
-{
-	struct devkmsg_user *user = file->private_data;
-
-	if (!user)
-		return 0;
-
-	ratelimit_state_exit(&user->rs);
-
-	kvfree(user);
-	return 0;
-}
-
-const struct file_operations kmsg_fops = {
-	.open = devkmsg_open,
-	.read = devkmsg_read,
-	.write_iter = devkmsg_write,
-	.llseek = devkmsg_llseek,
-	.poll = devkmsg_poll,
-	.release = devkmsg_release,
-};
 
 #ifdef CONFIG_CRASH_CORE
 /*
