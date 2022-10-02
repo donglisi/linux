@@ -825,8 +825,6 @@ static __always_inline bool free_pages_prepare(struct page *page,
 	 */
 	arch_free_page(page, order);
 
-	debug_pagealloc_unmap_pages(page, 1 << order);
-
 	return true;
 }
 
@@ -838,10 +836,7 @@ static __always_inline bool free_pages_prepare(struct page *page,
  */
 static bool free_pcp_prepare(struct page *page, unsigned int order)
 {
-	if (debug_pagealloc_enabled_static())
-		return free_pages_prepare(page, order, true, FPI_NONE);
-	else
-		return free_pages_prepare(page, order, false, FPI_NONE);
+	return free_pages_prepare(page, order, false, FPI_NONE);
 }
 
 static bool bulkfree_pcp_prepare(struct page *page)
@@ -1179,10 +1174,7 @@ static inline bool check_pcp_refill(struct page *page, unsigned int order)
 }
 static inline bool check_new_pcp(struct page *page, unsigned int order)
 {
-	if (debug_pagealloc_enabled_static())
-		return check_new_pages(page, order);
-	else
-		return false;
+	return false;
 }
 
 static inline bool should_skip_kasan_unpoison(gfp_t flags, bool init_tags)
@@ -1226,7 +1218,6 @@ inline void post_alloc_hook(struct page *page, unsigned int order,
 	set_page_refcounted(page);
 
 	arch_alloc_page(page, order);
-	debug_pagealloc_map_pages(page, 1 << order);
 
 	/*
 	 * Page unpoisoning must happen before memory initialization.
@@ -1234,12 +1225,6 @@ inline void post_alloc_hook(struct page *page, unsigned int order,
 	 * allocations and the page unpoisoning code will complain.
 	 */
 	kernel_unpoison_pages(page, 1 << order);
-
-	/*
-	 * As memory initialization might be integrated into KASAN,
-	 * KASAN unpoisoning and memory initializion code must be
-	 * kept together to avoid discrepancies in behavior.
-	 */
 
 	/*
 	 * If memory tags should be zeroed (which happens only when memory
@@ -2198,7 +2183,7 @@ struct page *__rmqueue_pcplist(struct zone *zone, unsigned int order,
 		page = list_first_entry(list, struct page, lru);
 		list_del(&page->lru);
 		pcp->count -= 1 << order;
-	} while (check_new_pcp(page, order));
+	} while (0);
 
 	return page;
 }

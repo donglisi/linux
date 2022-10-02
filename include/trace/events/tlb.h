@@ -59,4 +59,3 @@ TRACE_EVENT(tlb_flush,
 #endif /* _TRACE_TLB_H */
 
 /* This part must be outside protection */
-#include <trace/define_trace.h>

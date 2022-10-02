@@ -190,6 +190,3 @@ TRACE_EVENT(compact_retry,
 );
 #endif /* CONFIG_COMPACTION */
 #endif
-
-/* This part must be outside protection */
-#include <trace/define_trace.h>

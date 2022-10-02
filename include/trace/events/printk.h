@@ -33,5 +33,3 @@ TRACE_EVENT(console,
 );
 #endif /* _TRACE_PRINTK_H */
 
-/* This part must be outside protection */
-#include <trace/define_trace.h>

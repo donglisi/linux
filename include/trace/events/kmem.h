@@ -397,5 +397,3 @@ TRACE_EVENT(rss_stat,
 	);
 #endif /* _TRACE_KMEM_H */
 
-/* This part must be outside protection */
-#include <trace/define_trace.h>
