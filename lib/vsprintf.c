@@ -942,29 +942,6 @@ char *file_dentry_name(char *buf, char *end, const struct file *f,
 
 	return dentry_name(buf, end, f->f_path.dentry, spec, fmt);
 }
-#ifdef CONFIG_BLOCK
-static noinline_for_stack
-char *bdev_name(char *buf, char *end, struct block_device *bdev,
-		struct printf_spec spec, const char *fmt)
-{
-	struct gendisk *hd;
-
-	if (check_pointer(&buf, end, bdev, spec))
-		return buf;
-
-	hd = bdev->bd_disk;
-	buf = string(buf, end, hd->disk_name, spec);
-	if (bdev->bd_partno) {
-		if (isdigit(hd->disk_name[strlen(hd->disk_name)-1])) {
-			if (buf < end)
-				*buf = 'p';
-			buf++;
-		}
-		buf = number(buf, end, bdev->bd_partno, spec);
-	}
-	return buf;
-}
-#endif
 
 static noinline_for_stack
 char *symbol_string(char *buf, char *end, void *ptr,
