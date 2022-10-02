@@ -47,6 +47,9 @@
 
 #include <linux/string_helpers.h>
 
+const char hex_asc[] = "0123456789abcdef";
+const char hex_asc_upper[] = "0123456789ABCDEF";
+
 /* Disable pointer hashing if requested */
 bool no_hash_pointers __ro_after_init;
 
