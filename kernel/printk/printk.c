@@ -21,20 +21,13 @@
 
 #include <linux/kernel.h>
 #include <linux/mm.h>
-#include <linux/tty.h>
-#include <linux/tty_driver.h>
 #include <linux/console.h>
 #include <linux/init.h>
 #include <linux/jiffies.h>
 #include <linux/nmi.h>
-#include <linux/module.h>
-#include <linux/moduleparam.h>
 #include <linux/delay.h>
 #include <linux/smp.h>
-#include <linux/security.h>
 #include <linux/memblock.h>
-#include <linux/syscalls.h>
-#include <linux/crash_core.h>
 #include <linux/ratelimit.h>
 #include <linux/kmsg_dump.h>
 #include <linux/syslog.h>
@@ -44,7 +37,6 @@
 #include <linux/irq_work.h>
 #include <linux/ctype.h>
 #include <linux/uio.h>
-#include <linux/sched/clock.h>
 #include <linux/sched/debug.h>
 #include <linux/sched/task_stack.h>
 
@@ -2133,8 +2125,6 @@ static int __init console_suspend_disable(char *str)
 	return 1;
 }
 __setup("no_console_suspend", console_suspend_disable);
-MODULE_PARM_DESC(console_suspend, "suspend console during suspend"
-	" and hibernate operations");
 
 static bool printk_console_no_auto_verbose;
 
@@ -2144,8 +2134,6 @@ void console_verbose(void)
 		console_loglevel = CONSOLE_LOGLEVEL_MOTORMOUTH;
 }
 EXPORT_SYMBOL_GPL(console_verbose);
-
-MODULE_PARM_DESC(console_no_auto_verbose, "Disable console loglevel raise to highest on oops/panic/etc");
 
 /**
  * suspend_console - suspend the console subsystem

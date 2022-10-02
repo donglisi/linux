@@ -24,9 +24,7 @@
 #include <linux/compiler.h>
 #include <linux/kernel.h>
 #include <linux/kasan.h>
-#include <linux/module.h>
 #include <linux/pagevec.h>
-#include <linux/blkdev.h>
 #include <linux/oom.h>
 #include <linux/topology.h>
 #include <linux/sysctl.h>
@@ -50,7 +48,6 @@
 #include <linux/page_owner.h>
 #include <linux/page_table_check.h>
 #include <linux/memcontrol.h>
-#include <linux/ftrace.h>
 #include <linux/lockdep.h>
 #include <linux/psi.h>
 #include <linux/khugepaged.h>

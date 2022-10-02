@@ -23,7 +23,6 @@
 #include <net/request_sock.h>
 #include <net/netns/hash.h>
 #include <net/tcp_states.h>
-#include <net/l3mdev.h>
 
 /** struct ip_options - IP Options
  *

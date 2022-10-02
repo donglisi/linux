@@ -1,4 +1,3 @@
-#include <linux/syscalls.h>
 #include <linux/memblock.h>
 
 #include <asm/setup.h>

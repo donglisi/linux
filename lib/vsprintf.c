@@ -19,10 +19,7 @@
 
 #include <linux/stdarg.h>
 #include <linux/build_bug.h>
-#include <linux/clk.h>
-#include <linux/clk-provider.h>
 #include <linux/errname.h>
-#include <linux/module.h>	/* for KSYM_SYMBOL_LEN */
 #include <linux/types.h>
 #include <linux/string.h>
 #include <linux/ctype.h>

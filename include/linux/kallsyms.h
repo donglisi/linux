@@ -11,7 +11,6 @@
 #include <linux/kernel.h>
 #include <linux/stddef.h>
 #include <linux/mm.h>
-#include <linux/module.h>
 
 #include <asm/sections.h>
 

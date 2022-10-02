@@ -2,8 +2,6 @@
 #ifndef _ASM_GENERIC_IOCTL_H
 #define _ASM_GENERIC_IOCTL_H
 
-#include <uapi/asm-generic/ioctl.h>
-
 #ifdef __CHECKER__
 #define _IOC_TYPECHECK(t) (sizeof(t))
 #else

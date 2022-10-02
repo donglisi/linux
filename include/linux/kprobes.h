@@ -25,7 +25,6 @@
 #include <linux/spinlock.h>
 #include <linux/rcupdate.h>
 #include <linux/mutex.h>
-#include <linux/ftrace.h>
 #include <linux/refcount.h>
 #include <linux/freelist.h>
 #include <linux/rethook.h>

@@ -36,7 +36,6 @@ static inline time64_t rtc_tm_sub(struct rtc_time *lhs, struct rtc_time *rhs)
 
 #include <linux/device.h>
 #include <linux/seq_file.h>
-#include <linux/cdev.h>
 #include <linux/poll.h>
 #include <linux/mutex.h>
 #include <linux/timerqueue.h>
