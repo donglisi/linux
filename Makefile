@@ -30,7 +30,7 @@ x86	:= $(addprefix arch/x86/, $(addprefix mm/, init.o init_64.o) \
 		$(addprefix lib/, hweight.o memcpy_64.o clear_page_64.o memmove_64.o memset_64.o) \
 		$(addprefix kernel/, idt.o setup.o e820.o head_64.o head64.o early_printk.o))
 kernel	:= $(addprefix kernel/, range.o $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
-lib	:= $(addprefix lib/, sort.o find_bit.o ctype.o string.o vsprintf.o sym.o)
+lib	:= $(addprefix lib/, sort.o ctype.o string.o vsprintf.o sym.o)
 mm	:= $(addprefix mm/, mmzone.o page_alloc.o memblock.o sparse.o)
 objs	:= $(addprefix build/, $(x86) $(kernel) $(lib) $(mm) init/main.o)
 
