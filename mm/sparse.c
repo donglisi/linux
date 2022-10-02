@@ -3,55 +3,18 @@
  * sparse memory mappings.
  */
 #include <linux/mm.h>
-#include <linux/slab.h>
 #include <linux/mmzone.h>
 #include <linux/memblock.h>
 #include <linux/compiler.h>
-#include <linux/highmem.h>
 #include <linux/export.h>
 #include <linux/spinlock.h>
 #include <linux/swap.h>
-#include <linux/bootmem_info.h>
 
 #include "internal.h"
 #include <asm/dma.h>
 
 struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT]
 	____cacheline_internodealigned_in_smp;
-EXPORT_SYMBOL(mem_section);
-
-#ifdef NODE_NOT_IN_PAGE_FLAGS
-/*
- * If we did not store the node number in the page then we have to
- * do a lookup in the section_to_node_table in order to find which
- * node the page belongs to.
- */
-#if MAX_NUMNODES <= 256
-static u8 section_to_node_table[NR_MEM_SECTIONS] __cacheline_aligned;
-#else
-static u16 section_to_node_table[NR_MEM_SECTIONS] __cacheline_aligned;
-#endif
-
-int page_to_nid(const struct page *page)
-{
-	return section_to_node_table[page_to_section(page)];
-}
-EXPORT_SYMBOL(page_to_nid);
-
-static void set_section_nid(unsigned long section_nr, int nid)
-{
-	section_to_node_table[section_nr] = nid;
-}
-#else /* !NODE_NOT_IN_PAGE_FLAGS */
-static inline void set_section_nid(unsigned long section_nr, int nid)
-{
-}
-#endif
-
-static inline int sparse_index_init(unsigned long section_nr, int nid)
-{
-	return 0;
-}
 
 /*
  * During early boot, before section_mem_map is used for an actual
@@ -139,9 +102,6 @@ static void __init memory_present(int nid, unsigned long start, unsigned long en
 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
 		unsigned long section = pfn_to_section_nr(pfn);
 		struct mem_section *ms;
-
-		sparse_index_init(section, nid);
-		set_section_nid(section, nid);
 
 		ms = __nr_to_section(section);
 		if (!ms->section_mem_map) {
