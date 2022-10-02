@@ -40,8 +40,6 @@
 #include <linux/page-isolation.h>
 #include <linux/debugobjects.h>
 #include <linux/compaction.h>
-#include <trace/events/kmem.h>
-#include <trace/events/oom.h>
 #include <linux/prefetch.h>
 #include <linux/sched/rt.h>
 #include <linux/sched/mm.h>
@@ -723,8 +721,6 @@ static __always_inline bool free_pages_prepare(struct page *page,
 
 	VM_BUG_ON_PAGE(PageTail(page), page);
 
-	trace_mm_page_free(page, order);
-
 	if (unlikely(PageHWPoison(page)) && !order) {
 		/*
 		 * Do not let hwpoison pages hit pcplists/buddy
@@ -901,7 +897,6 @@ static void free_pcppages_bulk(struct zone *zone, int count,
 				mt = get_pageblock_migratetype(page);
 
 			__free_one_page(page, page_to_pfn(page), zone, order, mt, FPI_NONE);
-			trace_mm_page_pcpu_drain(page, order, mt);
 		} while (count > 0 && !list_empty(list));
 	}
 
@@ -1284,9 +1279,6 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
 		del_page_from_free_list(page, zone, current_order);
 		expand(zone, page, order, current_order, migratetype);
 		set_pcppage_migratetype(page, migratetype);
-		trace_mm_page_alloc_zone_locked(page, order, migratetype,
-				pcp_allowed_order(order) &&
-				migratetype < MIGRATE_PCPTYPES);
 		return page;
 	}
 
@@ -1773,9 +1765,6 @@ do_steal:
 
 	steal_suitable_fallback(zone, page, alloc_flags, start_migratetype,
 								can_steal);
-
-	trace_mm_page_alloc_extfrag(page, order, current_order,
-		start_migratetype, fallback_mt);
 
 	return true;
 
@@ -2972,8 +2961,6 @@ should_reclaim_retry(gfp_t gfp_mask, unsigned order,
 		 */
 		wmark = __zone_watermark_ok(zone, order, min_wmark,
 				ac->highest_zoneidx, alloc_flags, available);
-		trace_reclaim_retry_zone(z, order, reclaimable,
-				available, min_wmark, *no_progress_loops, wmark);
 		if (wmark) {
 			ret = true;
 			break;
@@ -3403,8 +3390,6 @@ out:
 		__free_pages(page, order);
 		page = NULL;
 	}
-
-	trace_mm_page_alloc(page, order, alloc_gfp, ac.migratetype);
 
 	return page;
 }

@@ -7,8 +7,6 @@
 #include <linux/mm_types.h>
 #include <linux/pkeys.h>
 
-#include <trace/events/tlb.h>
-
 #include <asm/tlbflush.h>
 #include <asm/paravirt.h>
 #include <asm/debugreg.h>

@@ -43,10 +43,6 @@
 #include <linux/uaccess.h>
 #include <asm/sections.h>
 
-#include <trace/events/initcall.h>
-#define CREATE_TRACE_POINTS
-#include <trace/events/printk.h>
-
 #include "printk_ringbuffer.h"
 #include "console_cmdline.h"
 #include "braille.h"
@@ -1747,8 +1743,6 @@ static u16 printk_sprint(char *text, u16 size, int facility,
 			memmove(text, text + prefix_len, text_len);
 		}
 	}
-
-	trace_console_rcuidle(text, text_len);
 
 	return text_len;
 }
