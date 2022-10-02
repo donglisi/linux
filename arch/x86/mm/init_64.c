@@ -46,9 +46,7 @@ DEFINE_ENTRY(pte, pte, init)
 pteval_t __supported_pte_mask __read_mostly = ~0;
 /* Bits allowed in normal kernel mappings: */
 pteval_t __default_kernel_pte_mask __read_mostly = ~0;
-EXPORT_SYMBOL_GPL(__supported_pte_mask);
 /* Used in PAGE_KERNEL_* macros which are reasonably used out-of-tree: */
-EXPORT_SYMBOL(__default_kernel_pte_mask);
 
 struct mm_struct init_mm = {
 	.pgd		= swapper_pg_dir,

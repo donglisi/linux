@@ -34,7 +34,6 @@ SYM_FUNC_START(__sw_hweight32)
 	__ASM_SIZE(pop,) %__ASM_REG(dx)
 	RET
 SYM_FUNC_END(__sw_hweight32)
-EXPORT_SYMBOL(__sw_hweight32)
 
 SYM_FUNC_START(__sw_hweight64)
 #ifdef CONFIG_X86_64
@@ -80,4 +79,3 @@ SYM_FUNC_START(__sw_hweight64)
 	RET
 #endif
 SYM_FUNC_END(__sw_hweight64)
-EXPORT_SYMBOL(__sw_hweight64)

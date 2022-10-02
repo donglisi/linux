@@ -211,7 +211,5 @@ SYM_FUNC_START(__memmove)
 	rep movsb
 	RET
 SYM_FUNC_END(__memmove)
-EXPORT_SYMBOL(__memmove)
 
 SYM_FUNC_ALIAS_WEAK(memmove, __memmove)
-EXPORT_SYMBOL(memmove)

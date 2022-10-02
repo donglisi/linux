@@ -293,10 +293,6 @@ void * __meminit sparse_buffer_alloc(unsigned long size)
 	return ptr;
 }
 
-void __weak __meminit vmemmap_populate_print_last(void)
-{
-}
-
 /*
  * Initialize sparse on a specific node. The node spans [pnum_begin, pnum_end)
  * And number of present sections in this node is map_count.
@@ -379,5 +375,4 @@ void __init sparse_init(void)
 	}
 	/* cover the last node */
 	sparse_init_nid(nid_begin, pnum_begin, pnum_end, map_count);
-	vmemmap_populate_print_last();
 }

@@ -93,7 +93,6 @@
  */
 
 struct pglist_data __refdata contig_page_data;
-EXPORT_SYMBOL(contig_page_data);
 
 unsigned long max_low_pfn;
 unsigned long min_low_pfn;

@@ -44,7 +44,7 @@ static void __init mm_init(void)
 	mem_init_print_info();
 }
 
-void test_buddy()
+void test_buddy(void)
 {
 	struct page *p;
 	void *addr;

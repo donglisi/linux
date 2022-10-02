@@ -41,10 +41,8 @@ SYM_FUNC_START(__memset)
 	movq %r9,%rax
 	RET
 SYM_FUNC_END(__memset)
-EXPORT_SYMBOL(__memset)
 
 SYM_FUNC_ALIAS_WEAK(memset, __memset)
-EXPORT_SYMBOL(memset)
 
 /*
  * ISO C memset - set a memory block to a byte value. This function uses

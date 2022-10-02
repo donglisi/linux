@@ -40,10 +40,8 @@ SYM_FUNC_START(__memcpy)
 	rep movsb
 	RET
 SYM_FUNC_END(__memcpy)
-EXPORT_SYMBOL(__memcpy)
 
 SYM_FUNC_ALIAS_WEAK(memcpy, __memcpy)
-EXPORT_SYMBOL(memcpy)
 
 /*
  * memcpy_erms() - enhanced fast string memcpy. This is faster and

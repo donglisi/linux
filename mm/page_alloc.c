@@ -152,26 +152,14 @@ nodemask_t node_states[NR_NODE_STATES] __read_mostly = {
 	[N_MEMORY] = { { [0] = 1UL } },
 	[N_CPU] = { { [0] = 1UL } },
 };
-EXPORT_SYMBOL(node_states);
 
 atomic_long_t _totalram_pages __read_mostly;
-EXPORT_SYMBOL(_totalram_pages);
-unsigned long totalreserve_pages __read_mostly;
 unsigned long totalcma_pages __read_mostly;
 
-int percpu_pagelist_high_fraction;
 gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
 DEFINE_STATIC_KEY_MAYBE(CONFIG_INIT_ON_ALLOC_DEFAULT_ON, init_on_alloc);
-EXPORT_SYMBOL(init_on_alloc);
 
 DEFINE_STATIC_KEY_MAYBE(CONFIG_INIT_ON_FREE_DEFAULT_ON, init_on_free);
-EXPORT_SYMBOL(init_on_free);
-
-static bool _init_on_alloc_enabled_early __read_mostly
-				= IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON);
-
-static bool _init_on_free_enabled_early __read_mostly
-				= IS_ENABLED(CONFIG_INIT_ON_FREE_DEFAULT_ON);
 
 /*
  * A cached value of the page's pageblock's migratetype, used when the page is
@@ -213,11 +201,6 @@ static char * const zone_names[MAX_NR_ZONES] = {
 	 "Normal",
 };
 
-compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS] = {
-	[NULL_COMPOUND_DTOR] = NULL,
-	[COMPOUND_PAGE_DTOR] = free_compound_page,
-};
-
 int watermark_boost_factor __read_mostly = 15000;
 
 static unsigned long nr_kernel_pages __initdata;
@@ -235,13 +218,10 @@ static bool mirrored_kernelcore __meminitdata;
 
 /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
 int movable_zone;
-EXPORT_SYMBOL(movable_zone);
 
 #if MAX_NUMNODES > 1
 unsigned int nr_node_ids __read_mostly = MAX_NUMNODES;
 unsigned int nr_online_nodes __read_mostly = 1;
-EXPORT_SYMBOL(nr_node_ids);
-EXPORT_SYMBOL(nr_online_nodes);
 #endif
 
 int page_group_by_mobility_disabled __read_mostly;
@@ -3677,7 +3657,6 @@ out:
 
 	return page;
 }
-EXPORT_SYMBOL(__alloc_pages);
 
 struct folio *__folio_alloc(gfp_t gfp, unsigned int order, int preferred_nid,
 		nodemask_t *nodemask)
@@ -3689,7 +3668,6 @@ struct folio *__folio_alloc(gfp_t gfp, unsigned int order, int preferred_nid,
 		prep_transhuge_page(page);
 	return (struct folio *)page;
 }
-EXPORT_SYMBOL(__folio_alloc);
 
 /*
  * Common helper functions. Never use with __GFP_HIGHMEM because the returned
@@ -3705,13 +3683,11 @@ unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
 		return 0;
 	return (unsigned long) page_address(page);
 }
-EXPORT_SYMBOL(__get_free_pages);
 
 unsigned long get_zeroed_page(gfp_t gfp_mask)
 {
 	return __get_free_pages(gfp_mask | __GFP_ZERO, 0);
 }
-EXPORT_SYMBOL(get_zeroed_page);
 
 /**
  * __free_pages - Free pages allocated with alloc_pages().
@@ -3741,7 +3717,6 @@ void __free_pages(struct page *page, unsigned int order)
 		while (order-- > 0)
 			free_the_page(page + (1 << order), order);
 }
-EXPORT_SYMBOL(__free_pages);
 
 void free_pages(unsigned long addr, unsigned int order)
 {
@@ -3750,8 +3725,6 @@ void free_pages(unsigned long addr, unsigned int order)
 		__free_pages(virt_to_page((void *)addr), order);
 	}
 }
-
-EXPORT_SYMBOL(free_pages);
 
 /**
  * nr_free_zone_pages - count number of pages beyond high watermark
@@ -3799,26 +3772,6 @@ unsigned long nr_free_buffer_pages(void)
 	return nr_free_zone_pages(gfp_zone(GFP_USER));
 }
 EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
-
-/*
- * Determine whether the node should be displayed or not, depending on whether
- * SHOW_MEM_FILTER_NODES was passed to show_free_areas().
- */
-static bool show_mem_node_skip(unsigned int flags, int nid, nodemask_t *nodemask)
-{
-	if (!(flags & SHOW_MEM_FILTER_NODES))
-		return false;
-
-	/*
-	 * no node mask - aka implicit memory numa policy. Do not bother with
-	 * the synchronization - read_mems_allowed_begin - because we do not
-	 * have to be precise here.
-	 */
-	if (!nodemask)
-		nodemask = &cpuset_current_mems_allowed;
-
-	return !node_isset(nid, *nodemask);
-}
 
 #define K(x) ((x) << (PAGE_SHIFT-10))
 

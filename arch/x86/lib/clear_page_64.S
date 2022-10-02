@@ -19,7 +19,6 @@ SYM_FUNC_START(clear_page_rep)
 	rep stosq
 	RET
 SYM_FUNC_END(clear_page_rep)
-EXPORT_SYMBOL_GPL(clear_page_rep)
 
 SYM_FUNC_START(clear_page_orig)
 	xorl   %eax,%eax
@@ -41,7 +40,6 @@ SYM_FUNC_START(clear_page_orig)
 	nop
 	RET
 SYM_FUNC_END(clear_page_orig)
-EXPORT_SYMBOL_GPL(clear_page_orig)
 
 SYM_FUNC_START(clear_page_erms)
 	movl $4096,%ecx
@@ -49,4 +47,3 @@ SYM_FUNC_START(clear_page_erms)
 	rep stosb
 	RET
 SYM_FUNC_END(clear_page_erms)
-EXPORT_SYMBOL_GPL(clear_page_erms)

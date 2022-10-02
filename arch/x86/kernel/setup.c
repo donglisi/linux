@@ -12,7 +12,6 @@ unsigned long _brk_end   = (unsigned long)__brk_base;
 struct boot_params boot_params;
 
 struct cpuinfo_x86 boot_cpu_data __read_mostly;
-EXPORT_SYMBOL(boot_cpu_data);
 
 static char __initdata command_line[COMMAND_LINE_SIZE];
 
