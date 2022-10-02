@@ -10,20 +10,15 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 #include <linux/bitops.h>
-#include <linux/poison.h>
 #include <linux/pfn.h>
-#include <linux/debugfs.h>
 #include <linux/kmemleak.h>
 #include <linux/seq_file.h>
 #include <linux/memblock.h>
-
-#include <asm/sections.h>
 #include <linux/io.h>
 
 #include "internal.h"
 
 #define INIT_MEMBLOCK_REGIONS			128
-#define INIT_PHYSMEM_REGIONS			4
 
 #ifndef INIT_MEMBLOCK_RESERVED_REGIONS
 # define INIT_MEMBLOCK_RESERVED_REGIONS		INIT_MEMBLOCK_REGIONS
@@ -95,9 +90,7 @@
 struct pglist_data __refdata contig_page_data;
 
 unsigned long max_low_pfn;
-unsigned long min_low_pfn;
 unsigned long max_pfn;
-unsigned long long max_possible_pfn;
 
 static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
 static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_RESERVED_REGIONS] __initdata_memblock;

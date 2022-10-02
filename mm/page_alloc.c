@@ -19,69 +19,47 @@
 #include <linux/mm.h>
 #include <linux/highmem.h>
 #include <linux/swap.h>
-#include <linux/swapops.h>
-#include <linux/interrupt.h>
-#include <linux/pagemap.h>
 #include <linux/jiffies.h>
 #include <linux/memblock.h>
 #include <linux/compiler.h>
 #include <linux/kernel.h>
 #include <linux/kasan.h>
 #include <linux/module.h>
-#include <linux/suspend.h>
 #include <linux/pagevec.h>
 #include <linux/blkdev.h>
-#include <linux/slab.h>
-#include <linux/ratelimit.h>
 #include <linux/oom.h>
 #include <linux/topology.h>
 #include <linux/sysctl.h>
-#include <linux/cpu.h>
 #include <linux/cpuset.h>
 #include <linux/memory_hotplug.h>
 #include <linux/nodemask.h>
-#include <linux/vmalloc.h>
 #include <linux/vmstat.h>
 #include <linux/mempolicy.h>
 #include <linux/memremap.h>
-#include <linux/stop_machine.h>
 #include <linux/random.h>
-#include <linux/sort.h>
 #include <linux/pfn.h>
 #include <linux/backing-dev.h>
-#include <linux/fault-inject.h>
 #include <linux/page-isolation.h>
 #include <linux/debugobjects.h>
-#include <linux/kmemleak.h>
 #include <linux/compaction.h>
 #include <trace/events/kmem.h>
 #include <trace/events/oom.h>
 #include <linux/prefetch.h>
-#include <linux/mm_inline.h>
-#include <linux/mmu_notifier.h>
-#include <linux/migrate.h>
-#include <linux/hugetlb.h>
 #include <linux/sched/rt.h>
 #include <linux/sched/mm.h>
 #include <linux/page_owner.h>
 #include <linux/page_table_check.h>
-#include <linux/kthread.h>
 #include <linux/memcontrol.h>
 #include <linux/ftrace.h>
 #include <linux/lockdep.h>
-#include <linux/nmi.h>
 #include <linux/psi.h>
-#include <linux/padata.h>
 #include <linux/khugepaged.h>
-#include <linux/buffer_head.h>
-#include <linux/delayacct.h>
+
 #include <asm/sections.h>
-#include <asm/tlbflush.h>
-#include <asm/div64.h>
+
 #include "internal.h"
 #include "shuffle.h"
 #include "page_reporting.h"
-#include "swap.h"
 
 /* Free Page Internal flags: for internal, non-pcp variants of free_pages(). */
 typedef int __bitwise fpi_t;
@@ -121,10 +99,6 @@ typedef int __bitwise fpi_t;
  * All memory allocated normally after boot gets poisoned as usual.
  */
 #define FPI_SKIP_KASAN_POISON	((__force fpi_t)BIT(2))
-
-/* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
-static DEFINE_MUTEX(pcp_batch_high_lock);
-#define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
 
 struct pagesets {
 	local_lock_t lock;
@@ -181,21 +155,6 @@ static inline void set_pcppage_migratetype(struct page *page, int migratetype)
 
 static void __free_pages_ok(struct page *page, unsigned int order,
 			    fpi_t fpi_flags);
-
-/*
- * results with 256, 32 in the lowmem_reserve sysctl:
- *	1G machine -> (16M dma, 800M-16M normal, 1G-800M high)
- *	1G machine -> (16M dma, 784M normal, 224M high)
- *	NORMAL allocation will leave 784M/256 of ram reserved in the ZONE_DMA
- *	HIGHMEM allocation will leave 224M/32 of ram reserved in ZONE_NORMAL
- *	HIGHMEM allocation will leave (224M+784M)/256 of ram reserved in ZONE_DMA
- *
- * TBD: should special case ZONE_DMA32 machines here - in those we normally
- * don't need any ZONE_NORMAL reservation
- */
-int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES] = {
-	[ZONE_NORMAL] = 32,
-};
 
 static char * const zone_names[MAX_NR_ZONES] = {
 	 "Normal",
@@ -397,27 +356,6 @@ static inline void free_the_page(struct page *page, unsigned int order)
 		free_unref_page(page, order);
 	else
 		__free_pages_ok(page, order, FPI_NONE);
-}
-
-/*
- * Higher-order pages are called "compound pages".  They are structured thusly:
- *
- * The first PAGE_SIZE page is called the "head page" and have PG_head set.
- *
- * The remaining PAGE_SIZE pages are called "tail pages". PageTail() is encoded
- * in bit 0 of page->compound_head. The rest of bits is pointer to head page.
- *
- * The first tail page's ->compound_dtor holds the offset in array of compound
- * page destructors. See compound_page_dtors.
- *
- * The first tail page's ->compound_order holds the order of allocation.
- * This usage means that zero-order pages may not be compound.
- */
-
-void free_compound_page(struct page *page)
-{
-	mem_cgroup_uncharge(page_folio(page));
-	free_the_page(page, compound_order(page));
 }
 
 static void prep_compound_head(struct page *page, unsigned int order)
@@ -2805,12 +2743,6 @@ out:
 	return page;
 }
 
-/*
- * Maximum number of compaction retries with a progress before OOM
- * killer is consider as the only way to move forward.
- */
-#define MAX_COMPACT_RETRIES 16
-
 static inline struct page *
 __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
 		unsigned int alloc_flags, const struct alloc_context *ac,
@@ -3590,7 +3522,6 @@ failed:
 
 	goto out;
 }
-EXPORT_SYMBOL_GPL(__alloc_pages_bulk);
 
 /*
  * This is the 'heart' of the zoned buddy allocator.
@@ -3771,7 +3702,6 @@ unsigned long nr_free_buffer_pages(void)
 {
 	return nr_free_zone_pages(gfp_zone(GFP_USER));
 }
-EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
 
 #define K(x) ((x) << (PAGE_SHIFT-10))
 
