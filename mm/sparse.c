@@ -10,9 +10,7 @@
 #include <linux/highmem.h>
 #include <linux/export.h>
 #include <linux/spinlock.h>
-#include <linux/vmalloc.h>
 #include <linux/swap.h>
-#include <linux/swapops.h>
 #include <linux/bootmem_info.h>
 
 #include "internal.h"

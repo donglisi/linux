@@ -45,6 +45,13 @@
 #include <asm/early_ioremap.h>
 #include <asm/pgtable_types.h>
 #include <asm/shared/io.h>
+#include <linux/spinlock.h>
+#include <linux/init.h>
+#include <linux/list.h>
+#include <linux/llist.h>
+#include <asm/page.h>		/* pgprot_t */
+#include <linux/rbtree.h>
+#include <linux/overflow.h>
 
 #define build_mmio_read(name, size, type, reg, barrier) \
 static inline type name(const volatile void __iomem *addr) \

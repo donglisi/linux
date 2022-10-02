@@ -10,7 +10,6 @@
 #define __KMEMLEAK_H
 
 #include <linux/slab.h>
-#include <linux/vmalloc.h>
 
 #ifdef CONFIG_DEBUG_KMEMLEAK
 

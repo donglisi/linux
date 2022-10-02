@@ -1,6 +1,13 @@
 #include <linux/console.h>
 #include <asm/io.h>
 #include <asm/setup.h>
+#include <linux/spinlock.h>
+#include <linux/init.h>
+#include <linux/list.h>
+#include <linux/llist.h>
+#include <asm/page.h>		/* pgprot_t */
+#include <linux/rbtree.h>
+#include <linux/overflow.h>
 
 static unsigned long early_serial_base = 0x3f8;  /* ttyS0 */
 
