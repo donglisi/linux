@@ -45,11 +45,7 @@ struct zone *next_zone(struct zone *zone)
 
 static inline int zref_in_nodemask(struct zoneref *zref, nodemask_t *nodes)
 {
-#ifdef CONFIG_NUMA
-	return node_isset(zonelist_node_idx(zref), *nodes);
-#else
 	return 1;
-#endif /* CONFIG_NUMA */
 }
 
 /* Returns the next zone at or below highest_zoneidx in a zonelist */
@@ -89,22 +85,3 @@ void lruvec_init(struct lruvec *lruvec)
 	 */
 	list_del(&lruvec->lists[LRU_UNEVICTABLE]);
 }
-
-#if defined(CONFIG_NUMA_BALANCING) && !defined(LAST_CPUPID_NOT_IN_PAGE_FLAGS)
-int page_cpupid_xchg_last(struct page *page, int cpupid)
-{
-	unsigned long old_flags, flags;
-	int last_cpupid;
-
-	old_flags = READ_ONCE(page->flags);
-	do {
-		flags = old_flags;
-		last_cpupid = (flags >> LAST_CPUPID_PGSHIFT) & LAST_CPUPID_MASK;
-
-		flags &= ~(LAST_CPUPID_MASK << LAST_CPUPID_PGSHIFT);
-		flags |= (cpupid & LAST_CPUPID_MASK) << LAST_CPUPID_PGSHIFT;
-	} while (unlikely(!try_cmpxchg(&page->flags, &old_flags, flags)));
-
-	return last_cpupid;
-}
-#endif
