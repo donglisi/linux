@@ -38,7 +38,6 @@
 #include <linux/pfn.h>
 #include <linux/backing-dev.h>
 #include <linux/page-isolation.h>
-#include <linux/debugobjects.h>
 #include <linux/compaction.h>
 #include <linux/prefetch.h>
 #include <linux/sched/rt.h>
@@ -769,12 +768,9 @@ static __always_inline bool free_pages_prepare(struct page *page,
 	reset_page_owner(page, order);
 	page_table_check_free(page, order);
 
-	if (!PageHighMem(page)) {
+	if (!PageHighMem(page))
 		debug_check_no_locks_freed(page_address(page),
 					   PAGE_SIZE << order);
-		debug_check_no_obj_freed(page_address(page),
-					   PAGE_SIZE << order);
-	}
 
 	kernel_poison_pages(page, 1 << order);
 

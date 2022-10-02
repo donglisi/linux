@@ -4,7 +4,6 @@
 
 #include <linux/mm.h>
 #include <asm/page.h>
-#include <asm-generic/set_memory.h>
 
 /*
  * The set_memory_* API can be used to change various attributes of a virtual

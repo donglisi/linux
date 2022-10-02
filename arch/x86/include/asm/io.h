@@ -42,7 +42,6 @@
 #include <linux/compiler.h>
 #include <linux/cc_platform.h>
 #include <asm/page.h>
-#include <asm/early_ioremap.h>
 #include <asm/pgtable_types.h>
 #include <asm/shared/io.h>
 #include <linux/spinlock.h>

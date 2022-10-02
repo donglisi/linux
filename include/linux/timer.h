@@ -5,7 +5,6 @@
 #include <linux/list.h>
 #include <linux/ktime.h>
 #include <linux/stddef.h>
-#include <linux/debugobjects.h>
 #include <linux/stringify.h>
 
 struct timer_list {
