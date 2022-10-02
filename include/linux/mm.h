@@ -826,20 +826,10 @@ static inline int page_mapcount(struct page *page)
 	return atomic_read(&page->_mapcount) + 1;
 }
 
-int folio_mapcount(struct folio *folio);
-
-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-static inline int total_mapcount(struct page *page)
-{
-	return folio_mapcount(page_folio(page));
-}
-
-#else
 static inline int total_mapcount(struct page *page)
 {
 	return page_mapcount(page);
 }
-#endif
 
 static inline struct page *virt_to_head_page(const void *x)
 {
@@ -1702,8 +1692,6 @@ static inline pgoff_t page_index(struct page *page)
 	return page->index;
 }
 
-bool folio_mapped(struct folio *folio);
-
 /*
  * Return true only if the page has been allocated with
  * ALLOC_NO_WATERMARKS and the low watermark was not
@@ -1935,9 +1923,6 @@ static inline void mm_dec_nr_ptes(struct mm_struct *mm)
 {
 	atomic_long_sub(PTRS_PER_PTE * sizeof(pte_t), &mm->pgtables_bytes);
 }
-
-int __pte_alloc(struct mm_struct *mm, pmd_t *pmd);
-int __pte_alloc_kernel(pmd_t *pmd);
 
 #if defined(CONFIG_MMU)
 
@@ -2187,17 +2172,12 @@ extern void memmap_init_range(unsigned long, int, unsigned long,
 		struct vmem_altmap *, int migratetype);
 extern void mem_init(void);
 extern void show_mem(unsigned int flags, nodemask_t *nodemask);
-#ifdef __HAVE_ARCH_RESERVED_KERNEL_PAGES
-extern unsigned long arch_reserved_kernel_pages(void);
-#endif
 
 extern __printf(3, 4)
 void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...);
 
 extern int watermark_boost_factor;
 
-/* mmap.c */
-extern int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin);
 extern int __vma_adjust(struct vm_area_struct *vma, unsigned long start,
 	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert,
 	struct vm_area_struct *expand);
@@ -2228,14 +2208,6 @@ extern struct vm_area_struct *_install_special_mapping(struct mm_struct *mm,
 				   unsigned long flags,
 				   const struct vm_special_mapping *spec);
 
-unsigned long randomize_page(unsigned long start, unsigned long range);
-
-extern unsigned long get_unmapped_area(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
-
-extern unsigned long do_mmap(struct file *file, unsigned long addr,
-	unsigned long len, unsigned long prot, unsigned long flags,
-	unsigned long pgoff, unsigned long *populate, struct list_head *uf);
-
 extern int __mm_populate(unsigned long addr, unsigned long len,
 			 int ignore_errors);
 static inline void mm_populate(unsigned long addr, unsigned long len)
@@ -2243,13 +2215,6 @@ static inline void mm_populate(unsigned long addr, unsigned long len)
 	/* Ignore errors */
 	(void) __mm_populate(addr, len, 1);
 }
-
-/* These take the mm semaphore themselves */
-extern int __must_check vm_brk(unsigned long, unsigned long);
-extern int __must_check vm_brk_flags(unsigned long, unsigned long, unsigned long);
-extern unsigned long __must_check vm_mmap(struct file *, unsigned long,
-        unsigned long, unsigned long,
-        unsigned long, unsigned long);
 
 extern unsigned long stack_guard_gap;
 #if VM_GROWSUP
@@ -2496,7 +2461,6 @@ static inline bool gup_must_unshare(unsigned int flags, struct page *page)
 	return !PageAnonExclusive(page);
 }
 
-typedef int (*pte_fn_t)(pte_t *pte, unsigned long addr, void *data);
 static inline bool page_poisoning_enabled(void) { return false; }
 static inline bool page_poisoning_enabled_static(void) { return false; }
 static inline void __kernel_poison_pages(struct page *page, int nunmpages) { }
@@ -2566,15 +2530,6 @@ void __init setup_nr_node_ids(void);
 #else
 static inline void setup_nr_node_ids(void) {}
 #endif
-
-extern int memcmp_pages(struct page *page1, struct page *page2);
-
-static inline int pages_identical(struct page *page1, struct page *page2)
-{
-	return !memcmp_pages(page1, page2);
-}
-
-void mem_dump_obj(void *object);
 
 /**
  * seal_check_future_write - Check for F_SEAL_FUTURE_WRITE flag and handle it

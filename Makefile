@@ -31,7 +31,7 @@ x86	:= $(addprefix arch/x86/, $(addprefix mm/, init.o init_64.o) \
 		$(addprefix kernel/, idt.o setup.o e820.o head_64.o head64.o early_printk.o))
 kernel	:= $(addprefix kernel/, range.o $(addprefix printk/, printk.o printk_safe.o printk_ringbuffer.o))
 lib	:= $(addprefix lib/, sort.o find_bit.o hexdump.o kstrtox.o ctype.o string.o vsprintf.o sym.o)
-mm	:= $(addprefix mm/, util.o mmzone.o page_alloc.o memblock.o sparse.o)
+mm	:= $(addprefix mm/, mmzone.o page_alloc.o memblock.o sparse.o)
 objs	:= $(addprefix build/, $(x86) $(kernel) $(lib) $(mm) init/main.o)
 
 build/%.o: %.c
