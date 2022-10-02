@@ -189,11 +189,6 @@ static inline void cpuset_init_smp(void) {}
 
 static inline void cpuset_force_rebuild(void) { }
 
-static inline void cpuset_update_active_cpus(void)
-{
-	partition_sched_domains(1, NULL, NULL);
-}
-
 static inline void cpuset_wait_for_hotplug(void) { }
 
 static inline void cpuset_read_lock(void) { }
@@ -274,11 +269,6 @@ static inline int cpuset_do_slab_mem_spread(void)
 static inline bool current_cpuset_is_being_rebound(void)
 {
 	return false;
-}
-
-static inline void rebuild_sched_domains(void)
-{
-	partition_sched_domains(1, NULL, NULL);
 }
 
 static inline void cpuset_print_current_mems_allowed(void)

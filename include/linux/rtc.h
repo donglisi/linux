@@ -93,7 +93,6 @@ struct rtc_device {
 	const struct rtc_class_ops *ops;
 	struct mutex ops_lock;
 
-	struct cdev char_dev;
 	unsigned long flags;
 
 	unsigned long irq_data;

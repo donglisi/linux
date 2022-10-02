@@ -1881,27 +1881,6 @@ char *time_and_date(char *buf, char *end, void *ptr, struct printf_spec spec,
 	}
 }
 
-static noinline_for_stack
-char *clock(char *buf, char *end, struct clk *clk, struct printf_spec spec,
-	    const char *fmt)
-{
-	if (!IS_ENABLED(CONFIG_HAVE_CLK))
-		return error_string(buf, end, "(%pC?)", spec);
-
-	if (check_pointer(&buf, end, clk, spec))
-		return buf;
-
-	switch (fmt[1]) {
-	case 'n':
-	default:
-#ifdef CONFIG_COMMON_CLK
-		return string(buf, end, __clk_get_name(clk), spec);
-#else
-		return ptr_to_id(buf, end, clk, spec);
-#endif
-	}
-}
-
 static
 char *format_flags(char *buf, char *end, unsigned long flags,
 					const struct trace_print_flags *names)
@@ -2334,8 +2313,6 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
 		return dentry_name(buf, end, ptr, spec, fmt);
 	case 't':
 		return time_and_date(buf, end, ptr, spec, fmt);
-	case 'C':
-		return clock(buf, end, ptr, spec, fmt);
 	case 'D':
 		return file_dentry_name(buf, end, ptr, spec, fmt);
 #ifdef CONFIG_BLOCK
