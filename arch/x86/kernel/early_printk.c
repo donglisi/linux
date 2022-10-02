@@ -77,35 +77,6 @@ static __init void early_serial_init(char *s)
 	unsigned long baud = DEFAULT_BAUD;
 	char *e;
 
-	if (*s == ',')
-		++s;
-
-	if (*s) {
-		unsigned port;
-		if (!strncmp(s, "0x", 2)) {
-			early_serial_base = simple_strtoul(s, &e, 16);
-		} else {
-			static const int __initconst bases[] = { 0x3f8, 0x2f8 };
-
-			if (!strncmp(s, "ttyS", 4))
-				s += 4;
-			port = simple_strtoul(s, &e, 10);
-			if (port > 1 || s == e)
-				port = 0;
-			early_serial_base = bases[port];
-		}
-		s += strcspn(s, ",");
-		if (*s == ',')
-			s++;
-	}
-
-	if (*s) {
-		baud = simple_strtoull(s, &e, 0);
-
-		if (baud == 0 || s == e)
-			baud = DEFAULT_BAUD;
-	}
-
 	/* Convert from baud to divisor value */
 	divisor = 115200 / baud;
 

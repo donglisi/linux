@@ -610,7 +610,6 @@ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
 		char *endp = NULL;
 		unsigned int u;
 
-		u = simple_strtoul(line + 1, &endp, 10);
 		if (endp && endp[0] == '>') {
 			level = LOG_LEVEL(u);
 			if (LOG_FACILITY(u) != 0)
@@ -2090,7 +2089,6 @@ static int __init console_setup(char *str)
 	for (s = buf; *s; s++)
 		if (isdigit(*s) || *s == ',')
 			break;
-	idx = simple_strtoul(s, NULL, 10);
 	*s = 0;
 
 	__add_preferred_console(buf, idx, options, brl_options, true);
