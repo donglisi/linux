@@ -55,8 +55,6 @@
 #include <asm/sections.h>
 
 #include "internal.h"
-#include "shuffle.h"
-#include "page_reporting.h"
 
 /* Free Page Internal flags: for internal, non-pcp variants of free_pages(). */
 typedef int __bitwise fpi_t;
@@ -441,10 +439,6 @@ static inline void move_to_free_list(struct page *page, struct zone *zone,
 static inline void del_page_from_free_list(struct page *page, struct zone *zone,
 					   unsigned int order)
 {
-	/* clear reported state and update reported page count */
-	if (page_reported(page))
-		__ClearPageReported(page);
-
 	list_del(&page->lru);
 	__ClearPageBuddy(page);
 	set_page_private(page, 0);
@@ -565,8 +559,6 @@ done_merging:
 
 	if (fpi_flags & FPI_TO_TAIL)
 		to_tail = true;
-	else if (is_shuffle_order(order))
-		to_tail = shuffle_pick_tail();
 	else
 		to_tail = buddy_merge_likely(pfn, buddy_pfn, page, order);
 
@@ -574,10 +566,6 @@ done_merging:
 		add_to_free_list_tail(page, zone, order, migratetype);
 	else
 		add_to_free_list(page, zone, order, migratetype);
-
-	/* Notify page reporting subsystem of freed page */
-	if (!(fpi_flags & FPI_SKIP_REPORT_NOTIFY))
-		page_reporting_notify_free(order);
 }
 
 /*
