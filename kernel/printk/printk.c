@@ -296,7 +296,6 @@ static int console_msg_format = MSG_FORMAT_DEFAULT;
 /* syslog_lock protects syslog_* variables and write access to clear_seq. */
 static DEFINE_MUTEX(syslog_lock);
 
-#ifdef CONFIG_PRINTK
 DECLARE_WAIT_QUEUE_HEAD(log_wait);
 /* All 3 protected by @syslog_lock. */
 /* the next printk record to read by syslog(READ) or /proc/kmsg */
@@ -1902,13 +1901,11 @@ asmlinkage int vprintk_emit(int facility, int level,
 
 	return printed_len;
 }
-EXPORT_SYMBOL(vprintk_emit);
 
 int vprintk_default(const char *fmt, va_list args)
 {
 	return vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, fmt, args);
 }
-EXPORT_SYMBOL_GPL(vprintk_default);
 
 asmlinkage __visible int _printk(const char *fmt, ...)
 {
@@ -1921,45 +1918,8 @@ asmlinkage __visible int _printk(const char *fmt, ...)
 
 	return r;
 }
-EXPORT_SYMBOL(_printk);
 
 static bool __pr_flush(struct console *con, int timeout_ms, bool reset_on_progress);
-
-#else /* CONFIG_PRINTK */
-
-#define CONSOLE_LOG_MAX		0
-#define DROPPED_TEXT_MAX	0
-#define printk_time		false
-
-#define prb_read_valid(rb, seq, r)	false
-#define prb_first_valid_seq(rb)		0
-#define prb_next_seq(rb)		0
-
-static u64 syslog_seq;
-
-static size_t record_print_text(const struct printk_record *r,
-				bool syslog, bool time)
-{
-	return 0;
-}
-static ssize_t info_print_ext_header(char *buf, size_t size,
-				     struct printk_info *info)
-{
-	return 0;
-}
-static ssize_t msg_print_ext_body(char *buf, size_t size,
-				  char *text, size_t text_len,
-				  struct dev_printk_info *dev_info) { return 0; }
-static void console_lock_spinning_enable(void) { }
-static int console_lock_spinning_disable_and_check(void) { return 0; }
-static void call_console_driver(struct console *con, const char *text, size_t len,
-				char *dropped_text)
-{
-}
-static bool suppress_message_printing(int level) { return false; }
-static bool __pr_flush(struct console *con, int timeout_ms, bool reset_on_progress) { return true; }
-
-#endif /* CONFIG_PRINTK */
 
 #ifdef CONFIG_EARLY_PRINTK
 struct console *early_console;
@@ -2090,26 +2050,7 @@ static int __init console_setup(char *str)
 }
 __setup("console=", console_setup);
 
-/**
- * add_preferred_console - add a device to the list of preferred consoles.
- * @name: device name
- * @idx: device index
- * @options: options for this console
- *
- * The last preferred console added will be used for kernel messages
- * and stdin/out/err for init.  Normally this is used by console_setup
- * above to handle user-supplied console arguments; however it can also
- * be used by arch-specific code either to override the user or more
- * commonly to provide a default console (ie from PROM variables) when
- * the user has not supplied one.
- */
-int add_preferred_console(char *name, int idx, char *options)
-{
-	return __add_preferred_console(name, idx, options, NULL, false);
-}
-
 bool console_suspend_enabled = true;
-EXPORT_SYMBOL(console_suspend_enabled);
 
 static int __init console_suspend_disable(char *str)
 {
@@ -2117,58 +2058,6 @@ static int __init console_suspend_disable(char *str)
 	return 1;
 }
 __setup("no_console_suspend", console_suspend_disable);
-
-static bool printk_console_no_auto_verbose;
-
-void console_verbose(void)
-{
-	if (console_loglevel && !printk_console_no_auto_verbose)
-		console_loglevel = CONSOLE_LOGLEVEL_MOTORMOUTH;
-}
-EXPORT_SYMBOL_GPL(console_verbose);
-
-/**
- * suspend_console - suspend the console subsystem
- *
- * This disables printk() while we go into suspend states
- */
-void suspend_console(void)
-{
-	if (!console_suspend_enabled)
-		return;
-	pr_info("Suspending console(s) (use no_console_suspend to debug)\n");
-	pr_flush(1000, true);
-	console_lock();
-	console_suspended = 1;
-}
-
-void resume_console(void)
-{
-	if (!console_suspend_enabled)
-		return;
-	console_suspended = 0;
-	console_unlock();
-	pr_flush(1000, true);
-}
-
-/**
- * console_cpu_notify - print deferred console messages after CPU hotplug
- * @cpu: unused
- *
- * If printk() is called from a CPU that is not online yet, the messages
- * will be printed on the console only if there are CON_ANYTIME consoles.
- * This function is called when a new CPU comes online (or fails to come
- * up) or goes offline.
- */
-static int console_cpu_notify(unsigned int cpu)
-{
-	if (!cpuhp_tasks_frozen) {
-		/* If trylock fails, someone else is doing the printing */
-		if (console_trylock())
-			console_unlock();
-	}
-	return 0;
-}
 
 /**
  * console_lock - lock the console system for exclusive use.
@@ -2187,7 +2076,6 @@ void console_lock(void)
 	console_locked = 1;
 	console_may_schedule = 1;
 }
-EXPORT_SYMBOL(console_lock);
 
 /**
  * console_trylock - try to lock the console system for exclusive use.
@@ -2201,13 +2089,11 @@ int console_trylock(void)
 {
 	return 1;
 }
-EXPORT_SYMBOL(console_trylock);
 
 int is_console_locked(void)
 {
 	return console_locked;
 }
-EXPORT_SYMBOL(is_console_locked);
 
 /*
  * Check if the given console is currently capable and allowed to print
@@ -2455,126 +2341,8 @@ void console_unlock(void)
 		 */
 	} while (prb_read_valid(prb, next_seq, NULL) && console_trylock());
 }
-EXPORT_SYMBOL(console_unlock);
-
-/**
- * console_conditional_schedule - yield the CPU if required
- *
- * If the console code is currently allowed to sleep, and
- * if this CPU should yield the CPU to another task, do
- * so here.
- *
- * Must be called within console_lock();.
- */
-void __sched console_conditional_schedule(void)
-{
-}
-EXPORT_SYMBOL(console_conditional_schedule);
-
-void console_unblank(void)
-{
-	struct console *c;
-
-	/*
-	 * console_unblank can no longer be called in interrupt context unless
-	 * oops_in_progress is set to 1..
-	 */
-	if (oops_in_progress) {
-	} else
-		console_lock();
-
-	console_locked = 1;
-	console_may_schedule = 0;
-	for_each_console(c)
-		if ((c->flags & CON_ENABLED) && c->unblank)
-			c->unblank();
-	console_unlock();
-
-	if (!oops_in_progress)
-		pr_flush(1000, true);
-}
-
-/**
- * console_flush_on_panic - flush console content on panic
- * @mode: flush all messages in buffer or just the pending ones
- *
- * Immediately output all pending messages no matter what.
- */
-void console_flush_on_panic(enum con_flush_mode mode)
-{
-	/*
-	 * If someone else is holding the console lock, trylock will fail
-	 * and may_schedule may be set.  Ignore and proceed to unlock so
-	 * that messages are flushed out.  As this can be called from any
-	 * context and we don't want to get preempted while flushing,
-	 * ensure may_schedule is cleared.
-	 */
-	console_trylock();
-	console_may_schedule = 0;
-
-	if (mode == CONSOLE_REPLAY_ALL) {
-		struct console *c;
-		u64 seq;
-
-		seq = prb_first_valid_seq(prb);
-		for_each_console(c)
-			c->seq = seq;
-	}
-	console_unlock();
-}
-
-/*
- * Return the console tty driver structure and its associated index
- */
-struct tty_driver *console_device(int *index)
-{
-	struct console *c;
-	struct tty_driver *driver = NULL;
-
-	console_lock();
-	for_each_console(c) {
-		if (!c->device)
-			continue;
-		driver = c->device(c, index);
-		if (driver)
-			break;
-	}
-	console_unlock();
-	return driver;
-}
-
-/*
- * Prevent further output on the passed console device so that (for example)
- * serial drivers can disable console output before suspending a port, and can
- * re-enable output afterwards.
- */
-void console_stop(struct console *console)
-{
-	__pr_flush(console, 1000, true);
-	console_lock();
-	console->flags &= ~CON_ENABLED;
-	console_unlock();
-}
-EXPORT_SYMBOL(console_stop);
-
-void console_start(struct console *console)
-{
-	console_lock();
-	console->flags |= CON_ENABLED;
-	console_unlock();
-	__pr_flush(console, 1000, true);
-}
-EXPORT_SYMBOL(console_start);
 
 static int __read_mostly keep_bootcon;
-
-static int __init keep_bootcon_setup(char *str)
-{
-	keep_bootcon = 1;
-	pr_info("debug: skip boot console de-registration.\n");
-
-	return 0;
-}
 
 /*
  * This is called by register_console() to try to match
@@ -2788,7 +2556,6 @@ void register_console(struct console *newcon)
 				unregister_console(con);
 	}
 }
-EXPORT_SYMBOL(register_console);
 
 int unregister_console(struct console *console)
 {
@@ -2844,17 +2611,6 @@ out_disable_unlock:
 	console_unlock();
 
 	return res;
-}
-EXPORT_SYMBOL(unregister_console);
-
-/*
- * Initialize the console device. This is called *early*, so
- * we can't necessarily depend on lots of kernel help here.
- * Just do some early initializations, and do the complex setup
- * later.
- */
-void __init console_init(void)
-{
 }
 
 /*
@@ -2989,7 +2745,6 @@ EXPORT_SYMBOL(pr_flush);
 /*
  * Delayed printk version, for scheduler-internal messages:
  */
-#define PRINTK_PENDING_WAKEUP	0x01
 #define PRINTK_PENDING_OUTPUT	0x02
 
 static DEFINE_PER_CPU(int, printk_pending);
@@ -3106,7 +2861,6 @@ bool printk_timed_ratelimit(unsigned long *caller_jiffies,
 	*caller_jiffies = jiffies;
 	return true;
 }
-EXPORT_SYMBOL(printk_timed_ratelimit);
 
 static DEFINE_SPINLOCK(dump_list_lock);
 static LIST_HEAD(dump_list);
@@ -3139,7 +2893,6 @@ int kmsg_dump_register(struct kmsg_dumper *dumper)
 
 	return err;
 }
-EXPORT_SYMBOL_GPL(kmsg_dump_register);
 
 /**
  * kmsg_dump_unregister - unregister a kmsg dumper.
@@ -3164,7 +2917,6 @@ int kmsg_dump_unregister(struct kmsg_dumper *dumper)
 
 	return err;
 }
-EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
 
 static bool always_kmsg_dump;
 
@@ -3183,7 +2935,6 @@ const char *kmsg_dump_reason_str(enum kmsg_dump_reason reason)
 		return "Unknown";
 	}
 }
-EXPORT_SYMBOL_GPL(kmsg_dump_reason_str);
 
 /**
  * kmsg_dump - dump kernel log to kernel message dumpers.
@@ -3272,7 +3023,6 @@ out:
 		*len = l;
 	return ret;
 }
-EXPORT_SYMBOL_GPL(kmsg_dump_get_line);
 
 /**
  * kmsg_dump_get_buffer - copy kmsg log lines
@@ -3357,7 +3107,6 @@ out:
 		*len_out = len;
 	return ret;
 }
-EXPORT_SYMBOL_GPL(kmsg_dump_get_buffer);
 
 /**
  * kmsg_dump_rewind - reset the iterator
@@ -3372,123 +3121,5 @@ void kmsg_dump_rewind(struct kmsg_dump_iter *iter)
 	iter->cur_seq = latched_seq_read_nolock(&clear_seq);
 	iter->next_seq = prb_next_seq(prb);
 }
-EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
 
 #endif
-
-#ifdef CONFIG_SMP
-static atomic_t printk_cpu_sync_owner = ATOMIC_INIT(-1);
-static atomic_t printk_cpu_sync_nested = ATOMIC_INIT(0);
-
-/**
- * __printk_cpu_sync_wait() - Busy wait until the printk cpu-reentrant
- *                            spinning lock is not owned by any CPU.
- *
- * Context: Any context.
- */
-void __printk_cpu_sync_wait(void)
-{
-	do {
-		cpu_relax();
-	} while (atomic_read(&printk_cpu_sync_owner) != -1);
-}
-EXPORT_SYMBOL(__printk_cpu_sync_wait);
-
-/**
- * __printk_cpu_sync_try_get() - Try to acquire the printk cpu-reentrant
- *                               spinning lock.
- *
- * If no processor has the lock, the calling processor takes the lock and
- * becomes the owner. If the calling processor is already the owner of the
- * lock, this function succeeds immediately.
- *
- * Context: Any context. Expects interrupts to be disabled.
- * Return: 1 on success, otherwise 0.
- */
-int __printk_cpu_sync_try_get(void)
-{
-	int cpu;
-	int old;
-
-	cpu = smp_processor_id();
-
-	/*
-	 * Guarantee loads and stores from this CPU when it is the lock owner
-	 * are _not_ visible to the previous lock owner. This pairs with
-	 * __printk_cpu_sync_put:B.
-	 *
-	 * Memory barrier involvement:
-	 *
-	 * If __printk_cpu_sync_try_get:A reads from __printk_cpu_sync_put:B,
-	 * then __printk_cpu_sync_put:A can never read from
-	 * __printk_cpu_sync_try_get:B.
-	 *
-	 * Relies on:
-	 *
-	 * RELEASE from __printk_cpu_sync_put:A to __printk_cpu_sync_put:B
-	 * of the previous CPU
-	 *    matching
-	 * ACQUIRE from __printk_cpu_sync_try_get:A to
-	 * __printk_cpu_sync_try_get:B of this CPU
-	 */
-	old = atomic_cmpxchg_acquire(&printk_cpu_sync_owner, -1,
-				     cpu); /* LMM(__printk_cpu_sync_try_get:A) */
-	if (old == -1) {
-		/*
-		 * This CPU is now the owner and begins loading/storing
-		 * data: LMM(__printk_cpu_sync_try_get:B)
-		 */
-		return 1;
-
-	} else if (old == cpu) {
-		/* This CPU is already the owner. */
-		atomic_inc(&printk_cpu_sync_nested);
-		return 1;
-	}
-
-	return 0;
-}
-EXPORT_SYMBOL(__printk_cpu_sync_try_get);
-
-/**
- * __printk_cpu_sync_put() - Release the printk cpu-reentrant spinning lock.
- *
- * The calling processor must be the owner of the lock.
- *
- * Context: Any context. Expects interrupts to be disabled.
- */
-void __printk_cpu_sync_put(void)
-{
-	if (atomic_read(&printk_cpu_sync_nested)) {
-		atomic_dec(&printk_cpu_sync_nested);
-		return;
-	}
-
-	/*
-	 * This CPU is finished loading/storing data:
-	 * LMM(__printk_cpu_sync_put:A)
-	 */
-
-	/*
-	 * Guarantee loads and stores from this CPU when it was the
-	 * lock owner are visible to the next lock owner. This pairs
-	 * with __printk_cpu_sync_try_get:A.
-	 *
-	 * Memory barrier involvement:
-	 *
-	 * If __printk_cpu_sync_try_get:A reads from __printk_cpu_sync_put:B,
-	 * then __printk_cpu_sync_try_get:B reads from __printk_cpu_sync_put:A.
-	 *
-	 * Relies on:
-	 *
-	 * RELEASE from __printk_cpu_sync_put:A to __printk_cpu_sync_put:B
-	 * of this CPU
-	 *    matching
-	 * ACQUIRE from __printk_cpu_sync_try_get:A to
-	 * __printk_cpu_sync_try_get:B of the next CPU
-	 */
-	atomic_set_release(&printk_cpu_sync_owner,
-			   -1); /* LMM(__printk_cpu_sync_put:B) */
-}
-EXPORT_SYMBOL(__printk_cpu_sync_put);
-#endif /* CONFIG_SMP */

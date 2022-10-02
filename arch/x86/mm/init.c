@@ -1,16 +1,12 @@
-#include <linux/swap.h>
 #include <linux/memblock.h>
 #include <linux/kmemleak.h>
 
 #include <asm/set_memory.h>
 #include <asm/e820/api.h>
-#include <asm/init.h>
 #include <asm/setup.h>
-#include <asm/tlbflush.h>
 
 #include "mm_internal.h"
 
-static unsigned long __initdata pgt_buf_start;
 static unsigned long __initdata pgt_buf_end;
 static unsigned long __initdata pgt_buf_top;
 

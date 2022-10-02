@@ -6,8 +6,6 @@ enum system_states system_state __read_mostly;
 
 bool static_key_initialized __read_mostly;
 
-unsigned int reset_devices;
-
 /* Report memory auto-initialization states for this boot. */
 static void __init report_meminit(void)
 {

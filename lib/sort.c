@@ -13,7 +13,6 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/types.h>
-#include <linux/export.h>
 #include <linux/sort.h>
 
 /**
@@ -35,9 +34,7 @@ static bool is_aligned(const void *base, size_t size, unsigned char align)
 	unsigned char lsbits = (unsigned char)size;
 
 	(void)base;
-#ifndef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
 	lsbits |= (unsigned char)(uintptr_t)base;
-#endif
 	return (lsbits & (align - 1)) == 0;
 }
 
@@ -83,20 +80,9 @@ static void swap_words_32(void *a, void *b, size_t n)
 static void swap_words_64(void *a, void *b, size_t n)
 {
 	do {
-#ifdef CONFIG_64BIT
 		u64 t = *(u64 *)(a + (n -= 8));
 		*(u64 *)(a + n) = *(u64 *)(b + n);
 		*(u64 *)(b + n) = t;
-#else
-		/* Use two 32-bit transfers to avoid base+index+4 addressing */
-		u32 t = *(u32 *)(a + (n -= 4));
-		*(u32 *)(a + n) = *(u32 *)(b + n);
-		*(u32 *)(b + n) = t;
-
-		t = *(u32 *)(a + (n -= 4));
-		*(u32 *)(a + n) = *(u32 *)(b + n);
-		*(u32 *)(b + n) = t;
-#endif
 	} while (n);
 }
 
@@ -276,7 +262,6 @@ void sort_r(void *base, size_t num, size_t size,
 		}
 	}
 }
-EXPORT_SYMBOL(sort_r);
 
 void sort(void *base, size_t num, size_t size,
 	  cmp_func_t cmp_func,
@@ -289,4 +274,3 @@ void sort(void *base, size_t num, size_t size,
 
 	return sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w);
 }
-EXPORT_SYMBOL(sort);
