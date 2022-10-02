@@ -334,36 +334,6 @@ static void __init_memblock memblock_remove_region(struct memblock_type *type, u
 }
 
 /**
- * memblock_discard - discard memory and reserved arrays if they were allocated
- */
-void __init memblock_discard(void)
-{
-	phys_addr_t addr, size;
-
-	if (memblock.reserved.regions != memblock_reserved_init_regions) {
-		addr = __pa(memblock.reserved.regions);
-		size = PAGE_ALIGN(sizeof(struct memblock_region) *
-				  memblock.reserved.max);
-		if (memblock_reserved_in_slab)
-			kfree(memblock.reserved.regions);
-		else
-			memblock_free_late(addr, size);
-	}
-
-	if (memblock.memory.regions != memblock_memory_init_regions) {
-		addr = __pa(memblock.memory.regions);
-		size = PAGE_ALIGN(sizeof(struct memblock_region) *
-				  memblock.memory.max);
-		if (memblock_memory_in_slab)
-			kfree(memblock.memory.regions);
-		else
-			memblock_free_late(addr, size);
-	}
-
-	memblock_memory = NULL;
-}
-
-/**
  * memblock_double_array - double the size of the memblock regions array
  * @type: memblock type of the regions array being doubled
  * @new_area_start: starting address of memory range to avoid overlap with
