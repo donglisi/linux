@@ -33,7 +33,6 @@
 #include <linux/syslog.h>
 #include <linux/cpu.h>
 #include <linux/rculist.h>
-#include <linux/poll.h>
 #include <linux/irq_work.h>
 #include <linux/ctype.h>
 #include <linux/uio.h>

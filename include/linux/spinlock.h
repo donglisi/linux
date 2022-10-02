@@ -300,7 +300,6 @@ static inline void do_raw_spin_unlock(raw_spinlock_t *lock) __releases(lock)
 
 #ifndef CONFIG_PREEMPT_RT
 /* Include rwlock functions for !RT */
-#include <linux/rwlock.h>
 #endif
 
 /*

@@ -11,8 +11,6 @@
 #include <linux/init.h>
 #include <linux/bitops.h>
 #include <linux/pfn.h>
-#include <linux/kmemleak.h>
-#include <linux/seq_file.h>
 #include <linux/memblock.h>
 #include <linux/io.h>
 
@@ -702,7 +700,6 @@ int __init_memblock memblock_phys_free(phys_addr_t base, phys_addr_t size)
 {
 	phys_addr_t end = base + size - 1;
 
-	kmemleak_free_part_phys(base, size);
 	return memblock_remove_range(&memblock.reserved, base, size);
 }
 
@@ -1094,19 +1091,6 @@ again:
 	return 0;
 
 done:
-	/*
-	 * Skip kmemleak for those places like kasan_init() and
-	 * early_pgtable_alloc() due to high volume.
-	 */
-	if (end != MEMBLOCK_ALLOC_NOLEAKTRACE)
-		/*
-		 * The min_count is set to 0 so that memblock allocated
-		 * blocks are never reported as leaks. This is because many
-		 * of these blocks are only referred via the physical
-		 * address which is not looked up by kmemleak.
-		 */
-		kmemleak_alloc_phys(found, size, 0, 0);
-
 	return found;
 }
 

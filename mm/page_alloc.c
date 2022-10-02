@@ -47,8 +47,6 @@
 #include <linux/page_table_check.h>
 #include <linux/memcontrol.h>
 #include <linux/lockdep.h>
-#include <linux/psi.h>
-#include <linux/khugepaged.h>
 
 #include <asm/sections.h>
 
@@ -2773,7 +2771,6 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
 	unsigned long pflags;
 	bool drained = false;
 
-	psi_memstall_enter(&pflags);
 	*did_some_progress = __perform_reclaim(gfp_mask, order, ac);
 	if (unlikely(!(*did_some_progress)))
 		goto out;
@@ -2793,8 +2790,6 @@ retry:
 		goto retry;
 	}
 out:
-	psi_memstall_leave(&pflags);
-
 	return page;
 }
 

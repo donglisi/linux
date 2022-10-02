@@ -19,7 +19,6 @@
 #include <linux/wait.h>
 #include <linux/fcntl.h>	/* For O_CLOEXEC and O_NONBLOCK */
 #include <linux/rcupdate.h>
-#include <linux/once.h>
 #include <linux/fs.h>
 #include <linux/mm.h>
 #include <linux/sockptr.h>

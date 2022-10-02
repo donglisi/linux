@@ -1,5 +1,4 @@
 #include <linux/memblock.h>
-#include <linux/kmemleak.h>
 
 #include <asm/set_memory.h>
 #include <asm/e820/api.h>

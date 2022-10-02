@@ -2218,7 +2218,6 @@ struct net_device {
 #else
 	refcount_t		dev_refcnt;
 #endif
-	struct ref_tracker_dir	refcnt_tracker;
 
 	struct list_head	link_watch_list;
 

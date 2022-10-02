@@ -48,7 +48,6 @@
 #include <linux/mm.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
-#include <linux/page_counter.h>
 #include <linux/memcontrol.h>
 #include <linux/static_key.h>
 #include <linux/sched.h>
@@ -56,7 +55,6 @@
 #include <linux/cgroup-defs.h>
 #include <linux/rbtree.h>
 #include <linux/rculist_nulls.h>
-#include <linux/poll.h>
 #include <linux/sockptr.h>
 #include <linux/indirect_call_wrapper.h>
 #include <linux/atomic.h>
@@ -2025,22 +2023,18 @@ static inline wait_queue_head_t *sk_sleep(struct sock *sk)
  */
 static inline void sock_orphan(struct sock *sk)
 {
-	write_lock_bh(&sk->sk_callback_lock);
 	sock_set_flag(sk, SOCK_DEAD);
 	sk_set_socket(sk, NULL);
 	sk->sk_wq  = NULL;
-	write_unlock_bh(&sk->sk_callback_lock);
 }
 
 static inline void sock_graft(struct sock *sk, struct socket *parent)
 {
 	WARN_ON(parent->sk);
-	write_lock_bh(&sk->sk_callback_lock);
 	rcu_assign_pointer(sk->sk_wq, &parent->wq);
 	parent->sk = sk;
 	sk_set_socket(sk, parent);
 	sk->sk_uid = SOCK_INODE(parent)->i_uid;
-	write_unlock_bh(&sk->sk_callback_lock);
 }
 
 kuid_t sock_i_uid(struct sock *sk);
@@ -2051,17 +2045,8 @@ static inline kuid_t sock_net_uid(const struct net *net, const struct sock *sk)
 	return sk ? sk->sk_uid : make_kuid(net->user_ns, 0);
 }
 
-static inline u32 net_tx_rndhash(void)
-{
-	u32 v = prandom_u32();
-
-	return v ?: 1;
-}
-
 static inline void sk_set_txhash(struct sock *sk)
 {
-	/* This pairs with READ_ONCE() in skb_set_hash_from_sk() */
-	WRITE_ONCE(sk->sk_txhash, net_tx_rndhash());
 }
 
 static inline bool sk_rethink_txhash(struct sock *sk)

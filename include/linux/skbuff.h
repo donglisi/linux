@@ -32,12 +32,10 @@
 #include <linux/netdev_features.h>
 #include <linux/sched.h>
 #include <net/flow_dissector.h>
-#include <linux/splice.h>
 #include <linux/in6.h>
 #include <linux/if_packet.h>
 #include <linux/llist.h>
 #include <net/flow.h>
-#include <net/page_pool.h>
 #if IS_ENABLED(CONFIG_NF_CONNTRACK)
 #include <linux/netfilter/nf_conntrack_common.h>
 #endif
@@ -5144,13 +5142,6 @@ static inline void skb_mark_for_recycle(struct sk_buff *skb)
 	skb->pp_recycle = 1;
 }
 #endif
-
-static inline bool skb_pp_recycle(struct sk_buff *skb, void *data)
-{
-	if (!IS_ENABLED(CONFIG_PAGE_POOL) || !skb->pp_recycle)
-		return false;
-	return page_pool_return_skb_page(virt_to_page(data));
-}
 
 #endif	/* __KERNEL__ */
 #endif	/* _LINUX_SKBUFF_H */

@@ -1015,7 +1015,7 @@ static inline bool lock_page_or_retry(struct page *page, struct mm_struct *mm,
 void folio_wait_bit(struct folio *folio, int bit_nr);
 int folio_wait_bit_killable(struct folio *folio, int bit_nr);
 
-/* 
+/*
  * Wait for a folio to be unlocked.
  *
  * This must be called with the caller "holding" the folio,

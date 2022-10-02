@@ -15,7 +15,6 @@
 
 #include <linux/types.h>
 #include <linux/interrupt.h>
-#include <linux/nvmem-provider.h>
 #include <uapi/linux/rtc.h>
 
 extern int rtc_month_days(unsigned int month, unsigned int year);
@@ -35,8 +34,6 @@ static inline time64_t rtc_tm_sub(struct rtc_time *lhs, struct rtc_time *rhs)
 }
 
 #include <linux/device.h>
-#include <linux/seq_file.h>
-#include <linux/poll.h>
 #include <linux/mutex.h>
 #include <linux/timerqueue.h>
 #include <linux/workqueue.h>
@@ -229,17 +226,6 @@ static inline bool is_leap_year(unsigned int year)
 extern int rtc_hctosys_ret;
 #else
 #define rtc_hctosys_ret -ENODEV
-#endif
-
-#ifdef CONFIG_RTC_NVMEM
-int devm_rtc_nvmem_register(struct rtc_device *rtc,
-			    struct nvmem_config *nvmem_config);
-#else
-static inline int devm_rtc_nvmem_register(struct rtc_device *rtc,
-					  struct nvmem_config *nvmem_config)
-{
-	return 0;
-}
 #endif
 
 #ifdef CONFIG_RTC_INTF_SYSFS

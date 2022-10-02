@@ -86,7 +86,6 @@ struct net {
 	struct idr		netns_ids;
 
 	struct ns_common	ns;
-	struct ref_tracker_dir  refcnt_tracker;
 
 	struct list_head 	dev_base_head;
 	struct proc_dir_entry 	*proc_net;
@@ -172,7 +171,6 @@ struct net {
 #endif
 } __randomize_layout;
 
-#include <linux/seq_file_net.h>
 
 /* Init's network namespace */
 extern struct net init_net;

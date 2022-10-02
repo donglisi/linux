@@ -3,7 +3,6 @@
 #define __ASM_GENERIC_SOCKET_H
 
 #include <linux/posix_types.h>
-#include <asm/sockios.h>
 
 /* For setsockopt(2) */
 #define SOL_SOCKET	1

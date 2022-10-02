@@ -20,7 +20,6 @@
 #define _LINUX_SOCKIOS_H
 
 #include <asm/bitsperlong.h>
-#include <asm/sockios.h>
 
 /* Linux-specific socket ioctls */
 #define SIOCINQ		FIONREAD

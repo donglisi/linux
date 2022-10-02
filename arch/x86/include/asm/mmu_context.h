@@ -5,7 +5,6 @@
 #include <asm/desc.h>
 #include <linux/atomic.h>
 #include <linux/mm_types.h>
-#include <linux/pkeys.h>
 
 #include <asm/tlbflush.h>
 #include <asm/paravirt.h>
@@ -191,27 +190,6 @@ static inline bool is_64bit_mm(struct mm_struct *mm)
 static inline void arch_unmap(struct mm_struct *mm, unsigned long start,
 			      unsigned long end)
 {
-}
-
-/*
- * We only want to enforce protection keys on the current process
- * because we effectively have no access to PKRU for other
- * processes or any way to tell *which * PKRU in a threaded
- * process we could use.
- *
- * So do not enforce things if the VMA is not from the current
- * mm, or if we are in a kernel thread.
- */
-static inline bool arch_vma_access_permitted(struct vm_area_struct *vma,
-		bool write, bool execute, bool foreign)
-{
-	/* pkeys never affect instruction fetches */
-	if (execute)
-		return true;
-	/* allow access if the VMA is not one from this process */
-	if (foreign || vma_is_foreign(vma))
-		return true;
-	return __pkru_allows_pkey(vma_pkey(vma), write);
 }
 
 unsigned long __get_current_cr3_fast(void);

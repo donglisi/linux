@@ -18,7 +18,6 @@
 #include <linux/errno.h>
 #include <linux/list.h>
 #include <linux/lockdep.h>
-#include <linux/kobject_ns.h>
 #include <linux/stat.h>
 #include <linux/atomic.h>
 

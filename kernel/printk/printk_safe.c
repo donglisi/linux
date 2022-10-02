@@ -4,7 +4,6 @@
  */
 
 #include <linux/preempt.h>
-#include <linux/kdb.h>
 #include <linux/smp.h>
 #include <linux/cpumask.h>
 #include <linux/printk.h>
