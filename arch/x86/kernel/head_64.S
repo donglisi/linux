@@ -119,10 +119,6 @@ secondary_startup_64:
 initial_code:
 	.quad	x86_64_start_kernel
 
-	.globl initial_gs
-initial_gs:
-	.quad	fixed_percpu_data
-
 	.globl initial_stack
 initial_stack:
 	.quad	init_thread_union + ((1 << 12) << (2 + 0)) - 168
