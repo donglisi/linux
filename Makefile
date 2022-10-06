@@ -1,4 +1,5 @@
 MAKEFLAGS := -rR --no-print-directory
+CC := gcc
 
 ifeq ("$(origin V)", "command line")
 	Q :=
@@ -28,15 +29,15 @@ depfile = $(dir $@).$(notdir $@).d
 
 build/%.o: %.c
 	@echo "  CC     " $@
-	$(Q) gcc $(include) $(c_flags) -D__KERNEL__ -Wp,-MD,$(depfile) -Wp,-MT,$@ -c -o $@ $<
+	$(Q) $(CC) $(include) $(c_flags) -D__KERNEL__ -Wp,-MD,$(depfile) -Wp,-MT,$@ -c -o $@ $<
 
 build/%.o: %.S
 	@echo "  AS     " $@
-	$(Q) gcc $(include) $(c_flags) -D__KERNEL__ -Wp,-MD,$(depfile) -Wp,-MT,$@ -D__ASSEMBLY__ -c -o $@ $<
+	$(Q) $(CC) $(include) $(c_flags) -D__KERNEL__ -Wp,-MD,$(depfile) -Wp,-MT,$@ -D__ASSEMBLY__ -c -o $@ $<
 
 build/%.lds: %.lds.S
 	@echo "  LDS    " $@
-	$(Q) gcc -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
+	$(Q) $(CC) -E $(include) -P -Ux86 -D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
 
 x86	:= $(addprefix arch/x86/, events/core.o \
 		$(addprefix entry/, entry_64.o syscall_64.o common.o $(addprefix vdso/, vma.o extable.o vdso-image-64.o)) \
