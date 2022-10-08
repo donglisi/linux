@@ -74,7 +74,6 @@ static __init void early_serial_init(char *s)
 {
 	unsigned divisor;
 	unsigned long baud = DEFAULT_BAUD;
-	char *e;
 
 	/* Convert from baud to divisor value */
 	divisor = 115200 / baud;

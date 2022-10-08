@@ -25,13 +25,11 @@
 #include <linux/kernel.h>
 #include <linux/kallsyms.h>
 #include <linux/math64.h>
-#include <linux/uaccess.h>
 #include <linux/ioport.h>
 #include <linux/dcache.h>
 #include <linux/cred.h>
 #include <linux/rtc.h>
 #include <linux/time.h>
-#include <linux/uuid.h>
 #include <linux/of.h>
 #include <net/addrconf.h>
 #include <linux/siphash.h>
@@ -640,7 +638,6 @@ static inline int __ptr_to_hashval(const void *ptr, unsigned long *hashval_out)
 	unsigned long hashval;
 
 	if (!static_branch_likely(&filled_random_ptr_key)) {
-		static bool filled = false;
 		static DEFINE_SPINLOCK(filling);
 		static DECLARE_WORK(enable_ptr_key_work, enable_ptr_key_workfn);
 		unsigned long flags;
@@ -648,24 +645,14 @@ static inline int __ptr_to_hashval(const void *ptr, unsigned long *hashval_out)
 		spin_unlock_irqrestore(&filling, flags);
 	}
 
-
-#ifdef CONFIG_64BIT
 	hashval = (unsigned long)siphash_1u64((u64)ptr, &ptr_key);
 	/*
 	 * Mask off the first 32 bits, this makes explicit that we have
 	 * modified the address (and 32 bits is plenty for a unique ID).
 	 */
 	hashval = hashval & 0xffffffff;
-#else
-	hashval = (unsigned long)siphash_1u32((u32)ptr, &ptr_key);
-#endif
 	*hashval_out = hashval;
 	return 0;
-}
-
-int ptr_to_hashval(const void *ptr, unsigned long *hashval_out)
-{
-	return __ptr_to_hashval(ptr, hashval_out);
 }
 
 static char *ptr_to_id(char *buf, char *end, const void *ptr,
@@ -824,30 +811,12 @@ char *symbol_string(char *buf, char *end, void *ptr,
 		    struct printf_spec spec, const char *fmt)
 {
 	unsigned long value;
-#ifdef CONFIG_KALLSYMS
-	char sym[KSYM_SYMBOL_LEN];
-#endif
 
 	if (fmt[1] == 'R')
 		ptr = __builtin_extract_return_addr(ptr);
 	value = (unsigned long)ptr;
 
-#ifdef CONFIG_KALLSYMS
-	if (*fmt == 'B' && fmt[1] == 'b')
-		sprint_backtrace_build_id(sym, value);
-	else if (*fmt == 'B')
-		sprint_backtrace(sym, value);
-	else if (*fmt == 'S' && (fmt[1] == 'b' || (fmt[1] == 'R' && fmt[2] == 'b')))
-		sprint_symbol_build_id(sym, value);
-	else if (*fmt != 's')
-		sprint_symbol(sym, value);
-	else
-		sprint_symbol_no_offset(sym, value);
-
-	return string_nocheck(buf, end, sym, spec);
-#else
 	return special_hex_number(buf, end, value, sizeof(void *));
-#endif
 }
 
 static const struct printf_spec default_str_spec = {
@@ -1033,50 +1002,6 @@ char *hex_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
 }
 
 static noinline_for_stack
-char *bitmap_string(char *buf, char *end, unsigned long *bitmap,
-		    struct printf_spec spec, const char *fmt)
-{
-	const int CHUNKSZ = 32;
-	int nr_bits = max_t(int, spec.field_width, 0);
-	int i, chunksz;
-	bool first = true;
-
-	if (check_pointer(&buf, end, bitmap, spec))
-		return buf;
-
-	/* reused to print numbers */
-	spec = (struct printf_spec){ .flags = SMALL | ZEROPAD, .base = 16 };
-
-	chunksz = nr_bits & (CHUNKSZ - 1);
-	if (chunksz == 0)
-		chunksz = CHUNKSZ;
-
-	i = ALIGN(nr_bits, CHUNKSZ) - CHUNKSZ;
-	for (; i >= 0; i -= CHUNKSZ) {
-		u32 chunkmask, val;
-		int word, bit;
-
-		chunkmask = ((1ULL << chunksz) - 1);
-		word = i / BITS_PER_LONG;
-		bit = i % BITS_PER_LONG;
-		val = (bitmap[word] >> bit) & chunkmask;
-
-		if (!first) {
-			if (buf < end)
-				*buf = ',';
-			buf++;
-		}
-		first = false;
-
-		spec.field_width = DIV_ROUND_UP(chunksz, 4);
-		buf = number(buf, end, val, spec);
-
-		chunksz = CHUNKSZ;
-	}
-	return buf;
-}
-
-static noinline_for_stack
 char *mac_address_string(char *buf, char *end, u8 *addr,
 			 struct printf_spec spec, const char *fmt)
 {
@@ -1127,13 +1052,8 @@ char *ip4_string(char *p, const u8 *addr, const char *fmt)
 
 	switch (fmt[2]) {
 	case 'h':
-#ifdef __BIG_ENDIAN
-		index = 0;
-		step = 1;
-#else
 		index = 3;
 		step = -1;
-#endif
 		break;
 	case 'l':
 		index = 3;
@@ -1755,7 +1675,6 @@ static const struct page_flags_fields pff[] = {
 static
 char *format_page_flags(char *buf, char *end, unsigned long flags)
 {
-	unsigned long main_flags = flags & PAGEFLAGS_MASK;
 	bool append = false;
 	int i;
 
@@ -2549,7 +2468,6 @@ out:
 	return str-buf;
 
 }
-EXPORT_SYMBOL(vsnprintf);
 
 /**
  * vscnprintf - Format a string and place it in a buffer
@@ -2580,7 +2498,6 @@ int vscnprintf(char *buf, size_t size, const char *fmt, va_list args)
 
 	return size - 1;
 }
-EXPORT_SYMBOL(vscnprintf);
 
 /**
  * snprintf - Format a string and place it in a buffer
@@ -2607,7 +2524,6 @@ int snprintf(char *buf, size_t size, const char *fmt, ...)
 
 	return i;
 }
-EXPORT_SYMBOL(snprintf);
 
 /**
  * scnprintf - Format a string and place it in a buffer
@@ -2631,7 +2547,6 @@ int scnprintf(char *buf, size_t size, const char *fmt, ...)
 
 	return i;
 }
-EXPORT_SYMBOL(scnprintf);
 
 /**
  * vsprintf - Format a string and place it in a buffer
@@ -2651,7 +2566,6 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 {
 	return vsnprintf(buf, INT_MAX, fmt, args);
 }
-EXPORT_SYMBOL(vsprintf);
 
 /**
  * sprintf - Format a string and place it in a buffer
@@ -2676,7 +2590,6 @@ int sprintf(char *buf, const char *fmt, ...)
 
 	return i;
 }
-EXPORT_SYMBOL(sprintf);
 
 #ifdef CONFIG_BINARY_PRINTF
 

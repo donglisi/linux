@@ -271,24 +271,6 @@ static struct printk_ringbuffer name = {							\
 }
 
 /**
- * DEFINE_PRINTKRB() - Define a ringbuffer.
- *
- * @name:        The name of the ringbuffer variable.
- * @descbits:    The number of descriptors as a power-of-2 value.
- * @avgtextbits: The average text data size per record as a power-of-2 value.
- *
- * This is a macro for defining a ringbuffer and all internal structures
- * such that it is ready for immediate use. See _DEFINE_PRINTKRB() for a
- * variant where the text data buffer can be specified externally.
- */
-#define DEFINE_PRINTKRB(name, descbits, avgtextbits)				\
-static char _##name##_text[1U << ((avgtextbits) + (descbits))]			\
-			__aligned(__alignof__(unsigned long));			\
-_DEFINE_PRINTKRB(name, descbits, avgtextbits, &_##name##_text[0])
-
-/* Writer Interface */
-
-/**
  * prb_rec_init_wr() - Initialize a buffer for writing records.
  *
  * @r:             The record to initialize.
@@ -378,7 +360,6 @@ bool prb_read_valid(struct printk_ringbuffer *rb, u64 seq,
 bool prb_read_valid_info(struct printk_ringbuffer *rb, u64 seq,
 			 struct printk_info *info, unsigned int *line_count);
 
-u64 prb_first_valid_seq(struct printk_ringbuffer *rb);
 u64 prb_next_seq(struct printk_ringbuffer *rb);
 
 #endif /* _KERNEL_PRINTK_RINGBUFFER_H */

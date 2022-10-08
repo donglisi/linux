@@ -79,7 +79,6 @@ unsigned long __head __startup_64(unsigned long physaddr,
 	unsigned long *p;
 	unsigned long pgtable_flags;
 	pgdval_t *pgd;
-	p4dval_t *p4d;
 	pudval_t *pud;
 	pmdval_t *pmd, pmd_entry;
 	pteval_t *mask_ptr;
@@ -208,15 +207,6 @@ void __init clear_bss(void)
 	       (unsigned long) __bss_stop - (unsigned long) __bss_start);
 	memset(__brk_base, 0,
 	       (unsigned long) __brk_limit - (unsigned long) __brk_base);
-}
-
-static unsigned long get_cmd_line_ptr(void)
-{
-	unsigned long cmd_line_ptr = boot_params.hdr.cmd_line_ptr;
-
-	cmd_line_ptr |= (u64)boot_params.ext_cmd_line_ptr << 32;
-
-	return cmd_line_ptr;
 }
 
 static void __init copy_bootdata(char *real_mode_data)

@@ -4,15 +4,7 @@
  */
 #include <linux/percpu.h>
 
-#if defined(CONFIG_PRINTK) && defined(CONFIG_SYSCTL)
-void __init printk_sysctl_init(void);
-int devkmsg_sysctl_set_loglvl(struct ctl_table *table, int write,
-			      void *buffer, size_t *lenp, loff_t *ppos);
-#else
 #define printk_sysctl_init() do { } while (0)
-#endif
-
-#ifdef CONFIG_PRINTK
 
 /* Flags for a single printk record. */
 enum printk_info_flags {
@@ -46,15 +38,3 @@ void defer_console_output(void);
 
 u16 printk_parse_prefix(const char *text, int *level,
 			enum printk_info_flags *flags);
-#else
-
-/*
- * In !PRINTK builds we still export console_sem
- * semaphore and some of console functions (console_unlock()/etc.), so
- * printk-safe must preserve the existing local IRQ guarantees.
- */
-#define printk_safe_enter_irqsave(flags) local_irq_save(flags)
-#define printk_safe_exit_irqrestore(flags) local_irq_restore(flags)
-
-static inline bool printk_percpu_data_ready(void) { return false; }
-#endif /* CONFIG_PRINTK */
