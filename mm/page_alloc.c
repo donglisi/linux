@@ -25,7 +25,6 @@
 #include <linux/kernel.h>
 #include <linux/kasan.h>
 #include <linux/pagevec.h>
-#include <linux/oom.h>
 #include <linux/topology.h>
 #include <linux/sysctl.h>
 #include <linux/cpuset.h>
@@ -37,7 +36,6 @@
 #include <linux/pfn.h>
 #include <linux/backing-dev.h>
 #include <linux/page-isolation.h>
-#include <linux/compaction.h>
 #include <linux/prefetch.h>
 #include <linux/sched/rt.h>
 #include <linux/sched/mm.h>
@@ -55,16 +53,6 @@ typedef int __bitwise fpi_t;
 
 /* No special request */
 #define FPI_NONE		((__force fpi_t)0)
-
-/*
- * Skip free page reporting notification for the (possibly merged) page.
- * This does not hinder free page reporting from grabbing the page,
- * reporting it and marking it "reported" -  it only skips notifying
- * the free page reporting infrastructure about a newly freed page. For
- * example, used when temporarily pulling a page from a freelist and
- * putting it back unmodified.
- */
-#define FPI_SKIP_REPORT_NOTIFY	((__force fpi_t)BIT(0))
 
 /*
  * Place the (possibly merged) page to the tail of the freelist. Will ignore
@@ -97,13 +85,6 @@ static DEFINE_PER_CPU(struct pagesets, pagesets) = {
 };
 
 DEFINE_STATIC_KEY_TRUE(vm_numa_stat_key);
-
-/* work_structs for global per-cpu drains */
-struct pcpu_drain {
-	struct zone *zone;
-	struct work_struct work;
-};
-static DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
 
 /*
  * Array of node states.
@@ -166,11 +147,6 @@ static bool mirrored_kernelcore __meminitdata;
 
 /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
 int movable_zone;
-
-#if MAX_NUMNODES > 1
-unsigned int nr_node_ids __read_mostly = MAX_NUMNODES;
-unsigned int nr_online_nodes __read_mostly = 1;
-#endif
 
 int page_group_by_mobility_disabled __read_mostly;
 
@@ -698,15 +674,12 @@ static void kernel_init_free_pages(struct page *page, int numpages)
 {
 	int i;
 
-	/* s390's use of memset() could override KASAN redzones. */
-	kasan_disable_current();
 	for (i = 0; i < numpages; i++) {
 		u8 tag = page_kasan_tag(page + i);
 		page_kasan_tag_reset(page + i);
 		clear_highpage(page + i);
 		page_kasan_tag_set(page + i, tag);
 	}
-	kasan_enable_current();
 }
 
 static __always_inline bool free_pages_prepare(struct page *page,
@@ -923,11 +896,6 @@ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
 	page_kasan_tag_reset(page);
 
 	INIT_LIST_HEAD(&page->lru);
-#ifdef WANT_PAGE_VIRTUAL
-	/* The shift won't overflow because ZONE_NORMAL is below 4G. */
-	if (!is_highmem_idx(zone))
-		set_page_address(page, __va(pfn << PAGE_SHIFT));
-#endif
 }
 
 /*
@@ -1598,87 +1566,6 @@ out_unlock:
 }
 
 /*
- * Used when an allocation is about to fail under memory pressure. This
- * potentially hurts the reliability of high-order allocations when under
- * intense memory pressure but failed atomic allocations should be easier
- * to recover from than an OOM.
- *
- * If @force is true, try to unreserve a pageblock even though highatomic
- * pageblock is exhausted.
- */
-static bool unreserve_highatomic_pageblock(const struct alloc_context *ac,
-						bool force)
-{
-	struct zonelist *zonelist = ac->zonelist;
-	unsigned long flags;
-	struct zoneref *z;
-	struct zone *zone;
-	struct page *page;
-	int order;
-	bool ret;
-
-	for_each_zone_zonelist_nodemask(zone, z, zonelist, ac->highest_zoneidx,
-								ac->nodemask) {
-		/*
-		 * Preserve at least one pageblock unless memory pressure
-		 * is really high.
-		 */
-		if (!force && zone->nr_reserved_highatomic <=
-					pageblock_nr_pages)
-			continue;
-
-		spin_lock_irqsave(&zone->lock, flags);
-		for (order = 0; order < MAX_ORDER; order++) {
-			struct free_area *area = &(zone->free_area[order]);
-
-			page = get_page_from_free_area(area, MIGRATE_HIGHATOMIC);
-			if (!page)
-				continue;
-
-			/*
-			 * In page freeing path, migratetype change is racy so
-			 * we can counter several free pages in a pageblock
-			 * in this loop although we changed the pageblock type
-			 * from highatomic to ac->migratetype. So we should
-			 * adjust the count once.
-			 */
-			if (is_migrate_highatomic_page(page)) {
-				/*
-				 * It should never happen but changes to
-				 * locking could inadvertently allow a per-cpu
-				 * drain to add pages to MIGRATE_HIGHATOMIC
-				 * while unreserving so be safe and watch for
-				 * underflows.
-				 */
-				zone->nr_reserved_highatomic -= min(
-						pageblock_nr_pages,
-						zone->nr_reserved_highatomic);
-			}
-
-			/*
-			 * Convert to ac->migratetype and avoid the normal
-			 * pageblock stealing heuristics. Minimally, the caller
-			 * is doing the work and needs the pages. More
-			 * importantly, if the block was always converted to
-			 * MIGRATE_UNMOVABLE or another type then the number
-			 * of pageblocks that cannot be completely freed
-			 * may increase.
-			 */
-			set_pageblock_migratetype(page, ac->migratetype);
-			ret = move_freepages_block(zone, page, ac->migratetype,
-									NULL);
-			if (ret) {
-				spin_unlock_irqrestore(&zone->lock, flags);
-				return ret;
-			}
-		}
-		spin_unlock_irqrestore(&zone->lock, flags);
-	}
-
-	return false;
-}
-
-/*
  * Try finding a free buddy page on the fallback list and put it on the free
  * list of requested migratetype, possibly along with other pages from the same
  * block, depending on fragmentation avoidance heuristics. Returns true if
@@ -1837,156 +1724,6 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
 	spin_unlock(&zone->lock);
 	return allocated;
-}
-
-/*
- * Drain pcplists of the indicated processor and zone.
- *
- * The processor must either be the current processor and the
- * thread pinned to the current processor or a processor that
- * is not online.
- */
-static void drain_pages_zone(unsigned int cpu, struct zone *zone)
-{
-	unsigned long flags;
-	struct per_cpu_pages *pcp;
-
-	local_lock_irqsave(&pagesets.lock, flags);
-
-	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
-	if (pcp->count)
-		free_pcppages_bulk(zone, pcp->count, pcp, 0);
-
-	local_unlock_irqrestore(&pagesets.lock, flags);
-}
-
-/*
- * Drain pcplists of all zones on the indicated processor.
- *
- * The processor must either be the current processor and the
- * thread pinned to the current processor or a processor that
- * is not online.
- */
-static void drain_pages(unsigned int cpu)
-{
-	struct zone *zone;
-
-	for_each_populated_zone(zone) {
-		drain_pages_zone(cpu, zone);
-	}
-}
-
-/*
- * Spill all of this CPU's per-cpu pages back into the buddy allocator.
- *
- * The CPU has to be pinned. When zone parameter is non-NULL, spill just
- * the single zone's pages.
- */
-void drain_local_pages(struct zone *zone)
-{
-	int cpu = smp_processor_id();
-
-	if (zone)
-		drain_pages_zone(cpu, zone);
-	else
-		drain_pages(cpu);
-}
-
-static void drain_local_pages_wq(struct work_struct *work)
-{
-	struct pcpu_drain *drain;
-
-	drain = container_of(work, struct pcpu_drain, work);
-
-	/*
-	 * drain_all_pages doesn't use proper cpu hotplug protection so
-	 * we can race with cpu offline when the WQ can move this from
-	 * a cpu pinned worker to an unbound one. We can operate on a different
-	 * cpu which is alright but we also have to make sure to not move to
-	 * a different one.
-	 */
-	migrate_disable();
-	drain_local_pages(drain->zone);
-	migrate_enable();
-}
-
-/*
- * The implementation of drain_all_pages(), exposing an extra parameter to
- * drain on all cpus.
- *
- * drain_all_pages() is optimized to only execute on cpus where pcplists are
- * not empty. The check for non-emptiness can however race with a free to
- * pcplist that has not yet increased the pcp->count from 0 to 1. Callers
- * that need the guarantee that every CPU has drained can disable the
- * optimizing racy check.
- */
-static void __drain_all_pages(struct zone *zone, bool force_all_cpus)
-{
-	int cpu;
-
-	/*
-	 * Allocate in the BSS so we won't require allocation in
-	 * direct reclaim path for CONFIG_CPUMASK_OFFSTACK=y
-	 */
-	static cpumask_t cpus_with_pcps;
-
-	/*
-	 * We don't care about racing with CPU hotplug event
-	 * as offline notification will cause the notified
-	 * cpu to drain that CPU pcps and on_each_cpu_mask
-	 * disables preemption as part of its processing
-	 */
-	for_each_online_cpu(cpu) {
-		struct per_cpu_pages *pcp;
-		struct zone *z;
-		bool has_pcps = false;
-
-		if (force_all_cpus) {
-			/*
-			 * The pcp.count check is racy, some callers need a
-			 * guarantee that no cpu is missed.
-			 */
-			has_pcps = true;
-		} else if (zone) {
-			pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
-			if (pcp->count)
-				has_pcps = true;
-		} else {
-			for_each_populated_zone(z) {
-				pcp = per_cpu_ptr(z->per_cpu_pageset, cpu);
-				if (pcp->count) {
-					has_pcps = true;
-					break;
-				}
-			}
-		}
-
-		if (has_pcps)
-			cpumask_set_cpu(cpu, &cpus_with_pcps);
-		else
-			cpumask_clear_cpu(cpu, &cpus_with_pcps);
-	}
-
-	for_each_cpu(cpu, &cpus_with_pcps) {
-		struct pcpu_drain *drain = per_cpu_ptr(&pcpu_drain, cpu);
-
-		drain->zone = zone;
-		INIT_WORK(&drain->work, drain_local_pages_wq);
-	}
-	for_each_cpu(cpu, &cpus_with_pcps)
-		flush_work(&per_cpu_ptr(&pcpu_drain, cpu)->work);
-}
-
-/*
- * Spill all the per-cpu pages from all CPUs back into the buddy allocator.
- *
- * When zone parameter is non-NULL, spill just the single zone's pages.
- *
- * Note that this can be extremely slow as the draining happens in a workqueue.
- */
-void drain_all_pages(struct zone *zone)
-{
-	__drain_all_pages(zone, false);
 }
 
 static bool free_unref_page_prepare(struct page *page, unsigned long pfn,
@@ -2750,20 +2487,6 @@ static unsigned long nr_free_zone_pages(int offset)
 	return sum;
 }
 
-/**
- * nr_free_buffer_pages - count number of pages beyond high watermark
- *
- * nr_free_buffer_pages() counts the number of pages which are beyond the high
- * watermark within ZONE_DMA and ZONE_NORMAL.
- *
- * Return: number of pages beyond high watermark within ZONE_DMA and
- * ZONE_NORMAL.
- */
-unsigned long nr_free_buffer_pages(void)
-{
-	return nr_free_zone_pages(gfp_zone(GFP_USER));
-}
-
 #define K(x) ((x) << (PAGE_SHIFT-10))
 
 static void zoneref_set_zone(struct zone *zone, struct zoneref *zoneref)
@@ -2860,9 +2583,6 @@ static void __build_all_zonelists(void *data)
 	int nid;
 	int __maybe_unused cpu;
 	pg_data_t *self = data;
-	static DEFINE_SPINLOCK(lock);
-
-	spin_lock(&lock);
 
 	/*
 	 * This node is hotadded and no memory is yet present.   So just
@@ -2881,8 +2601,6 @@ static void __build_all_zonelists(void *data)
 			build_zonelists(pgdat);
 		}
 	}
-
-	spin_unlock(&lock);
 }
 
 static noinline void __init
@@ -3114,7 +2832,6 @@ static void __init memmap_init(void)
 		}
 	}
 
-#ifdef CONFIG_SPARSEMEM
 	/*
 	 * Initialize the memory map for hole in the range [memory_end,
 	 * section_end].
@@ -3126,7 +2843,6 @@ static void __init memmap_init(void)
 	 */
 	end_pfn = round_up(end_pfn, PAGES_PER_SECTION);
 	if (hole_pfn < end_pfn)
-#endif
 		init_unavailable_range(hole_pfn, end_pfn, zone_id, nid);
 }
 
@@ -3152,7 +2868,6 @@ void __init *memmap_alloc(phys_addr_t size, phys_addr_t align,
 
 static int zone_batchsize(struct zone *zone)
 {
-#ifdef CONFIG_MMU
 	int batch;
 
 	/*
@@ -3179,23 +2894,6 @@ static int zone_batchsize(struct zone *zone)
 	batch = rounddown_pow_of_two(batch + batch/2) - 1;
 
 	return batch;
-
-#else
-	/* The deferral and batching of frees should be suppressed under NOMMU
-	 * conditions.
-	 *
-	 * The problem is that NOMMU needs to be able to allocate large chunks
-	 * of contiguous memory as there's no hardware page translation to
-	 * assemble apparent contiguous memory from discontiguous pages.
-	 *
-	 * Queueing large contiguous runs of pages for batching, however,
-	 * causes the pages to actually be freed in smaller chunks.  As there
-	 * can be a significant delay between the individual batches being
-	 * recycled, this leads to the once large chunks of space being
-	 * fragmented and becoming unavailable for high-order allocations.
-	 */
-	return 0;
-#endif
 }
 
 static void per_cpu_pages_init(struct per_cpu_pages *pcp, struct per_cpu_zonestat *pzstats)
@@ -3513,18 +3211,11 @@ static unsigned long __init calc_memmap_size(unsigned long spanned_pages,
 	return PAGE_ALIGN(pages * sizeof(struct page)) >> PAGE_SHIFT;
 }
 
-static void pgdat_init_split_queue(struct pglist_data *pgdat) {}
-
-static void pgdat_init_kcompactd(struct pglist_data *pgdat) {}
-
 static void __meminit pgdat_init_internals(struct pglist_data *pgdat)
 {
 	int i;
 
 	pgdat_resize_init(pgdat);
-
-	pgdat_init_split_queue(pgdat);
-	pgdat_init_kcompactd(pgdat);
 
 	init_waitqueue_head(&pgdat->kswapd_wait);
 	init_waitqueue_head(&pgdat->pfmemalloc_wait);
@@ -3542,8 +3233,6 @@ static void __meminit zone_init_internals(struct zone *zone, enum zone_type idx,
 	zone_set_nid(zone, nid);
 	zone->name = zone_names[idx];
 	zone->zone_pgdat = NODE_DATA(nid);
-	spin_lock_init(&zone->lock);
-	zone_seqlock_init(zone);
 	zone_pcp_init(zone);
 }
 
@@ -3654,19 +3343,6 @@ static void __init free_area_init_memoryless_node(int nid)
 {
 	free_area_init_node(nid);
 }
-
-#if MAX_NUMNODES > 1
-/*
- * Figure out the number of possible node ids.
- */
-void __init setup_nr_node_ids(void)
-{
-	unsigned int highest;
-
-	highest = find_last_bit(node_possible_map.bits, MAX_NUMNODES);
-	nr_node_ids = highest + 1;
-}
-#endif
 
 /**
  * find_min_pfn_with_active_regions - Find the minimum PFN registered
@@ -4002,7 +3678,6 @@ void __init free_area_init(unsigned long *max_zone_pfn)
 	}
 
 	/* Initialise every node */
-	mminit_verify_pageflags_layout();
 	setup_nr_node_ids();
 	for_each_node(nid) {
 		pg_data_t *pgdat;
