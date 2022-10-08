@@ -47,17 +47,6 @@ extern struct pglist_data contig_page_data;
 static void __init print_buddy_info(void)
 {
 	struct zone *zone = contig_page_data.node_zonelists[0]._zonerefs[0].zone;
-	struct list_head *l = &(zone->free_area[0].free_list[MIGRATE_UNMOVABLE]);
-	struct free_area *f = list_entry(l->next, struct free_area, free_list[MIGRATE_UNMOVABLE]);
-
-	struct list_head *l2 = &(zone->free_area[0].free_list[MIGRATE_PCPTYPES]);
-	struct free_area *f2 = list_entry(l->next, struct free_area, free_list[MIGRATE_PCPTYPES]);
-
-	// if (&(zone->free_area[0]) == f)
-	if (f == f2)
-		printk("%px", zone);
-
-//	printk("%u", zone->free_area[10].nr_free);
 
 	printk("%u\n", zone->free_area[10].nr_free);
 	printk("%u\n", zone->free_area[9].nr_free);
@@ -65,6 +54,11 @@ static void __init print_buddy_info(void)
 	printk("%u\n", zone->free_area[7].nr_free);
 	printk("%u\n", zone->free_area[6].nr_free);
 	printk("%u\n", zone->free_area[5].nr_free);
+	printk("%u\n", zone->free_area[4].nr_free);
+	printk("%u\n", zone->free_area[3].nr_free);
+	printk("%u\n", zone->free_area[2].nr_free);
+	printk("%u\n", zone->free_area[1].nr_free);
+	printk("%u\n", zone->free_area[0].nr_free);
 }
 
 static void test_buddy(void)
@@ -74,18 +68,12 @@ static void test_buddy(void)
 	int order = 10;
 	int i = 0;
 
-	p = alloc_pages(GFP_KERNEL, order);
-	addr = page_to_virt(p);
-	printk("addr %llx %llx %u %d\n", addr, virt_to_phys(addr), page_to_pfn(p), i++);
-	memset(addr, 0xf4, 4096 << order);
-	print_buddy_info();
-	order = 0;
-	p = alloc_pages(__GFP_MOVABLE, order);
-	p = alloc_pages(__GFP_RECLAIMABLE, order);
-	// __free_pages(p, order);
-
-	while (1)
-		asm("hlt;");
+	while (1) {
+		p = alloc_pages(GFP_KERNEL, order);
+		addr = page_to_virt(p);
+		printk("addr %llx %llx %u %d\n", addr, virt_to_phys(addr), page_to_pfn(p), i++);
+		memset(addr, 0xf4, 4096 << order);
+	}
 }
 
 static void test_buddy2(void)
@@ -101,7 +89,7 @@ static void test_buddy2(void)
 	print_buddy_info();
 	p = alloc_pages(GFP_KERNEL, 8);
 	print_buddy_info();
-	p = alloc_pages(GFP_KERNEL, 8);
+	p = alloc_pages(GFP_KERNEL, 0);
 	print_buddy_info();
 	while (1)
 		asm("hlt;");
@@ -115,5 +103,5 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 
 	mm_init();
 
-	test_buddy2();
+	test_buddy();
 }
