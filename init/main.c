@@ -65,14 +65,16 @@ static void test_buddy(void)
 {
 	struct page *p;
 	void *addr;
-	int order = 10;
+	int order;
 	int i = 0;
 
-	while (1) {
+	for (order = 0; order < 11; order++) {
 		p = alloc_pages(GFP_KERNEL, order);
 		addr = page_to_virt(p);
 		printk("addr %llx %llx %u %d\n", addr, virt_to_phys(addr), page_to_pfn(p), i++);
 		memset(addr, 0xf4, 4096 << order);
+		if (order == 10)
+			order = -1;
 	}
 }
 
