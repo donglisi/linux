@@ -48,17 +48,11 @@ static void __init print_buddy_info(void)
 {
 	struct zone *zone = contig_page_data.node_zonelists[0]._zonerefs[0].zone;
 
-	printk("%u\n", zone->free_area[10].nr_free);
-	printk("%u\n", zone->free_area[9].nr_free);
-	printk("%u\n", zone->free_area[8].nr_free);
-	printk("%u\n", zone->free_area[7].nr_free);
-	printk("%u\n", zone->free_area[6].nr_free);
-	printk("%u\n", zone->free_area[5].nr_free);
-	printk("%u\n", zone->free_area[4].nr_free);
-	printk("%u\n", zone->free_area[3].nr_free);
-	printk("%u\n", zone->free_area[2].nr_free);
-	printk("%u\n", zone->free_area[1].nr_free);
-	printk("%u\n", zone->free_area[0].nr_free);
+	printk("10 %u\t\t9 %u\t\t8 %u\t\t7 %u\t\t6 %u\t\t5 %u\t\t4 %u\t\t3 %u\t\t2 %u\t\t1 %u\t\t0 %u\n",
+			zone->free_area[10].nr_free, zone->free_area[9].nr_free, zone->free_area[8].nr_free,
+			zone->free_area[7].nr_free, zone->free_area[6].nr_free, zone->free_area[5].nr_free,
+			zone->free_area[4].nr_free, zone->free_area[3].nr_free, zone->free_area[2].nr_free,
+			zone->free_area[1].nr_free, zone->free_area[0].nr_free);
 }
 
 static void test_buddy(void)
@@ -89,7 +83,7 @@ static void test_buddy2(void)
 	print_buddy_info();
 	p = alloc_pages(GFP_KERNEL, 8);
 	print_buddy_info();
-	p = alloc_pages(GFP_KERNEL, 8);
+	p = alloc_pages(GFP_KERNEL, 5);
 	print_buddy_info();
 	p = alloc_pages(GFP_KERNEL, 0);
 	print_buddy_info();
@@ -105,5 +99,5 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 
 	mm_init();
 
-	test_buddy();
+	test_buddy2();
 }
