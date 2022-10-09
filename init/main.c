@@ -99,5 +99,5 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 
 	mm_init();
 
-	test_buddy2();
+	test_buddy();
 }

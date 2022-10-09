@@ -71,21 +71,6 @@ static inline pgtable_t __pte_alloc_one(struct mm_struct *mm, gfp_t gfp)
 	return pte;
 }
 
-#ifndef __HAVE_ARCH_PTE_ALLOC_ONE
-/**
- * pte_alloc_one - allocate a page for PTE-level user page table
- * @mm: the mm_struct of the current context
- *
- * Allocates a page and runs the pgtable_pte_page_ctor().
- *
- * Return: `struct page` initialized as page table or %NULL on error
- */
-static inline pgtable_t pte_alloc_one(struct mm_struct *mm)
-{
-	return __pte_alloc_one(mm, GFP_PGTABLE_USER);
-}
-#endif
-
 /*
  * Should really implement gc for free page table pages. This could be
  * done with a reference count in struct page.

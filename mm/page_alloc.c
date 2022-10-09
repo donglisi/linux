@@ -744,8 +744,6 @@ static __always_inline bool free_pages_prepare(struct page *page,
 		debug_check_no_locks_freed(page_address(page),
 					   PAGE_SIZE << order);
 
-	kernel_poison_pages(page, 1 << order);
-
 	/*
 	 * As memory initialization might be integrated into KASAN,
 	 * KASAN poisoning and memory initialization code must be
@@ -1158,13 +1156,6 @@ inline void post_alloc_hook(struct page *page, unsigned int order,
 	set_page_refcounted(page);
 
 	arch_alloc_page(page, order);
-
-	/*
-	 * Page unpoisoning must happen before memory initialization.
-	 * Otherwise, the poison pattern will be overwritten for __GFP_ZERO
-	 * allocations and the page unpoisoning code will complain.
-	 */
-	kernel_unpoison_pages(page, 1 << order);
 
 	/*
 	 * If memory tags should be zeroed (which happens only when memory
@@ -3677,8 +3668,6 @@ void __init free_area_init(unsigned long *max_zone_pfn)
 		subsection_map_init(start_pfn, end_pfn - start_pfn);
 	}
 
-	/* Initialise every node */
-	setup_nr_node_ids();
 	for_each_node(nid) {
 		pg_data_t *pgdat;
 
