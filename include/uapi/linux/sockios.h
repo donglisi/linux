@@ -36,16 +36,9 @@
 /* Get stamp (timespec) */
 #define SIOCGSTAMPNS_NEW _IOR(SOCK_IOC_TYPE, 0x07, long long[2])
 
-#if __BITS_PER_LONG == 64 || (defined(__x86_64__) && defined(__ILP32__))
 /* on 64-bit and x32, avoid the ?: operator */
 #define SIOCGSTAMP	SIOCGSTAMP_OLD
 #define SIOCGSTAMPNS	SIOCGSTAMPNS_OLD
-#else
-#define SIOCGSTAMP	((sizeof(struct timeval))  == 8 ? \
-			 SIOCGSTAMP_OLD   : SIOCGSTAMP_NEW)
-#define SIOCGSTAMPNS	((sizeof(struct timespec)) == 8 ? \
-			 SIOCGSTAMPNS_OLD : SIOCGSTAMPNS_NEW)
-#endif
 
 /* Routing table calls. */
 #define SIOCADDRT	0x890B		/* add routing table entry	*/

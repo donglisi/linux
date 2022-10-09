@@ -19,44 +19,6 @@
 enum
 {
 	IPSTATS_MIB_NUM = 0,
-/* frequently written fields in fast path, kept in same cache line */
-	IPSTATS_MIB_INPKTS,			/* InReceives */
-	IPSTATS_MIB_INOCTETS,			/* InOctets */
-	IPSTATS_MIB_INDELIVERS,			/* InDelivers */
-	IPSTATS_MIB_OUTFORWDATAGRAMS,		/* OutForwDatagrams */
-	IPSTATS_MIB_OUTPKTS,			/* OutRequests */
-	IPSTATS_MIB_OUTOCTETS,			/* OutOctets */
-/* other fields */
-	IPSTATS_MIB_INHDRERRORS,		/* InHdrErrors */
-	IPSTATS_MIB_INTOOBIGERRORS,		/* InTooBigErrors */
-	IPSTATS_MIB_INNOROUTES,			/* InNoRoutes */
-	IPSTATS_MIB_INADDRERRORS,		/* InAddrErrors */
-	IPSTATS_MIB_INUNKNOWNPROTOS,		/* InUnknownProtos */
-	IPSTATS_MIB_INTRUNCATEDPKTS,		/* InTruncatedPkts */
-	IPSTATS_MIB_INDISCARDS,			/* InDiscards */
-	IPSTATS_MIB_OUTDISCARDS,		/* OutDiscards */
-	IPSTATS_MIB_OUTNOROUTES,		/* OutNoRoutes */
-	IPSTATS_MIB_REASMTIMEOUT,		/* ReasmTimeout */
-	IPSTATS_MIB_REASMREQDS,			/* ReasmReqds */
-	IPSTATS_MIB_REASMOKS,			/* ReasmOKs */
-	IPSTATS_MIB_REASMFAILS,			/* ReasmFails */
-	IPSTATS_MIB_FRAGOKS,			/* FragOKs */
-	IPSTATS_MIB_FRAGFAILS,			/* FragFails */
-	IPSTATS_MIB_FRAGCREATES,		/* FragCreates */
-	IPSTATS_MIB_INMCASTPKTS,		/* InMcastPkts */
-	IPSTATS_MIB_OUTMCASTPKTS,		/* OutMcastPkts */
-	IPSTATS_MIB_INBCASTPKTS,		/* InBcastPkts */
-	IPSTATS_MIB_OUTBCASTPKTS,		/* OutBcastPkts */
-	IPSTATS_MIB_INMCASTOCTETS,		/* InMcastOctets */
-	IPSTATS_MIB_OUTMCASTOCTETS,		/* OutMcastOctets */
-	IPSTATS_MIB_INBCASTOCTETS,		/* InBcastOctets */
-	IPSTATS_MIB_OUTBCASTOCTETS,		/* OutBcastOctets */
-	IPSTATS_MIB_CSUMERRORS,			/* InCsumErrors */
-	IPSTATS_MIB_NOECTPKTS,			/* InNoECTPkts */
-	IPSTATS_MIB_ECT1PKTS,			/* InECT1Pkts */
-	IPSTATS_MIB_ECT0PKTS,			/* InECT0Pkts */
-	IPSTATS_MIB_CEPKTS,			/* InCEPkts */
-	IPSTATS_MIB_REASM_OVERLAPS,		/* ReasmOverlaps */
 	__IPSTATS_MIB_MAX
 };
 
@@ -68,33 +30,6 @@ enum
 enum
 {
 	ICMP_MIB_NUM = 0,
-	ICMP_MIB_INMSGS,			/* InMsgs */
-	ICMP_MIB_INERRORS,			/* InErrors */
-	ICMP_MIB_INDESTUNREACHS,		/* InDestUnreachs */
-	ICMP_MIB_INTIMEEXCDS,			/* InTimeExcds */
-	ICMP_MIB_INPARMPROBS,			/* InParmProbs */
-	ICMP_MIB_INSRCQUENCHS,			/* InSrcQuenchs */
-	ICMP_MIB_INREDIRECTS,			/* InRedirects */
-	ICMP_MIB_INECHOS,			/* InEchos */
-	ICMP_MIB_INECHOREPS,			/* InEchoReps */
-	ICMP_MIB_INTIMESTAMPS,			/* InTimestamps */
-	ICMP_MIB_INTIMESTAMPREPS,		/* InTimestampReps */
-	ICMP_MIB_INADDRMASKS,			/* InAddrMasks */
-	ICMP_MIB_INADDRMASKREPS,		/* InAddrMaskReps */
-	ICMP_MIB_OUTMSGS,			/* OutMsgs */
-	ICMP_MIB_OUTERRORS,			/* OutErrors */
-	ICMP_MIB_OUTDESTUNREACHS,		/* OutDestUnreachs */
-	ICMP_MIB_OUTTIMEEXCDS,			/* OutTimeExcds */
-	ICMP_MIB_OUTPARMPROBS,			/* OutParmProbs */
-	ICMP_MIB_OUTSRCQUENCHS,			/* OutSrcQuenchs */
-	ICMP_MIB_OUTREDIRECTS,			/* OutRedirects */
-	ICMP_MIB_OUTECHOS,			/* OutEchos */
-	ICMP_MIB_OUTECHOREPS,			/* OutEchoReps */
-	ICMP_MIB_OUTTIMESTAMPS,			/* OutTimestamps */
-	ICMP_MIB_OUTTIMESTAMPREPS,		/* OutTimestampReps */
-	ICMP_MIB_OUTADDRMASKS,			/* OutAddrMasks */
-	ICMP_MIB_OUTADDRMASKREPS,		/* OutAddrMaskReps */
-	ICMP_MIB_CSUMERRORS,			/* InCsumErrors */
 	__ICMP_MIB_MAX
 };
 
@@ -125,21 +60,6 @@ enum
 enum
 {
 	TCP_MIB_NUM = 0,
-	TCP_MIB_RTOALGORITHM,			/* RtoAlgorithm */
-	TCP_MIB_RTOMIN,				/* RtoMin */
-	TCP_MIB_RTOMAX,				/* RtoMax */
-	TCP_MIB_MAXCONN,			/* MaxConn */
-	TCP_MIB_ACTIVEOPENS,			/* ActiveOpens */
-	TCP_MIB_PASSIVEOPENS,			/* PassiveOpens */
-	TCP_MIB_ATTEMPTFAILS,			/* AttemptFails */
-	TCP_MIB_ESTABRESETS,			/* EstabResets */
-	TCP_MIB_CURRESTAB,			/* CurrEstab */
-	TCP_MIB_INSEGS,				/* InSegs */
-	TCP_MIB_OUTSEGS,			/* OutSegs */
-	TCP_MIB_RETRANSSEGS,			/* RetransSegs */
-	TCP_MIB_INERRS,				/* InErrs */
-	TCP_MIB_OUTRSTS,			/* OutRsts */
-	TCP_MIB_CSUMERRORS,			/* InCsumErrors */
 	__TCP_MIB_MAX
 };
 
