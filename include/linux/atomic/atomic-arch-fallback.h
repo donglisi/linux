@@ -8,214 +8,25 @@
 
 #include <linux/compiler.h>
 
-#ifndef arch_xchg_relaxed
 #define arch_xchg_acquire arch_xchg
 #define arch_xchg_release arch_xchg
 #define arch_xchg_relaxed arch_xchg
-#else /* arch_xchg_relaxed */
 
-#ifndef arch_xchg_acquire
-#define arch_xchg_acquire(...) \
-	__atomic_op_acquire(arch_xchg, __VA_ARGS__)
-#endif
-
-#ifndef arch_xchg_release
-#define arch_xchg_release(...) \
-	__atomic_op_release(arch_xchg, __VA_ARGS__)
-#endif
-
-#ifndef arch_xchg
-#define arch_xchg(...) \
-	__atomic_op_fence(arch_xchg, __VA_ARGS__)
-#endif
-
-#endif /* arch_xchg_relaxed */
-
-#ifndef arch_cmpxchg_relaxed
 #define arch_cmpxchg_acquire arch_cmpxchg
 #define arch_cmpxchg_release arch_cmpxchg
 #define arch_cmpxchg_relaxed arch_cmpxchg
-#else /* arch_cmpxchg_relaxed */
 
-#ifndef arch_cmpxchg_acquire
-#define arch_cmpxchg_acquire(...) \
-	__atomic_op_acquire(arch_cmpxchg, __VA_ARGS__)
-#endif
-
-#ifndef arch_cmpxchg_release
-#define arch_cmpxchg_release(...) \
-	__atomic_op_release(arch_cmpxchg, __VA_ARGS__)
-#endif
-
-#ifndef arch_cmpxchg
-#define arch_cmpxchg(...) \
-	__atomic_op_fence(arch_cmpxchg, __VA_ARGS__)
-#endif
-
-#endif /* arch_cmpxchg_relaxed */
-
-#ifndef arch_cmpxchg64_relaxed
 #define arch_cmpxchg64_acquire arch_cmpxchg64
 #define arch_cmpxchg64_release arch_cmpxchg64
 #define arch_cmpxchg64_relaxed arch_cmpxchg64
-#else /* arch_cmpxchg64_relaxed */
 
-#ifndef arch_cmpxchg64_acquire
-#define arch_cmpxchg64_acquire(...) \
-	__atomic_op_acquire(arch_cmpxchg64, __VA_ARGS__)
-#endif
-
-#ifndef arch_cmpxchg64_release
-#define arch_cmpxchg64_release(...) \
-	__atomic_op_release(arch_cmpxchg64, __VA_ARGS__)
-#endif
-
-#ifndef arch_cmpxchg64
-#define arch_cmpxchg64(...) \
-	__atomic_op_fence(arch_cmpxchg64, __VA_ARGS__)
-#endif
-
-#endif /* arch_cmpxchg64_relaxed */
-
-#ifndef arch_try_cmpxchg_relaxed
-#ifdef arch_try_cmpxchg
 #define arch_try_cmpxchg_acquire arch_try_cmpxchg
 #define arch_try_cmpxchg_release arch_try_cmpxchg
 #define arch_try_cmpxchg_relaxed arch_try_cmpxchg
-#endif /* arch_try_cmpxchg */
 
-#ifndef arch_try_cmpxchg
-#define arch_try_cmpxchg(_ptr, _oldp, _new) \
-({ \
-	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-	___r = arch_cmpxchg((_ptr), ___o, (_new)); \
-	if (unlikely(___r != ___o)) \
-		*___op = ___r; \
-	likely(___r == ___o); \
-})
-#endif /* arch_try_cmpxchg */
-
-#ifndef arch_try_cmpxchg_acquire
-#define arch_try_cmpxchg_acquire(_ptr, _oldp, _new) \
-({ \
-	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-	___r = arch_cmpxchg_acquire((_ptr), ___o, (_new)); \
-	if (unlikely(___r != ___o)) \
-		*___op = ___r; \
-	likely(___r == ___o); \
-})
-#endif /* arch_try_cmpxchg_acquire */
-
-#ifndef arch_try_cmpxchg_release
-#define arch_try_cmpxchg_release(_ptr, _oldp, _new) \
-({ \
-	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-	___r = arch_cmpxchg_release((_ptr), ___o, (_new)); \
-	if (unlikely(___r != ___o)) \
-		*___op = ___r; \
-	likely(___r == ___o); \
-})
-#endif /* arch_try_cmpxchg_release */
-
-#ifndef arch_try_cmpxchg_relaxed
-#define arch_try_cmpxchg_relaxed(_ptr, _oldp, _new) \
-({ \
-	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-	___r = arch_cmpxchg_relaxed((_ptr), ___o, (_new)); \
-	if (unlikely(___r != ___o)) \
-		*___op = ___r; \
-	likely(___r == ___o); \
-})
-#endif /* arch_try_cmpxchg_relaxed */
-
-#else /* arch_try_cmpxchg_relaxed */
-
-#ifndef arch_try_cmpxchg_acquire
-#define arch_try_cmpxchg_acquire(...) \
-	__atomic_op_acquire(arch_try_cmpxchg, __VA_ARGS__)
-#endif
-
-#ifndef arch_try_cmpxchg_release
-#define arch_try_cmpxchg_release(...) \
-	__atomic_op_release(arch_try_cmpxchg, __VA_ARGS__)
-#endif
-
-#ifndef arch_try_cmpxchg
-#define arch_try_cmpxchg(...) \
-	__atomic_op_fence(arch_try_cmpxchg, __VA_ARGS__)
-#endif
-
-#endif /* arch_try_cmpxchg_relaxed */
-
-#ifndef arch_try_cmpxchg64_relaxed
-#ifdef arch_try_cmpxchg64
 #define arch_try_cmpxchg64_acquire arch_try_cmpxchg64
 #define arch_try_cmpxchg64_release arch_try_cmpxchg64
 #define arch_try_cmpxchg64_relaxed arch_try_cmpxchg64
-#endif /* arch_try_cmpxchg64 */
-
-#ifndef arch_try_cmpxchg64
-#define arch_try_cmpxchg64(_ptr, _oldp, _new) \
-({ \
-	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-	___r = arch_cmpxchg64((_ptr), ___o, (_new)); \
-	if (unlikely(___r != ___o)) \
-		*___op = ___r; \
-	likely(___r == ___o); \
-})
-#endif /* arch_try_cmpxchg64 */
-
-#ifndef arch_try_cmpxchg64_acquire
-#define arch_try_cmpxchg64_acquire(_ptr, _oldp, _new) \
-({ \
-	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-	___r = arch_cmpxchg64_acquire((_ptr), ___o, (_new)); \
-	if (unlikely(___r != ___o)) \
-		*___op = ___r; \
-	likely(___r == ___o); \
-})
-#endif /* arch_try_cmpxchg64_acquire */
-
-#ifndef arch_try_cmpxchg64_release
-#define arch_try_cmpxchg64_release(_ptr, _oldp, _new) \
-({ \
-	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-	___r = arch_cmpxchg64_release((_ptr), ___o, (_new)); \
-	if (unlikely(___r != ___o)) \
-		*___op = ___r; \
-	likely(___r == ___o); \
-})
-#endif /* arch_try_cmpxchg64_release */
-
-#ifndef arch_try_cmpxchg64_relaxed
-#define arch_try_cmpxchg64_relaxed(_ptr, _oldp, _new) \
-({ \
-	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-	___r = arch_cmpxchg64_relaxed((_ptr), ___o, (_new)); \
-	if (unlikely(___r != ___o)) \
-		*___op = ___r; \
-	likely(___r == ___o); \
-})
-#endif /* arch_try_cmpxchg64_relaxed */
-
-#else /* arch_try_cmpxchg64_relaxed */
-
-#ifndef arch_try_cmpxchg64_acquire
-#define arch_try_cmpxchg64_acquire(...) \
-	__atomic_op_acquire(arch_try_cmpxchg64, __VA_ARGS__)
-#endif
-
-#ifndef arch_try_cmpxchg64_release
-#define arch_try_cmpxchg64_release(...) \
-	__atomic_op_release(arch_try_cmpxchg64, __VA_ARGS__)
-#endif
-
-#ifndef arch_try_cmpxchg64
-#define arch_try_cmpxchg64(...) \
-	__atomic_op_fence(arch_try_cmpxchg64, __VA_ARGS__)
-#endif
-
-#endif /* arch_try_cmpxchg64_relaxed */
 
 #ifndef arch_atomic_read_acquire
 static __always_inline int
@@ -235,7 +46,6 @@ arch_atomic_read_acquire(const atomic_t *v)
 #define arch_atomic_read_acquire arch_atomic_read_acquire
 #endif
 
-#ifndef arch_atomic_set_release
 static __always_inline void
 arch_atomic_set_release(atomic_t *v, int i)
 {
@@ -243,137 +53,21 @@ arch_atomic_set_release(atomic_t *v, int i)
 		smp_store_release(&(v)->counter, i);
 	} else {
 		__atomic_release_fence();
-		arch_atomic_set(v, i);
 	}
 }
 #define arch_atomic_set_release arch_atomic_set_release
-#endif
 
-#ifndef arch_atomic_add_return_relaxed
 #define arch_atomic_add_return_acquire arch_atomic_add_return
 #define arch_atomic_add_return_release arch_atomic_add_return
 #define arch_atomic_add_return_relaxed arch_atomic_add_return
-#else /* arch_atomic_add_return_relaxed */
 
-#ifndef arch_atomic_add_return_acquire
-static __always_inline int
-arch_atomic_add_return_acquire(int i, atomic_t *v)
-{
-	int ret = arch_atomic_add_return_relaxed(i, v);
-	__atomic_acquire_fence();
-	return ret;
-}
-#define arch_atomic_add_return_acquire arch_atomic_add_return_acquire
-#endif
-
-#ifndef arch_atomic_add_return_release
-static __always_inline int
-arch_atomic_add_return_release(int i, atomic_t *v)
-{
-	__atomic_release_fence();
-	return arch_atomic_add_return_relaxed(i, v);
-}
-#define arch_atomic_add_return_release arch_atomic_add_return_release
-#endif
-
-#ifndef arch_atomic_add_return
-static __always_inline int
-arch_atomic_add_return(int i, atomic_t *v)
-{
-	int ret;
-	__atomic_pre_full_fence();
-	ret = arch_atomic_add_return_relaxed(i, v);
-	__atomic_post_full_fence();
-	return ret;
-}
-#define arch_atomic_add_return arch_atomic_add_return
-#endif
-
-#endif /* arch_atomic_add_return_relaxed */
-
-#ifndef arch_atomic_fetch_add_relaxed
 #define arch_atomic_fetch_add_acquire arch_atomic_fetch_add
 #define arch_atomic_fetch_add_release arch_atomic_fetch_add
 #define arch_atomic_fetch_add_relaxed arch_atomic_fetch_add
-#else /* arch_atomic_fetch_add_relaxed */
 
-#ifndef arch_atomic_fetch_add_acquire
-static __always_inline int
-arch_atomic_fetch_add_acquire(int i, atomic_t *v)
-{
-	int ret = arch_atomic_fetch_add_relaxed(i, v);
-	__atomic_acquire_fence();
-	return ret;
-}
-#define arch_atomic_fetch_add_acquire arch_atomic_fetch_add_acquire
-#endif
-
-#ifndef arch_atomic_fetch_add_release
-static __always_inline int
-arch_atomic_fetch_add_release(int i, atomic_t *v)
-{
-	__atomic_release_fence();
-	return arch_atomic_fetch_add_relaxed(i, v);
-}
-#define arch_atomic_fetch_add_release arch_atomic_fetch_add_release
-#endif
-
-#ifndef arch_atomic_fetch_add
-static __always_inline int
-arch_atomic_fetch_add(int i, atomic_t *v)
-{
-	int ret;
-	__atomic_pre_full_fence();
-	ret = arch_atomic_fetch_add_relaxed(i, v);
-	__atomic_post_full_fence();
-	return ret;
-}
-#define arch_atomic_fetch_add arch_atomic_fetch_add
-#endif
-
-#endif /* arch_atomic_fetch_add_relaxed */
-
-#ifndef arch_atomic_sub_return_relaxed
 #define arch_atomic_sub_return_acquire arch_atomic_sub_return
 #define arch_atomic_sub_return_release arch_atomic_sub_return
 #define arch_atomic_sub_return_relaxed arch_atomic_sub_return
-#else /* arch_atomic_sub_return_relaxed */
-
-#ifndef arch_atomic_sub_return_acquire
-static __always_inline int
-arch_atomic_sub_return_acquire(int i, atomic_t *v)
-{
-	int ret = arch_atomic_sub_return_relaxed(i, v);
-	__atomic_acquire_fence();
-	return ret;
-}
-#define arch_atomic_sub_return_acquire arch_atomic_sub_return_acquire
-#endif
-
-#ifndef arch_atomic_sub_return_release
-static __always_inline int
-arch_atomic_sub_return_release(int i, atomic_t *v)
-{
-	__atomic_release_fence();
-	return arch_atomic_sub_return_relaxed(i, v);
-}
-#define arch_atomic_sub_return_release arch_atomic_sub_return_release
-#endif
-
-#ifndef arch_atomic_sub_return
-static __always_inline int
-arch_atomic_sub_return(int i, atomic_t *v)
-{
-	int ret;
-	__atomic_pre_full_fence();
-	ret = arch_atomic_sub_return_relaxed(i, v);
-	__atomic_post_full_fence();
-	return ret;
-}
-#define arch_atomic_sub_return arch_atomic_sub_return
-#endif
-
-#endif /* arch_atomic_sub_return_relaxed */
 
 #ifndef arch_atomic_fetch_sub_relaxed
 #define arch_atomic_fetch_sub_acquire arch_atomic_fetch_sub
