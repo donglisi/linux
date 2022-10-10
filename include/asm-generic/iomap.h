@@ -110,6 +110,4 @@ static inline void __iomem *ioremap_np(phys_addr_t offset, size_t size)
 }
 #endif
 
-#include <asm-generic/pci_iomap.h>
-
 #endif

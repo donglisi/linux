@@ -16,7 +16,6 @@
 #endif
 
 #include <asm/mmiowb.h>
-#include <asm-generic/pci_iomap.h>
 
 #ifndef __io_br
 #define __io_br()      barrier()
