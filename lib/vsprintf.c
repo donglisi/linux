@@ -1075,44 +1075,6 @@ static char *va_format(char *buf, char *end, struct va_format *va_fmt,
 }
 
 static noinline_for_stack
-char *fourcc_string(char *buf, char *end, const u32 *fourcc,
-		    struct printf_spec spec, const char *fmt)
-{
-	char output[sizeof("0123 little-endian (0x01234567)")];
-	char *p = output;
-	unsigned int i;
-	u32 orig, val;
-
-	if (fmt[1] != 'c' || fmt[2] != 'c')
-		return error_string(buf, end, "(%p4?)", spec);
-
-	if (check_pointer(&buf, end, fourcc, spec))
-		return buf;
-
-	orig = get_unaligned(fourcc);
-	val = orig & ~BIT(31);
-
-	for (i = 0; i < sizeof(u32); i++) {
-		unsigned char c = val >> (i * 8);
-
-		/* Print non-control ASCII characters as-is, dot otherwise */
-		*p++ = isascii(c) && isprint(c) ? c : '.';
-	}
-
-	*p++ = ' ';
-	strcpy(p, orig & BIT(31) ? "big-endian" : "little-endian");
-	p += strlen(p);
-
-	*p++ = ' ';
-	*p++ = '(';
-	p = special_hex_number(p, output + sizeof(output) - 2, orig, sizeof(u32));
-	*p++ = ')';
-	*p = '\0';
-
-	return string(buf, end, output, spec);
-}
-
-static noinline_for_stack
 char *address_val(char *buf, char *end, const void *addr,
 		  struct printf_spec spec, const char *fmt)
 {
@@ -1658,8 +1620,6 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
 		return va_format(buf, end, ptr, spec, fmt);
 	case 'K':
 		return restricted_pointer(buf, end, ptr, spec);
-	case '4':
-		return fourcc_string(buf, end, ptr, spec, fmt);
 	case 'a':
 		return address_val(buf, end, ptr, spec, fmt);
 	case 'd':

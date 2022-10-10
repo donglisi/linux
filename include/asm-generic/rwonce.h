@@ -67,18 +67,6 @@ unsigned long __read_once_word_nocheck(const void *addr)
 	return __READ_ONCE(*(unsigned long *)addr);
 }
 
-/*
- * Use READ_ONCE_NOCHECK() instead of READ_ONCE() if you need to load a
- * word from memory atomically but without telling KASAN/KCSAN. This is
- * usually used by unwinding code when walking the stack of a running process.
- */
-#define READ_ONCE_NOCHECK(x)						\
-({									\
-	compiletime_assert(sizeof(x) == sizeof(unsigned long),		\
-		"Unsupported access size for READ_ONCE_NOCHECK().");	\
-	(typeof(x))__read_once_word_nocheck(&(x));			\
-})
-
 static __no_kasan_or_inline
 unsigned long read_word_at_a_time(const void *addr)
 {

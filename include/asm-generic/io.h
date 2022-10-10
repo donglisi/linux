@@ -11,10 +11,6 @@
 #include <linux/string.h> /* for memset() and memcpy() */
 #include <linux/types.h>
 
-#ifdef CONFIG_GENERIC_IOMAP
-#include <asm-generic/iomap.h>
-#endif
-
 #ifndef __io_br
 #define __io_br()      barrier()
 #endif
