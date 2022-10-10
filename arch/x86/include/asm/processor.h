@@ -28,7 +28,6 @@ struct vm86;
 #include <asm/vmxfeatures.h>
 #include <asm/vdso/processor.h>
 
-#include <linux/personality.h>
 #include <linux/cache.h>
 #include <linux/threads.h>
 #include <linux/math64.h>
