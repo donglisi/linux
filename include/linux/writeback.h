@@ -10,7 +10,6 @@
 #include <linux/fs.h>
 #include <linux/flex_proportions.h>
 #include <linux/backing-dev-defs.h>
-#include <linux/blk_types.h>
 
 struct bio;
 
@@ -104,14 +103,6 @@ struct writeback_control {
 static inline int wbc_to_write_flags(struct writeback_control *wbc)
 {
 	int flags = 0;
-
-	if (wbc->punt_to_cgroup)
-		flags = REQ_CGROUP_PUNT;
-
-	if (wbc->sync_mode == WB_SYNC_ALL)
-		flags |= REQ_SYNC;
-	else if (wbc->for_kupdate || wbc->for_background)
-		flags |= REQ_BACKGROUND;
 
 	return flags;
 }
