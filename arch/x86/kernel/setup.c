@@ -9,8 +9,6 @@
 #include <linux/io.h>
 #include <asm/e820/api.h>
 
-#include <asm/prom.h>
-
 unsigned long max_pfn_mapped;
 
 unsigned long _brk_start = (unsigned long)__brk_base;
