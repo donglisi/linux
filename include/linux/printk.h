@@ -9,12 +9,7 @@
 #include <linux/ratelimit_types.h>
 #include <linux/once_lite.h>
 
-extern const char linux_banner[];
-extern const char linux_proc_banner[];
-
 extern int oops_in_progress;	/* If set, an oops, panic(), BUG() or die() is in progress */
-
-#define PRINTK_MAX_SINGLE_HEADER_LEN 2
 
 static inline int printk_get_level(const char *buffer)
 {
@@ -49,27 +44,18 @@ static inline const char *printk_skip_headers(const char *buffer)
 /* printk's without a loglevel use this.. */
 #define MESSAGE_LOGLEVEL_DEFAULT CONFIG_MESSAGE_LOGLEVEL_DEFAULT
 
-/* We show everything that is MORE important than this.. */
-#define CONSOLE_LOGLEVEL_SILENT  0 /* Mum's the word */
 #define CONSOLE_LOGLEVEL_MIN	 1 /* Minimum loglevel we let people use */
-#define CONSOLE_LOGLEVEL_DEBUG	10 /* issue debug messages */
-#define CONSOLE_LOGLEVEL_MOTORMOUTH 15	/* You can't shut this one up */
 
 /*
  * Default used to be hard-coded at 7, quiet used to be hardcoded at 4,
  * we're now allowing both to be set from kernel config.
  */
 #define CONSOLE_LOGLEVEL_DEFAULT CONFIG_CONSOLE_LOGLEVEL_DEFAULT
-#define CONSOLE_LOGLEVEL_QUIET	 CONFIG_CONSOLE_LOGLEVEL_QUIET
 
 extern int console_printk[];
 
 #define console_loglevel (console_printk[0])
 #define default_message_loglevel (console_printk[1])
-#define minimum_console_loglevel (console_printk[2])
-#define default_console_loglevel (console_printk[3])
-
-extern void console_verbose(void);
 
 /* strlen("ratelimit") + 1 */
 #define DEVKMSG_STR_MAX_SIZE 10
@@ -82,44 +68,6 @@ struct va_format {
 	const char *fmt;
 	va_list *va;
 };
-
-/*
- * FW_BUG
- * Add this to a message where you are sure the firmware is buggy or behaves
- * really stupid or out of spec. Be aware that the responsible BIOS developer
- * should be able to fix this issue or at least get a concrete idea of the
- * problem by reading your message without the need of looking at the kernel
- * code.
- *
- * Use it for definite and high priority BIOS bugs.
- *
- * FW_WARN
- * Use it for not that clear (e.g. could the kernel messed up things already?)
- * and medium priority BIOS bugs.
- *
- * FW_INFO
- * Use this one if you want to tell the user or vendor about something
- * suspicious, but generally harmless related to the firmware.
- *
- * Use it for information or very low priority BIOS bugs.
- */
-#define FW_BUG		"[Firmware Bug]: "
-#define FW_WARN		"[Firmware Warn]: "
-#define FW_INFO		"[Firmware Info]: "
-
-/*
- * HW_ERR
- * Add this to a message for hardware errors, so that user can report
- * it to hardware vendor instead of LKML or software vendor.
- */
-#define HW_ERR		"[Hardware Error]: "
-
-/*
- * DEPRECATED
- * Add this to a message whenever you want to warn user space about the use
- * of a deprecated aspect of an API so they can stop using it
- */
-#define DEPRECATED	"[Deprecated]: "
 
 /*
  * Dummy printk for disabled debugging statements to use whilst maintaining
@@ -182,7 +130,6 @@ extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
 				   unsigned int interval_msec);
 
 extern int printk_delay_msec;
-extern int dmesg_restrict;
 
 extern void wake_up_klogd(void);
 
@@ -293,47 +240,6 @@ extern void __printk_cpu_sync_put(void);
 #define __printk_cpu_sync_wait()
 #define __printk_cpu_sync_put()
 #endif /* CONFIG_SMP */
-
-/**
- * printk_cpu_sync_get_irqsave() - Disable interrupts and acquire the printk
- *                                 cpu-reentrant spinning lock.
- * @flags: Stack-allocated storage for saving local interrupt state,
- *         to be passed to printk_cpu_sync_put_irqrestore().
- *
- * If the lock is owned by another CPU, spin until it becomes available.
- * Interrupts are restored while spinning.
- *
- * CAUTION: This function must be used carefully. It does not behave like a
- * typical lock. Here are important things to watch out for...
- *
- *     * This function is reentrant on the same CPU. Therefore the calling
- *       code must not assume exclusive access to data if code accessing the
- *       data can run reentrant or within NMI context on the same CPU.
- *
- *     * If there exists usage of this function from NMI context, it becomes
- *       unsafe to perform any type of locking or spinning to wait for other
- *       CPUs after calling this function from any context. This includes
- *       using spinlocks or any other busy-waiting synchronization methods.
- */
-#define printk_cpu_sync_get_irqsave(flags)		\
-	for (;;) {					\
-		local_irq_save(flags);			\
-		if (__printk_cpu_sync_try_get())	\
-			break;				\
-		local_irq_restore(flags);		\
-		__printk_cpu_sync_wait();		\
-	}
-
-/**
- * printk_cpu_sync_put_irqrestore() - Release the printk cpu-reentrant spinning
- *                                    lock and restore interrupts.
- * @flags: Caller's saved interrupt state, from printk_cpu_sync_get_irqsave().
- */
-#define printk_cpu_sync_put_irqrestore(flags)	\
-	do {					\
-		__printk_cpu_sync_put();	\
-		local_irq_restore(flags);	\
-	} while (0)
 
 extern int kptr_restrict;
 
@@ -466,16 +372,6 @@ struct pi_entry {
 	printk_index_wrap(_printk_deferred, fmt, ##__VA_ARGS__)
 
 /**
- * pr_emerg - Print an emergency-level message
- * @fmt: format string
- * @...: arguments for the format string
- *
- * This macro expands to a printk with KERN_EMERG loglevel. It uses pr_fmt() to
- * generate the format string.
- */
-#define pr_emerg(fmt, ...) \
-	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-/**
  * pr_alert - Print an alert-level message
  * @fmt: format string
  * @...: arguments for the format string
@@ -485,16 +381,7 @@ struct pi_entry {
  */
 #define pr_alert(fmt, ...) \
 	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-/**
- * pr_crit - Print a critical-level message
- * @fmt: format string
- * @...: arguments for the format string
- *
- * This macro expands to a printk with KERN_CRIT loglevel. It uses pr_fmt() to
- * generate the format string.
- */
-#define pr_crit(fmt, ...) \
-	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
+
 /**
  * pr_err - Print an error-level message
  * @fmt: format string
@@ -515,16 +402,7 @@ struct pi_entry {
  */
 #define pr_warn(fmt, ...) \
 	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-/**
- * pr_notice - Print a notice-level message
- * @fmt: format string
- * @...: arguments for the format string
- *
- * This macro expands to a printk with KERN_NOTICE loglevel. It uses pr_fmt() to
- * generate the format string.
- */
-#define pr_notice(fmt, ...) \
-	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
+
 /**
  * pr_info - Print an info-level message
  * @fmt: format string
@@ -610,18 +488,8 @@ struct pi_entry {
 	no_printk(fmt, ##__VA_ARGS__)
 #endif
 
-#define pr_emerg_once(fmt, ...)					\
-	printk_once(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_alert_once(fmt, ...)					\
-	printk_once(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_crit_once(fmt, ...)					\
-	printk_once(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_err_once(fmt, ...)					\
-	printk_once(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_warn_once(fmt, ...)					\
 	printk_once(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_notice_once(fmt, ...)				\
-	printk_once(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
 #define pr_info_once(fmt, ...)					\
 	printk_once(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
 /* no pr_cont_once, don't do that... */
@@ -662,22 +530,6 @@ struct pi_entry {
 	no_printk(fmt, ##__VA_ARGS__)
 #endif
 
-#define pr_emerg_ratelimited(fmt, ...)					\
-	printk_ratelimited(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_alert_ratelimited(fmt, ...)					\
-	printk_ratelimited(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_crit_ratelimited(fmt, ...)					\
-	printk_ratelimited(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_err_ratelimited(fmt, ...)					\
-	printk_ratelimited(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_warn_ratelimited(fmt, ...)					\
-	printk_ratelimited(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_notice_ratelimited(fmt, ...)					\
-	printk_ratelimited(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-#define pr_info_ratelimited(fmt, ...)					\
-	printk_ratelimited(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-/* no pr_cont_ratelimited, don't do that... */
-
 #if defined(DEBUG)
 #define pr_devel_ratelimited(fmt, ...)					\
 	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
@@ -708,32 +560,9 @@ do {									\
 	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
 #endif
 
-extern const struct file_operations kmsg_fops;
-
-enum {
-	DUMP_PREFIX_NONE,
-	DUMP_PREFIX_ADDRESS,
-	DUMP_PREFIX_OFFSET
-};
-extern int hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
-			      int groupsize, char *linebuf, size_t linebuflen,
-			      bool ascii);
-#ifdef CONFIG_PRINTK
 extern void print_hex_dump(const char *level, const char *prefix_str,
 			   int prefix_type, int rowsize, int groupsize,
 			   const void *buf, size_t len, bool ascii);
-#else
-static inline void print_hex_dump(const char *level, const char *prefix_str,
-				  int prefix_type, int rowsize, int groupsize,
-				  const void *buf, size_t len, bool ascii)
-{
-}
-static inline void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
-					const void *buf, size_t len)
-{
-}
-
-#endif
 
 #if defined(CONFIG_DYNAMIC_DEBUG) || \
 	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
@@ -753,20 +582,5 @@ static inline void print_hex_dump_debug(const char *prefix_str, int prefix_type,
 {
 }
 #endif
-
-/**
- * print_hex_dump_bytes - shorthand form of print_hex_dump() with default params
- * @prefix_str: string to prefix each line with;
- *  caller supplies trailing spaces for alignment if desired
- * @prefix_type: controls whether prefix of an offset, address, or none
- *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
- * @buf: data blob to dump
- * @len: number of bytes in the @buf
- *
- * Calls print_hex_dump(), with log level of KERN_DEBUG,
- * rowsize of 16, groupsize of 1, and ASCII output included.
- */
-#define print_hex_dump_bytes(prefix_str, prefix_type, buf, len)	\
-	print_hex_dump_debug(prefix_str, prefix_type, 16, 1, buf, len, true)
 
 #endif
