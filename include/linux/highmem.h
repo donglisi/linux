@@ -5,7 +5,6 @@
 #include <linux/fs.h>
 #include <linux/kernel.h>
 #include <linux/bug.h>
-#include <linux/cacheflush.h>
 #include <linux/mm.h>
 #include <linux/uaccess.h>
 #include <linux/hardirq.h>
@@ -276,7 +275,7 @@ static inline void zero_user_segments(struct page *page,
 
 	kunmap_local(kaddr);
 	for (i = 0; i < compound_nr(page); i++)
-		flush_dcache_page(page + i);
+		;
 }
 #endif
 
@@ -376,7 +375,6 @@ static inline void memcpy_to_page(struct page *page, size_t offset,
 
 	VM_BUG_ON(offset + len > PAGE_SIZE);
 	memcpy(to + offset, from, len);
-	flush_dcache_page(page);
 	kunmap_local(to);
 }
 
@@ -386,7 +384,6 @@ static inline void memzero_page(struct page *page, size_t offset, size_t len)
 
 	VM_BUG_ON(offset + len > PAGE_SIZE);
 	memset(addr + offset, 0, len);
-	flush_dcache_page(page);
 	kunmap_local(addr);
 }
 
