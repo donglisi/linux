@@ -3057,9 +3057,11 @@ static void __init enable_cpu_capabilities(u16 scope_mask)
 	 * instead of on_each_cpu() which uses an IPI, giving us a
 	 * PSTATE that disappears when we return.
 	 */
+	/*
 	if (!boot_scope)
 		stop_machine(cpu_enable_non_boot_scope_capabilities,
 			     NULL, cpu_online_mask);
+	*/
 }
 
 /*

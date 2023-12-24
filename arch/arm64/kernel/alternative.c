@@ -257,7 +257,7 @@ void __init apply_alternatives_all(void)
 
 	apply_alternatives_vdso();
 	/* better not try code patching on a live SMP system */
-	stop_machine(__apply_alternatives_multi_stop, NULL, cpu_online_mask);
+	// stop_machine(__apply_alternatives_multi_stop, NULL, cpu_online_mask);
 }
 
 /*
