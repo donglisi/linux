@@ -42,7 +42,7 @@
 
 #include "idle.c"
 
-#include "rt.c"
+// #include "rt.c"
 
 #ifdef CONFIG_SMP
 # include "cpudeadline.c"

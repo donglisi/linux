@@ -96,6 +96,9 @@
 #include "../../io_uring/io-wq.h"
 #include "../smpboot.h"
 
+int sysctl_sched_rt_runtime = 0;
+unsigned int sysctl_sched_rt_period = 0;
+
 EXPORT_TRACEPOINT_SYMBOL_GPL(ipi_send_cpu);
 EXPORT_TRACEPOINT_SYMBOL_GPL(ipi_send_cpumask);
 
@@ -3695,7 +3698,7 @@ void sched_set_stop_task(int cpu, struct task_struct *stop)
 		 * Reset it back to a normal scheduling class so that
 		 * it can die in pieces.
 		 */
-		old_stop->sched_class = &rt_sched_class;
+		// old_stop->sched_class = &rt_sched_class;
 	}
 }
 
@@ -4526,7 +4529,7 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 
 	INIT_LIST_HEAD(&p->rt.run_list);
 	p->rt.timeout		= 0;
-	p->rt.time_slice	= sched_rr_timeslice;
+	// p->rt.time_slice	= sched_rr_timeslice;
 	p->rt.on_rq		= 0;
 	p->rt.on_list		= 0;
 
@@ -4772,7 +4775,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	if (dl_prio(p->prio))
 		return -EAGAIN;
 	else if (rt_prio(p->prio))
-		p->sched_class = &rt_sched_class;
+		; // p->sched_class = &rt_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
 
@@ -7031,7 +7034,7 @@ static void __setscheduler_prio(struct task_struct *p, int prio)
 	if (dl_prio(prio))
 		; // p->sched_class = &dl_sched_class;
 	else if (rt_prio(prio))
-		p->sched_class = &rt_sched_class;
+		; // p->sched_class = &rt_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
 
@@ -9881,7 +9884,7 @@ void __init sched_init_smp(void)
 	current->flags &= ~PF_NO_SETAFFINITY;
 	sched_init_granularity();
 
-	init_sched_rt_class();
+	// init_sched_rt_class();
 	// init_sched_dl_class();
 
 	sched_smp_initialized = true;
@@ -9966,7 +9969,7 @@ void __init sched_init(void)
 #endif /* CONFIG_RT_GROUP_SCHED */
 	}
 
-	init_rt_bandwidth(&def_rt_bandwidth, global_rt_period(), global_rt_runtime());
+	// init_rt_bandwidth(&def_rt_bandwidth, global_rt_period(), global_rt_runtime());
 
 #ifdef CONFIG_SMP
 	init_defrootdomain();
@@ -9995,7 +9998,7 @@ void __init sched_init(void)
 		rq->calc_load_active = 0;
 		rq->calc_load_update = jiffies + LOAD_FREQ;
 		init_cfs_rq(&rq->cfs);
-		init_rt_rq(&rq->rt);
+		// init_rt_rq(&rq->rt);
 		// init_dl_rq(&rq->dl);
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
@@ -10022,7 +10025,7 @@ void __init sched_init(void)
 		init_tg_cfs_entry(&root_task_group, &rq->cfs, NULL, i, NULL);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 
-		rq->rt.rt_runtime = def_rt_bandwidth.rt_runtime;
+		// rq->rt.rt_runtime = def_rt_bandwidth.rt_runtime;
 #ifdef CONFIG_RT_GROUP_SCHED
 		init_tg_rt_entry(&root_task_group, &rq->rt, NULL, i, NULL);
 #endif
