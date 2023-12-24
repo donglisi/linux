@@ -4514,9 +4514,9 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 #endif
 
 	RB_CLEAR_NODE(&p->dl.rb_node);
-	init_dl_task_timer(&p->dl);
-	init_dl_inactive_task_timer(&p->dl);
-	__dl_clear_params(p);
+	// init_dl_task_timer(&p->dl);
+	// init_dl_inactive_task_timer(&p->dl);
+	// __dl_clear_params(p);
 
 	INIT_LIST_HEAD(&p->rt.run_list);
 	p->rt.timeout		= 0;
@@ -7023,7 +7023,7 @@ EXPORT_SYMBOL(default_wake_function);
 static void __setscheduler_prio(struct task_struct *p, int prio)
 {
 	if (dl_prio(prio))
-		p->sched_class = &dl_sched_class;
+		; // p->sched_class = &dl_sched_class;
 	else if (rt_prio(prio))
 		p->sched_class = &rt_sched_class;
 	else
@@ -7524,7 +7524,7 @@ static void __setscheduler_params(struct task_struct *p,
 	p->policy = policy;
 
 	if (dl_policy(policy))
-		__setparam_dl(p, attr);
+		; // __setparam_dl(p, attr);
 	else if (fair_policy(policy))
 		p->static_prio = NICE_TO_PRIO(attr->sched_nice);
 
@@ -7655,9 +7655,11 @@ recheck:
 	 */
 	if (attr->sched_priority > MAX_RT_PRIO-1)
 		return -EINVAL;
+/*
 	if ((dl_policy(policy) && !__checkparam_dl(attr)) ||
 	    (rt_policy(policy) != (attr->sched_priority != 0)))
 		return -EINVAL;
+*/
 
 	if (user) {
 		retval = user_check_sched_setscheduler(p, attr, policy, reset_on_fork);
@@ -7715,8 +7717,10 @@ recheck:
 			goto change;
 		if (rt_policy(policy) && attr->sched_priority != p->rt_priority)
 			goto change;
+/*
 		if (dl_policy(policy) && dl_param_changed(p, attr))
 			goto change;
+*/
 		if (attr->sched_flags & SCHED_FLAG_UTIL_CLAMP)
 			goto change;
 
@@ -7772,10 +7776,12 @@ change:
 	 * of a SCHED_DEADLINE task) we need to check if enough bandwidth
 	 * is available.
 	 */
+/*
 	if ((dl_policy(policy) || dl_task(p)) && sched_dl_overflow(p, policy, attr)) {
 		retval = -EBUSY;
 		goto unlock;
 	}
+*/
 
 	p->sched_reset_on_fork = reset_on_fork;
 	oldprio = p->prio;
@@ -8034,7 +8040,7 @@ err_size:
 static void get_params(struct task_struct *p, struct sched_attr *attr)
 {
 	if (task_has_dl_policy(p))
-		__getparam_dl(p, attr);
+		; // __getparam_dl(p, attr);
 	else if (task_has_rt_policy(p))
 		attr->sched_priority = p->rt_priority;
 	else
@@ -9328,7 +9334,7 @@ int cpuset_cpumask_can_shrink(const struct cpumask *cur,
 	if (cpumask_empty(cur))
 		return ret;
 
-	ret = dl_cpuset_cpumask_can_shrink(cur, trial);
+	ret = -1; // dl_cpuset_cpumask_can_shrink(cur, trial);
 
 	return ret;
 }
@@ -9631,7 +9637,7 @@ static void cpuset_cpu_active(void)
 static int cpuset_cpu_inactive(unsigned int cpu)
 {
 	if (!cpuhp_tasks_frozen) {
-		int ret = dl_bw_check_overflow(cpu);
+		int ret = -1; // dl_bw_check_overflow(cpu);
 
 		if (ret)
 			return ret;
@@ -9868,7 +9874,7 @@ void __init sched_init_smp(void)
 	sched_init_granularity();
 
 	init_sched_rt_class();
-	init_sched_dl_class();
+	// init_sched_dl_class();
 
 	sched_smp_initialized = true;
 }
@@ -9912,11 +9918,13 @@ void __init sched_init(void)
 	int i;
 
 	/* Make sure the linker didn't screw up */
+/*
 	BUG_ON(&idle_sched_class != &fair_sched_class + 1 ||
 	       &fair_sched_class != &rt_sched_class + 1 ||
 	       &rt_sched_class   != &dl_sched_class + 1);
+*/
 #ifdef CONFIG_SMP
-	BUG_ON(&dl_sched_class != &stop_sched_class + 1);
+//	BUG_ON(&dl_sched_class != &stop_sched_class + 1);
 #endif
 
 	wait_bit_init();
@@ -9980,7 +9988,7 @@ void __init sched_init(void)
 		rq->calc_load_update = jiffies + LOAD_FREQ;
 		init_cfs_rq(&rq->cfs);
 		init_rt_rq(&rq->rt);
-		init_dl_rq(&rq->dl);
+		// init_dl_rq(&rq->dl);
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
 		rq->tmp_alone_branch = &rq->leaf_cfs_rq_list;

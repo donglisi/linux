@@ -552,7 +552,7 @@ static int init_rootdomain(struct root_domain *rd)
 #endif
 
 	rd->visit_gen = 0;
-	init_dl_bw(&rd->dl_bw);
+	// init_dl_bw(&rd->dl_bw);
 	if (cpudl_init(&rd->cpudl) != 0)
 		goto free_rto_mask;
 
@@ -2683,7 +2683,7 @@ void partition_sched_domains_locked(int ndoms_new, cpumask_var_t doms_new[],
 				 * update_tasks_root_domain().
 				 */
 				rd = cpu_rq(cpumask_any(doms_cur[i]))->rd;
-				dl_clear_root_domain(rd);
+				// dl_clear_root_domain(rd);
 				goto match1;
 			}
 		}
