@@ -1321,7 +1321,7 @@ static int take_cpu_down(void *_param)
 	/* Remove CPU from timer broadcasting */
 	tick_offline_cpu(cpu);
 	/* Park the stopper thread */
-	stop_machine_park(cpu);
+	// stop_machine_park(cpu);
 	return 0;
 }
 
@@ -1342,7 +1342,7 @@ static int takedown_cpu(unsigned int cpu)
 	/*
 	 * So now all preempt/rcu users must observe !cpu_active().
 	 */
-	err = stop_machine_cpuslocked(take_cpu_down, NULL, cpumask_of(cpu));
+	err = -1; // stop_machine_cpuslocked(take_cpu_down, NULL, cpumask_of(cpu));
 	if (err) {
 		/* CPU refused to die */
 		irq_unlock_sparse();
@@ -1645,7 +1645,7 @@ void cpuhp_online_idle(enum cpuhp_state state)
 	 * Unpark the stopper thread before we start the idle loop (and start
 	 * scheduling); this ensures the stopper task is always available.
 	 */
-	stop_machine_unpark(smp_processor_id());
+	// stop_machine_unpark(smp_processor_id());
 
 	st->state = CPUHP_AP_ONLINE_IDLE;
 	complete_ap_thread(st, true);

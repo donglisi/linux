@@ -2665,8 +2665,10 @@ static int migration_cpu_stop(void *data)
 		 */
 		WARN_ON_ONCE(!pending->stop_pending);
 		task_rq_unlock(rq, p, &rf);
+/*
 		stop_one_cpu_nowait(task_cpu(p), migration_cpu_stop,
 				    &pending->arg, &pending->stop_work);
+*/
 		return 0;
 	}
 out:
@@ -2989,8 +2991,10 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
 		task_rq_unlock(rq, p, rf);
 
 		if (push_task) {
+/*
 			stop_one_cpu_nowait(rq->cpu, push_cpu_stop,
 					    p, &rq->push_work);
+*/
 		}
 
 		if (complete)
@@ -3060,8 +3064,10 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
 		task_rq_unlock(rq, p, rf);
 
 		if (!stop_pending) {
+/*
 			stop_one_cpu_nowait(cpu_of(rq), migration_cpu_stop,
 					    &pending->arg, &pending->stop_work);
+*/
 		}
 
 		if (flags & SCA_MIGRATE_ENABLE)
@@ -5510,7 +5516,7 @@ void sched_exec(void)
 
 		arg = (struct migration_arg){ p, dest_cpu };
 	}
-	stop_one_cpu(task_cpu(p), migration_cpu_stop, &arg);
+	// stop_one_cpu(task_cpu(p), migration_cpu_stop, &arg);
 }
 
 #endif
@@ -9184,7 +9190,7 @@ void sched_show_task(struct task_struct *p)
 		read_task_thread_flags(p));
 
 	print_worker_info(KERN_INFO, p);
-	print_stop_info(KERN_INFO, p);
+	// print_stop_info(KERN_INFO, p);
 	show_stack(p, NULL, KERN_INFO);
 	put_task_stack(p);
 }
@@ -9376,7 +9382,7 @@ int migrate_task_to(struct task_struct *p, int target_cpu)
 	/* TODO: This is not properly updating schedstats */
 
 	trace_sched_move_numa(p, curr_cpu, target_cpu);
-	return stop_one_cpu(curr_cpu, migration_cpu_stop, &arg);
+	return -1; // stop_one_cpu(curr_cpu, migration_cpu_stop, &arg);
 }
 
 /*
@@ -9512,8 +9518,10 @@ static void balance_push(struct rq *rq)
 	 * Both preemption and IRQs are still disabled.
 	 */
 	raw_spin_rq_unlock(rq);
+/*
 	stop_one_cpu_nowait(rq->cpu, __balance_push_cpu_stop, push_task,
 			    this_cpu_ptr(&push_work));
+*/
 	/*
 	 * At this point need_resched() is true and we'll take the loop in
 	 * schedule(). The next pick is obviously going to be the stop task

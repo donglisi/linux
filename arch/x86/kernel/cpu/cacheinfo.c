@@ -1194,8 +1194,10 @@ static int cache_ap_online(unsigned int cpu)
 	 *   2. CPU hotadd time. We let mtrr_add/del_page hold cpuhotplug
 	 *      lock to prevent MTRR entry changes
 	 */
+/*
 	stop_machine_from_inactive_cpu(cache_rendezvous_handler, NULL,
 				       cpu_cacheinfo_mask);
+*/
 
 	return 0;
 }
@@ -1214,7 +1216,7 @@ void cache_aps_init(void)
 	if (!memory_caching_control || !get_cache_aps_delayed_init())
 		return;
 
-	stop_machine(cache_rendezvous_handler, NULL, cpu_online_mask);
+	// stop_machine(cache_rendezvous_handler, NULL, cpu_online_mask);
 	set_cache_aps_delayed_init(false);
 }
 

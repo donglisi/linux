@@ -1503,7 +1503,7 @@ int timekeeping_notify(struct clocksource *clock)
 
 	if (tk->tkr_mono.clock == clock)
 		return 0;
-	stop_machine(change_clocksource, clock, NULL);
+	// stop_machine(change_clocksource, clock, NULL);
 	tick_clock_notify();
 	return tk->tkr_mono.clock == clock ? 0 : -1;
 }

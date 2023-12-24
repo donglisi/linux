@@ -2110,8 +2110,10 @@ retry:
 		push_task = get_push_task(rq);
 		if (push_task) {
 			raw_spin_rq_unlock(rq);
+/*
 			stop_one_cpu_nowait(rq->cpu, push_cpu_stop,
 					    push_task, &rq->push_work);
+*/
 			raw_spin_rq_lock(rq);
 		}
 
@@ -2449,8 +2451,10 @@ skip:
 
 		if (push_task) {
 			raw_spin_rq_unlock(this_rq);
+/*
 			stop_one_cpu_nowait(src_rq->cpu, push_cpu_stop,
 					    push_task, &src_rq->push_work);
+*/
 			raw_spin_rq_lock(this_rq);
 		}
 	}
