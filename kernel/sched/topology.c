@@ -474,7 +474,7 @@ static void free_rootdomain(struct rcu_head *rcu)
 {
 	struct root_domain *rd = container_of(rcu, struct root_domain, rcu);
 
-	cpupri_cleanup(&rd->cpupri);
+	// cpupri_cleanup(&rd->cpupri);
 	// cpudl_cleanup(&rd->cpudl);
 	free_cpumask_var(rd->dlo_mask);
 	free_cpumask_var(rd->rto_mask);
@@ -558,11 +558,13 @@ static int init_rootdomain(struct root_domain *rd)
 		goto free_rto_mask;
 	*/
 
+/*
 	if (cpupri_init(&rd->cpupri) != 0)
 		goto free_cpudl;
+*/
 	return 0;
 
-free_cpudl:
+// free_cpudl:
 	// cpudl_cleanup(&rd->cpudl);
 // free_rto_mask:
 	free_cpumask_var(rd->rto_mask);

@@ -84,7 +84,7 @@
 #include "wait.c"
 
 #ifdef CONFIG_SMP
-# include "cpupri.c"
+// # include "cpupri.c"
 # include "stop_task.c"
 # include "topology.c"
 #endif
