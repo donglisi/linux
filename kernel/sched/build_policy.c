@@ -45,7 +45,7 @@
 // #include "rt.c"
 
 #ifdef CONFIG_SMP
-# include "cpudeadline.c"
+// # include "cpudeadline.c"
 # include "pelt.c"
 #endif
 
